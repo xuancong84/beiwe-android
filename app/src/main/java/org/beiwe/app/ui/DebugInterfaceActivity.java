@@ -114,7 +114,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void getAlarmStates(View view) {
 		List<String> ids = PersistentData.getSurveyIds();
 		for (String surveyId : ids){
-			Log.i("most recent alarm state", "" +PersistentData.getMostRecentSurveyAlarmTime(surveyId) + ", " + PersistentData.getSurveyNotificationState(surveyId)) ; 
+			Log.i("most recent alarm state", "survey id: " + surveyId + ", " +PersistentData.getMostRecentSurveyAlarmTime(surveyId) + ", " + PersistentData.getSurveyNotificationState(surveyId)) ;
 		}
 	}
 	

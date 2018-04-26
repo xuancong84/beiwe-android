@@ -121,7 +121,7 @@ public class SurveyDownloader {
 				// Log.d("debugging survey update", "CREATE A SURVEY");
 				PersistentData.addSurveyId(surveyId);
 				PersistentData.createSurveyData(surveyId, jsonQuestionsString, jsonTimingsString, surveyType, jsonSettingsString);
-				BackgroundService.registerTimers(appContext);
+				BackgroundService.registerTimers(appContext); // We need to register the surveyId before we can schedule it
 				SurveyScheduler.scheduleSurvey(surveyId);
 				SurveyScheduler.checkImmediateTriggerSurvey(appContext, surveyId);
 			}

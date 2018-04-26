@@ -21,6 +21,9 @@ import org.beiwe.app.ui.utils.AlertsManager;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
+
 /**The LoadingActivity is a temporary RunningBackgroundServiceActivity (Not a SessionActivity,
  * check out those classes if you are confused) that pops up when the user opens the app.
  * This activity runs some simple checks to make sure that the device can actually run the app,
@@ -60,6 +63,11 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		Context ctx = this.getApplicationContext();
+		String sentryDsn = BuildConfig.SENTRY_DSN;
+		Sentry.init(sentryDsn, new AndroidSentryClientFactory(ctx));
+
 		setContentView(R.layout.activity_loading);
 				
 		if ( testHashing() ) {

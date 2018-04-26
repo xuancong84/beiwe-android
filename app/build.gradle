@@ -19,8 +19,8 @@ android {
         applicationId "org.beiwe.app"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 25       //TODO: update this Beiwe version code for new releases
-        versionName '2.2.6'  //TODO: update this Beiwe version number for new releases
+        versionCode 26       //TODO: update this Beiwe version code for new releases
+        versionName '2.2.7'  //TODO: update this Beiwe version number for new releases
         setProperty("archivesBaseName", "Beiwe-$versionName")
     }
     buildTypes {
@@ -31,6 +31,7 @@ android {
             manifestPlaceholders = [appNameSuffix: ""]
             buildConfigField("boolean", "APP_IS_BETA", "false")
             buildConfigField("boolean", "APP_IS_DEV", "false")
+            buildConfigField("String", "SENTRY_DSN", "\"Nothing Yet\"")
         }
         beta {
             versionNameSuffix("-beta")
@@ -38,6 +39,7 @@ android {
             manifestPlaceholders = [appNameSuffix: "-beta"]
             buildConfigField("boolean", "APP_IS_BETA", "true")
             buildConfigField("boolean", "APP_IS_DEV", "false")
+            buildConfigField("String", "SENTRY_DSN", "\"Nothing Yet\"")
         }
         development {
             versionNameSuffix("-development")
@@ -45,6 +47,7 @@ android {
             manifestPlaceholders = [appNameSuffix: "-development"]
             buildConfigField("boolean", "APP_IS_BETA", "true")
             buildConfigField("boolean", "APP_IS_DEV", "true")
+            buildConfigField("String", "SENTRY_DSN", "\"" + keystoreProperties['dsn'] + "\"")
         }
     }
     flavorDimensions "customizableServerUrl"
@@ -78,4 +81,5 @@ repositories {
 dependencies {
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.commonsware.cwac:anddown:0.3.0'
+    compile 'io.sentry:sentry-android:1.7.3'
 }

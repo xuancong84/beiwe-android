@@ -49,7 +49,8 @@ public class DeviceInfo {
 	 * 22: app version 2.2.3, improves error messages
 	 * 23: app version 2.2.4, OnnelaLabServer version and GooglePlayStore version (with customizable URL) have different names (Beiwe vs. Beiwe2)
 	 * 24: app version 2.2.5, handle null Bluetooth MAC Address in Android 8.0 and above
-	 * 25: app versoin 2.2.6, fix crash on opening app from audio survey notification when AppContext is null */
+	 * 25: app version 2.2.6, fix crash on opening app from audio survey notification when AppContext is null
+	 * 26: app version 2.2.7, Added Sentry */
 
 	private static String androidID;
 	private static String bluetoothMAC;
