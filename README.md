@@ -9,6 +9,11 @@ keyAlias=KEY_ALIAS
 storeFile=KEYSTORE_FILEPATH
 ```
 
+You can also configure a Sentry DSN in this file.
+```
+dsn=https://publicKey:secretKey@host:port/1?options
+```
+
 ### Three Build Variants
 There are three Build Variants of the Android app, specified in the `buildTypes` section of `app/build.gradle`.  To select which Build Variant the app compiles as, go to **Build** > **Select Build Variant** in the menu bar [(see the documentation)](https://developer.android.com/studio/run/index.html#changing-variant).  The three build types are:
 
