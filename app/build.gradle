@@ -31,7 +31,7 @@ android {
             manifestPlaceholders = [appNameSuffix: ""]
             buildConfigField("boolean", "APP_IS_BETA", "false")
             buildConfigField("boolean", "APP_IS_DEV", "false")
-            buildConfigField("String", "SENTRY_DSN", "\"Nothing Yet\"")
+            buildConfigField("String", "SENTRY_DSN", "\"" + keystoreProperties['releaseDSN'] + "\"")
         }
         beta {
             versionNameSuffix("-beta")
@@ -39,7 +39,7 @@ android {
             manifestPlaceholders = [appNameSuffix: "-beta"]
             buildConfigField("boolean", "APP_IS_BETA", "true")
             buildConfigField("boolean", "APP_IS_DEV", "false")
-            buildConfigField("String", "SENTRY_DSN", "\"Nothing Yet\"")
+            buildConfigField("String", "SENTRY_DSN", "\"" + keystoreProperties['betaDSN'] + "\"")
         }
         development {
             versionNameSuffix("-development")
@@ -47,7 +47,7 @@ android {
             manifestPlaceholders = [appNameSuffix: "-development"]
             buildConfigField("boolean", "APP_IS_BETA", "true")
             buildConfigField("boolean", "APP_IS_DEV", "true")
-            buildConfigField("String", "SENTRY_DSN", "\"" + keystoreProperties['dsn'] + "\"")
+            buildConfigField("String", "SENTRY_DSN", "\"" + keystoreProperties['developmentDSN'] + "\"")
         }
     }
     flavorDimensions "customizableServerUrl"

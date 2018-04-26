@@ -9,9 +9,11 @@ keyAlias=KEY_ALIAS
 storeFile=KEYSTORE_FILEPATH
 ```
 
-You can also configure a Sentry DSN in this file.
+You can also configure a Sentry DSN for each build type in this file.
 ```
-dsn=https://publicKey:secretKey@host:port/1?options
+releaseDSN=https://publicKey:secretKey@host:port/1?options
+betaDSN=https://publicKey:secretKey@host:port/1?options
+developmentDSN=https://publicKey:secretKey@host:port/1?options
 ```
 
 ### Three Build Variants

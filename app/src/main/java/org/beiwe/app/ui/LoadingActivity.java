@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.BackgroundService.BackgroundServiceBinder;
@@ -22,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
 import io.sentry.Sentry;
+import io.sentry.dsn.InvalidDsnException;
 import io.sentry.android.AndroidSentryClientFactory;
 
 /**The LoadingActivity is a temporary RunningBackgroundServiceActivity (Not a SessionActivity,
@@ -63,10 +65,15 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		Context ctx = this.getApplicationContext();
-		String sentryDsn = BuildConfig.SENTRY_DSN;
-		Sentry.init(sentryDsn, new AndroidSentryClientFactory(ctx));
+
+		try {
+			String sentryDsn = BuildConfig.SENTRY_DSN;
+			Sentry.init(sentryDsn, new AndroidSentryClientFactory(ctx));
+		}
+		catch (InvalidDsnException  ie){
+			Sentry.init(new AndroidSentryClientFactory(ctx));
+		}
 
 		setContentView(R.layout.activity_loading);
 				
