@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.ui.DebugInterfaceActivity;
 import org.beiwe.app.ui.LoadingActivity;
@@ -59,6 +60,7 @@ public class CrashHandler implements java.lang.Thread.UncaughtExceptionHandler{
 
 		try {
 			Sentry.getContext().addTag("user_id", PersistentData.getPatientID());
+			Sentry.getContext().addTag("server_url", PostRequest.addWebsitePrefix(""));
 			Sentry.capture(exception);
 		}
 		catch(Exception e1) {
