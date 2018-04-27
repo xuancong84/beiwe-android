@@ -48,6 +48,7 @@ android {
             buildConfigField("boolean", "APP_IS_BETA", "true")
             buildConfigField("boolean", "APP_IS_DEV", "true")
             buildConfigField("String", "SENTRY_DSN", "\"" + keystoreProperties['developmentDSN'] + "\"")
+            debuggable true
         }
     }
     flavorDimensions "customizableServerUrl"
