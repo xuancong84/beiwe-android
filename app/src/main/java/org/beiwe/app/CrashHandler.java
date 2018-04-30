@@ -41,7 +41,7 @@ public class CrashHandler implements java.lang.Thread.UncaughtExceptionHandler{
 		writeCrashlog(exception, errorHandlerContext);
 //		Log.i("inside crashlog", "does this line happen");  //keep this line for debugging crashes in the crash handler (yup.)
 		//setup to restart service
-		Intent restartServiceIntent = new Intent( errorHandlerContext, thread.getClass() );
+		Intent restartServiceIntent = new Intent( errorHandlerContext, BackgroundService.class );
 		restartServiceIntent.setPackage( errorHandlerContext.getPackageName() );
 		PendingIntent restartServicePendingIntent = PendingIntent.getService( errorHandlerContext, 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT );
 		AlarmManager alarmService = (AlarmManager) errorHandlerContext.getSystemService( Context.ALARM_SERVICE );
