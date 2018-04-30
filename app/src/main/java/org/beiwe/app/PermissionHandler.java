@@ -30,6 +30,7 @@ public class PermissionHandler {
 			permissionMap.put( Manifest.permission.READ_PHONE_STATE, 12 );
 			permissionMap.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, 13 );
 			permissionMap.put( Manifest.permission.RECORD_AUDIO, 14 );
+			permissionMap.put( Manifest.permission.ACCESS_COARSE_LOCATION, 15);
 			permissionMap = Collections.unmodifiableMap(permissionMap); }
 	
 	private static Map <String, String> permissionMessages = new HashMap <String, String> ();
@@ -46,6 +47,7 @@ public class PermissionHandler {
 			permissionMessages.put( Manifest.permission.READ_PHONE_STATE, "access your Phone service." );
 			permissionMessages.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, "start up on Boot." );
 			permissionMessages.put( Manifest.permission.RECORD_AUDIO, "access your Microphone." );
+			permissionMessages.put( Manifest.permission.ACCESS_COARSE_LOCATION, "use Location Services." );
 			permissionMessages = Collections.unmodifiableMap(permissionMessages); }
 	
 	public static String getNormalPermissionMessage(String permission) {
@@ -96,6 +98,7 @@ public class PermissionHandler {
 	public static boolean checkCallsPermissions( Context context ) { return ( checkAccessReadPhoneState(context) && checkAccessCallPhone(context) && checkAccessReadCallLog(context) ); }
 	public static boolean checkTextsPermissions( Context context ) { return ( checkAccessReadContacts(context) && checkAccessReadSms(context) && checkAccessReceiveMms(context) && checkAccessReceiveSms(context) ); }
 	// TODO: for unknown reasons, at some point in the past, the checkwifipermissions function included checkAccessCoarseLocation. This has been removed and tested on chris' android 6.0 phone and the nexus 7 tablet and does not appear to be necessary.
+	// TODO: We may need to re-enable this function because course location is required for wifi on Google Pixel phone as if Android 8.1.0
 	// public static boolean checkWifiPermissions( Context context ) { return ( checkAccessWifiState(context) && checkAccessNetworkState(context) && checkAccessCoarseLocation(context) ) ; }
 	public static boolean checkWifiPermissions( Context context ) { return ( checkAccessWifiState(context) && checkAccessNetworkState(context)) ; }
 	public static boolean checkBluetoothPermissions( Context context ) { return ( checkAccessBluetooth(context) && checkAccessBluetoothAdmin(context)); }
