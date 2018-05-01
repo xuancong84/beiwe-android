@@ -5,6 +5,7 @@ import org.beiwe.app.BackgroundService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 /**The BootListener is never actually instantiated elsewhere in the app.  It's job is to sit
  * and wait for either the boot broadcast or the SD (external) applications available.
@@ -38,24 +39,7 @@ public class BootListener extends BroadcastReceiver {
 	
 	@Override
 	public void onReceive(Context externalContext, Intent intent) {
-		
-		// Device turned on
-		// as of the android 6 compatibility update, Beiwe no longer supports installation onto external media 
-		if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-			/** Check whether the app is installed on the SD card, if so we need to
-			 *  stop and wait for the ACTION_EXTERNAL_APPLICATIONS_AVAILABLE intent. 
-			 *  intent to be sent to us. */
-			startBackgroundService(externalContext); }
-			//if the app is Not on an sd card, start up the background service.
-//			try { if ( checkForSDCardInstall(externalContext) ) { return; } }
-//			catch (NameNotFoundException e) { e.printStackTrace(); }
-//			startBackgroundService(externalContext); }
-//		
-//		if (intent.getAction().equals(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE)) {
-//			/** Almost identical to the boot_completed code, but invert the logic. */
-//			//If app is installed on the SD card, start the background service.
-//			try { if ( !checkForSDCardInstall(externalContext) ) { return; } }
-//			catch (NameNotFoundException e) { e.printStackTrace(); }
-//			startBackgroundService(externalContext); }
+		// Device turned on or other intents (see manifest)
+		startBackgroundService(externalContext);
 	}
 }
