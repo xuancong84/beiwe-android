@@ -87,13 +87,36 @@
             android:label="@string/title_activity_forgot_password" />
         <activity
             android:name="org.beiwe.app.ui.registration.RegisterActivity"
-            android:label="@string/title_activity_register" />
+            android:label="@string/title_activity_register"
+            android:screenOrientation="portrait" />
         <activity
             android:name="org.beiwe.app.ui.user.MainMenuActivity"
             android:label="@string/title_activity_main_menu" />
         <activity
             android:name="org.beiwe.app.ui.user.GraphActivity"
             android:label="@string/title_activity_graph" >
+        </activity>
+        <activity
+            android:name="org.beiwe.app.ui.registration.ResetPasswordActivity"
+            android:label="@string/title_activity_reset_password" >
+        </activity>
+        <activity
+            android:name=".ui.user.AboutActivityLoggedOut"
+            android:label="@string/title_activity_about" >
+        </activity>
+        <activity
+            android:name=".ui.user.AboutActivityLoggedIn"
+            android:label="@string/title_activity_about" >
+        </activity>
+        <activity
+            android:name="org.beiwe.app.ui.registration.PhoneNumberEntryActivity"
+            android:label="@string/title_activity_phone_number_entry"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="org.beiwe.app.ui.registration.ConsentFormActivity"
+            android:label="@string/title_activity_consent_form"
+            android:screenOrientation="portrait">
         </activity>
 
         <!-- SERVICE -->
@@ -133,27 +156,6 @@
                 <action android:name="android.intent.action.AIRPLANE_MODE" />
             </intent-filter>
         </receiver>
-
-        <activity
-            android:name="org.beiwe.app.ui.registration.ResetPasswordActivity"
-            android:label="@string/title_activity_reset_password" >
-        </activity>
-        <activity
-            android:name=".ui.user.AboutActivityLoggedOut"
-            android:label="@string/title_activity_about" >
-        </activity>
-        <activity
-            android:name=".ui.user.AboutActivityLoggedIn"
-            android:label="@string/title_activity_about" >
-        </activity>
-        <activity
-            android:name="org.beiwe.app.ui.registration.PhoneNumberEntryActivity"
-            android:label="@string/title_activity_phone_number_entry" >
-        </activity>
-        <activity
-            android:name="org.beiwe.app.ui.registration.ConsentFormActivity"
-            android:label="@string/title_activity_consent_form" >
-        </activity>
     </application>
 
 </manifest>
