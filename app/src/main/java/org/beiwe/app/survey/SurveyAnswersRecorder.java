@@ -74,7 +74,7 @@ public class SurveyAnswersRecorder {
         if (selectedRadioButtonIndex != null) {
             RadioGroup radioGroup = (RadioGroup) questionLayout.findViewById(R.id.radioGroup);
             RadioButton selectedButton = (RadioButton) radioGroup.getChildAt(selectedRadioButtonIndex);
-            return (String) selectedButton.getText();
+            return selectedButton.getText().toString();
         }
 		return null;
 	}
@@ -178,7 +178,7 @@ public class SurveyAnswersRecorder {
 
 				// If this CheckBox is selected, add it to the list of selected answers
 				if (checkBox.isChecked()) {
-					answersList += checkBox.getText() + ", ";
+					answersList += checkBox.getText().toString() + ", ";
 				}
 			}
 		}
