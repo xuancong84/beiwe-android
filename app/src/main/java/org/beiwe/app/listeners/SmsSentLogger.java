@@ -46,10 +46,9 @@ public class SmsSentLogger extends ContentObserver {
 	public void onChange(boolean selfChange) {
 		super.onChange(selfChange);		
 		try {
-			//todo: Josh, talk to Eli about testing closing the query (cursor.close();) here, I can't test sms/mms on my tablet.
 			Cursor cursor = appContext.getContentResolver().query( Uri.parse("content://sms"), null, null, null, null );
-			//cursor.moveToNext(); //TODO: Josh. low priority. Android studio is indicating a this can blow up.
 
+			//Check if this cursor has data
 			if(cursor!=null && cursor.moveToFirst()) {
 				String address = cursor.getString(cursor.getColumnIndex("address"));
 				String body = cursor.getString(cursor.getColumnIndex("body"));
