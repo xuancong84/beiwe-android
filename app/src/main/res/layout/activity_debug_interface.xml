@@ -81,7 +81,7 @@
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:text="Triggering a GPS or accelerometer recording will cause the Beiwe app to record that data stream for the duration set in your study's configuration. Manually triggering a GPS or accelerometer recording event DOES reset the periodic timers for that data stream." />
-	    
+
 	    <Button
 	        android:id="@+id/buttonEnableGPS"
 	        android:layout_width="wrap_content"
@@ -257,7 +257,23 @@
 			android:text="(dev) Crash Background Service in Five"
 			android:visibility="gone"/>
 
-        <Button
+		<Button
+			android:id="@+id/buttonEnterANRUI"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="enterANRUI"
+			android:text="(dev) Send UI into ANR"
+			android:visibility="gone"/>
+
+		<Button
+			android:id="@+id/buttonEnterANRBackground"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="enterANRBackground"
+			android:text="(dev) Send Background Service into ANR"
+			android:visibility="gone"/>
+
+		<Button
 			android:id="@+id/buttonTestManualErrorReport"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"

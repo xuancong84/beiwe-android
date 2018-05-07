@@ -163,6 +163,7 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.create_new_data_files_intent ) );
 		filter.addAction( appContext.getString( R.string.check_for_new_surveys_intent ) );
 		filter.addAction("crashBeiwe");
+		filter.addAction("enterANR");
 		List<String> surveyIds = PersistentData.getSurveyIds();
 		for (String surveyId : surveyIds) { filter.addAction(surveyId); }
 		appContext.registerReceiver(localHandle.timerReceiver, filter);
@@ -335,6 +336,15 @@ public class BackgroundService extends Service {
 			//this is a special action that will only run if the app device is in debug mode.
 			if (broadcastAction == "crashBeiwe" && BuildConfig.APP_IS_BETA) {
 				throw new NullPointerException("beeeeeoooop."); }
+			//this is a special action that will only run if the app device is in debug mode.
+			if (broadcastAction.equals("enterANR") && BuildConfig.APP_IS_BETA) {
+				try {
+					Thread.sleep(100000);
+				}
+				catch(InterruptedException ie) {
+					ie.printStackTrace();
+				}
+			}
 		}
 	};
 		

@@ -60,6 +60,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 			((Button) findViewById(R.id.buttonCrashBackgroundInFive)).setVisibility(View.VISIBLE);
 			((Button) findViewById(R.id.buttonTestManualErrorReport)).setVisibility(View.VISIBLE);
 			((Button) findViewById(R.id.stopBackgroundService)).setVisibility(View.VISIBLE);
+			((Button) findViewById(R.id.buttonEnterANRUI)).setVisibility(View.VISIBLE);
+			((Button) findViewById(R.id.buttonEnterANRBackground)).setVisibility(View.VISIBLE);
 		}
 
 	}
@@ -185,6 +187,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void crashUi(View view) { throw new NullPointerException("oops, you bwoke it."); }
 	public void crashBackground(View view) { BackgroundService.timer.setupExactSingleAlarm((long) 0, new Intent("crashBeiwe")); }
 	public void crashBackgroundInFive(View view) { BackgroundService.timer.setupExactSingleAlarm((long) 5000, new Intent("crashBeiwe")); }
+	public void enterANRUI(View view) { try { Thread.sleep(100000); } catch(InterruptedException ie) {	ie.printStackTrace(); } }
+	public void enterANRBackground(View view) { BackgroundService.timer.setupExactSingleAlarm((long) 0, new Intent("enterANR")); }
 	public void stopBackgroundService(View view) { backgroundService.stop(); }
 	public void testManualErrorReport(View view) {
 		try{ throw new NullPointerException("this is a test null pointer exception from the debug interface"); }
