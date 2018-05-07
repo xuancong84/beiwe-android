@@ -52,7 +52,10 @@ public class DeviceInfo {
 	 * 25: app version 2.2.6, fix crash on opening app from audio survey notification when AppContext is null
 	 * 26: app version 2.2.7, Added Sentry
 	 * 27: app version 2.3.0, fix restart on crash
-	 * 28: app version 2.3.1, Add ACCESS_COARSE_LOCATION to permission handler */
+	 * 28: app version 2.3.1, Add ACCESS_COARSE_LOCATION to permission handler
+	 * 29: app version 2.3.2, Add more intents to wake up the app in the BootListener;
+	 * 		fixed crashes in SMS Sent Listener, SpannableString survey questions, and Registration
+	 * 		screen orientation change*/
 
 	private static String androidID;
 	private static String bluetoothMAC;
