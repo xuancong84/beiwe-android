@@ -113,8 +113,8 @@ public class AudioRecorderCommon extends SessionActivity {
 			displayPlaybackButton = false;
 			/* Delete the temporary, unencrypted audio file so that nobody can play it back after
 	         * the user leaves this screen. may be redundant. */
-			waitUntilEncrypted();
-			AudioFileManager.delete(unencryptedTempAudioFileName);
+			//waitUntilEncrypted();
+			if(notEncrypting) { AudioFileManager.delete(unencryptedTempAudioFileName); }
 			if (everEncrypted) {
 				Toast.makeText(getApplicationContext(), PersistentData.getSurveySubmitSuccessToastText(), Toast.LENGTH_LONG).show();
 			}
