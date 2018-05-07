@@ -54,7 +54,7 @@ public class BackgroundService extends Service {
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
 	public void onCreate() {
 		appContext = this.getApplicationContext();
-		//		Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(appContext));
+		Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(appContext));
 		PersistentData.initialize( appContext );
 		TextFileManager.initialize( appContext );
 		PostRequest.initialize( appContext );
@@ -207,6 +207,12 @@ public class BackgroundService extends Service {
 		//checks that surveys are actually scheduled, if a survey is not scheduled, schedule it!
 		for (String surveyId : PersistentData.getSurveyIds() ) {
 			if ( !timer.alarmIsSet( new Intent(surveyId) ) ) { SurveyScheduler.scheduleSurvey(surveyId); } }
+
+		Intent restartServiceIntent = new Intent( getApplicationContext(), BackgroundService.class);
+		restartServiceIntent.setPackage( getPackageName() );
+		PendingIntent restartServicePendingIntent = PendingIntent.getService(getApplicationContext(), 1, restartServiceIntent, 0 );
+		AlarmManager alarmService = (AlarmManager) getApplicationContext().getSystemService( Context.ALARM_SERVICE );
+		alarmService.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000 * 60 * 2, 1000 * 60 * 2, restartServicePendingIntent);
 	}
 	
 	/**Refreshes the logout timer.
@@ -355,9 +361,9 @@ public class BackgroundService extends Service {
 	// We could also use, and may change it if we encounter problems, START_REDELIVER_INTENT, which has nearly identical behavior.
 	@Override public int onStartCommand(Intent intent, int flags, int startId){ //Log.d("BackroundService onStartCommand", "started with flag " + flags );
 		TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis()+" "+"started with flag " + flags);
-//		return START_STICKY;
+		return START_STICKY;
 		//we are testing out this restarting behavior for the service.  It is entirely unclear that this will have any observable effect.
-		return START_REDELIVER_INTENT;
+		//return START_REDELIVER_INTENT;
 	}
 	//(the rest of these are identical, so I have compactified it)
 	@Override public void onTaskRemoved(Intent rootIntent) { //Log.d("BackroundService onTaskRemoved", "onTaskRemoved called with intent: " + rootIntent.toString() );
