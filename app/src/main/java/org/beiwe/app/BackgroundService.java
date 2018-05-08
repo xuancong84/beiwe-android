@@ -67,14 +67,16 @@ public class BackgroundService extends Service {
 	public void doSetup() {
 		//Accelerometer and power state don't need permissons
 		startPowerStateListener();
-		gpsListener = new GPSListener(appContext);
+		gpsListener = new GPSListener(appContext); // Permissions are checked in the broadcast receiver
 		WifiListener.initialize( appContext );
 		if ( PersistentData.getAccelerometerEnabled() ) { accelerometerListener = new AccelerometerListener( appContext ); }
 		//Bluetooth, wifi, gps, calls, and texts need permissions
 		if ( PermissionHandler.confirmBluetooth(appContext)) { startBluetooth(); }
 //		if ( PermissionHandler.confirmWifi(appContext) ) { WifiListener.initialize( appContext ); }
 		if ( PermissionHandler.confirmTexts(appContext) ) { startSmsSentLogger(); startMmsSentLogger(); }
+		else if(PersistentData.getTextsEnabled() ){ sendBroadcast(Timer.checkForSMSEnabled); }
 		if ( PermissionHandler.confirmCalls(appContext) ) { startCallLogger(); }
+		else if (PersistentData.getCallsEnabled() ) { sendBroadcast(Timer.checkForCallsEnabled); }
 		//Only do the following if the device is registered
 		if ( PersistentData.isRegistered() ) {
 			DeviceInfo.initialize( appContext ); //if at registration this has already been initialized. (we don't care.)			
@@ -162,6 +164,8 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.upload_data_files_intent ) );
 		filter.addAction( appContext.getString( R.string.create_new_data_files_intent ) );
 		filter.addAction( appContext.getString( R.string.check_for_new_surveys_intent ) );
+		filter.addAction( appContext.getString( R.string.check_for_sms_enabled ) );
+		filter.addAction( appContext.getString( R.string.check_for_calls_enabled ) );
 		filter.addAction("crashBeiwe");
 		filter.addAction("enterANR");
 		List<String> surveyIds = PersistentData.getSurveyIds();
@@ -176,14 +180,23 @@ public class BackgroundService extends Service {
 	public void startTimers() {
 		Long now = System.currentTimeMillis();
 		Log.i("BackgroundService", "running startTimer logic.");
-		if (PersistentData.getAccelerometerEnabled() && ( //if accelerometer data recording is enabled and...
-				PersistentData.getMostRecentAlarmTime( getString(R.string.turn_accelerometer_on )) < now || //the most recent accelerometer alarm time is in the past, or...
-				!timer.alarmIsSet(Timer.accelerometerOnIntent) ) ) { //there is no scheduled accelerometer-on timer. 
-			sendBroadcast( Timer.accelerometerOnIntent ); // start accelerometer timers (immediately runs accelerometer recording session).
-			//note: when there is no accelerometer-off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+		if (PersistentData.getAccelerometerEnabled()) {  //if accelerometer data recording is enabled and...
+			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_accelerometer_on )) < now || //the most recent accelerometer alarm time is in the past, or...
+					!timer.alarmIsSet(Timer.accelerometerOnIntent) ) { //there is no scheduled accelerometer-on timer.
+				sendBroadcast(Timer.accelerometerOnIntent); // start accelerometer timers (immediately runs accelerometer recording session).
+				//note: when there is no accelerometer-off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+			}
+			else if(timer.alarmIsSet(Timer.accelerometerOffIntent)
+					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_accelerometer_on )) - PersistentData.getAccelerometerOffDurationMilliseconds() + 1000 > now ) {
+				accelerometerListener.turn_on();
+			}
 		}
 		if ( PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gps_on )) < now || !timer.alarmIsSet(Timer.gpsOnIntent) ) {
 			sendBroadcast( Timer.gpsOnIntent ); }
+		else if(PersistentData.getGpsEnabled() && timer.alarmIsSet(Timer.gpsOffIntent)
+				&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gps_on )) - PersistentData.getGpsOffDurationMilliseconds() + 1000 > now ) {
+			gpsListener.turn_on();
+		}
 		
 		if ( PersistentData.getMostRecentAlarmTime( getString(R.string.run_wifi_log)) < now || //the most recent wifi log time is in the past or
 				!timer.alarmIsSet(Timer.wifiLogIntent) ) {
@@ -325,7 +338,15 @@ public class BackgroundService extends Service {
 				loginPage.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				appContext.startActivity(loginPage);
 				return; }
-			
+
+			if (broadcastAction.equals( appContext.getString(R.string.check_for_sms_enabled) ) ) {
+				if ( PermissionHandler.confirmTexts(appContext) ) { startSmsSentLogger(); startMmsSentLogger(); }
+				else if (PersistentData.getTextsEnabled() ) { timer.setupExactSingleAlarm(30000L, Timer.checkForSMSEnabled); }
+			}
+			if (broadcastAction.equals( appContext.getString(R.string.check_for_calls_enabled) ) ) {
+				if ( PermissionHandler.confirmCalls(appContext) ) { startCallLogger(); }
+				else if (PersistentData.getCallsEnabled() ) { timer.setupExactSingleAlarm(30000L, Timer.checkForCallsEnabled); }
+			}
 			//checks if the action is the id of a survey (expensive), if so pop up the notification for that survey, schedule the next alarm
 			if ( PersistentData.getSurveyIds().contains( broadcastAction ) ) {
 //				Log.i("BACKGROUND SERVICE", "new notification: " + broadcastAction);
@@ -368,12 +389,17 @@ public class BackgroundService extends Service {
 	##############################################################################*/
 	
 	/** The BackgroundService is meant to be all the time, so we return START_STICKY */
-	// We could also use, and may change it if we encounter problems, START_REDELIVER_INTENT, which has nearly identical behavior.
-	@Override public int onStartCommand(Intent intent, int flags, int startId){ //Log.d("BackroundService onStartCommand", "started with flag " + flags );
+	@Override public int onStartCommand(Intent intent, int flags, int startId){
+		// startId 0 means normal, 1 means an intent is being redelivered as per START_REDELIVER_INTENT, 2 means the intent is a retry because onStartCommand failed to be called or failed to return.
+		Log.d("BackroundService onStartCommand", "started with flag " + flags );
+		if(intent!=null) { // Sometimes the intent is null
+			Log.d("BackroundService onStartCommand", "started with intent " + intent.getAction());
+		}
+		Log.d("BackroundService onStartCommand", "started with startId " + startId); // Seems to be an incrementing number of how many times this was called.
 		TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis()+" "+"started with flag " + flags);
-		return START_STICKY;
-		//we are testing out this restarting behavior for the service.  It is entirely unclear that this will have any observable effect.
-		//return START_REDELIVER_INTENT;
+
+		return START_STICKY; // Start sticky tells the OS to try and restart the service if it ever dies
+		//return START_REDELIVER_INTENT; //Redeliver intent tells the OS to restart the service and redeliver the last intent if that intent was not finished being processed.
 	}
 	//(the rest of these are identical, so I have compactified it)
 	@Override public void onTaskRemoved(Intent rootIntent) { //Log.d("BackroundService onTaskRemoved", "onTaskRemoved called with intent: " + rootIntent.toString() );

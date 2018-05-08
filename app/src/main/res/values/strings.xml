@@ -168,6 +168,8 @@
     <string name="create_new_data_files_intent">Create new data files</string>
     <string name="check_for_new_surveys_intent">Check for new surveys</string>
     <string name="run_wifi_log">Wifi Log</string>
+    <string name="check_for_sms_enabled">Check SMS</string>
+    <string name="check_for_calls_enabled">Check Calls</string>
 
     <!-- Menu Items -->
     <string name="menu_sign_out">Sign Out</string>

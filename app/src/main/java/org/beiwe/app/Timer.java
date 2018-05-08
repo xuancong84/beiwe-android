@@ -37,7 +37,9 @@ public class Timer {
 	public static Intent uploadDatafilesIntent;
 	public static Intent createNewDataFilesIntent;
 	public static Intent checkForNewSurveysIntent;
-	
+	public static Intent checkForSMSEnabled;
+	public static Intent checkForCallsEnabled;
+
 	// Intent filters
 	//TODO: Eli. These are never used? investigate.
 	public IntentFilter getAccelerometerOnIntentFilter() { return new IntentFilter( accelerometerOnIntent.getAction() ); }
@@ -73,6 +75,9 @@ public class Timer {
 		uploadDatafilesIntent = setupIntent( appContext.getString(R.string.upload_data_files_intent) );
 		createNewDataFilesIntent = setupIntent( appContext.getString(R.string.create_new_data_files_intent) );
 		checkForNewSurveysIntent = setupIntent( appContext.getString(R.string.check_for_new_surveys_intent) );
+
+		checkForSMSEnabled = setupIntent( appContext.getString( R.string.check_for_sms_enabled ) );
+		checkForCallsEnabled = setupIntent( appContext.getString( R.string.check_for_calls_enabled ) );
 	}
 	
 	/* ######################################################################
