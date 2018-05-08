@@ -48,6 +48,10 @@ public class SurveyNotifications {
 			notificationBuilder.setLargeIcon( BitmapFactory.decodeResource(appContext.getResources(), R.drawable.voice_recording_icon) );
 			notificationBuilder.setGroup(surveyId);
 		}
+		else if ( PersistentData.getSurveyType(surveyId).equals("image_survey")) {
+			Log.w("Image Survey", "Image Survey Not Implemented");
+			return;
+		}
 		else { throw new NullPointerException("survey type did not parse correctly: " + PersistentData.getSurveyType(surveyId)); }
 
         activityIntent.putExtra( "surveyId", surveyId );
