@@ -2,6 +2,7 @@ package org.beiwe.app.ui.utils;
 
 import org.beiwe.app.R;
 import org.beiwe.app.storage.PersistentData;
+import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.survey.AudioRecorderActivity;
 import org.beiwe.app.survey.AudioRecorderEnhancedActivity;
 import org.beiwe.app.survey.SurveyActivity;
@@ -48,11 +49,10 @@ public class SurveyNotifications {
 			notificationBuilder.setLargeIcon( BitmapFactory.decodeResource(appContext.getResources(), R.drawable.voice_recording_icon) );
 			notificationBuilder.setGroup(surveyId);
 		}
-		else if ( PersistentData.getSurveyType(surveyId).equals("image_survey")) {
-			Log.w("Image Survey", "Image Survey Not Implemented");
+		else {
+			TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis()+" "+" encountered unknown survey type: " + PersistentData.getSurveyType(surveyId)+", cannot schedule survey.");
 			return;
 		}
-		else { throw new NullPointerException("survey type did not parse correctly: " + PersistentData.getSurveyType(surveyId)); }
 
         activityIntent.putExtra( "surveyId", surveyId );
 		activityIntent.setFlags( Intent.FLAG_ACTIVITY_CLEAR_TOP ); //modifies behavior when the user is already in the app.
