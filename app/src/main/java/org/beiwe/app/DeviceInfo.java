@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
-import android.telephony.TelephonyManager;
 
 import org.beiwe.app.storage.EncryptionEngine;
 
@@ -41,7 +40,7 @@ public class DeviceInfo {
 	 * 14: app version 2.1.2, minor behavior improvement in extremely rare occurrence inside of sessionActivity, see inline documentation there for details.
 	 * 15: bug fix in crash handler
 	 * 16: app version 2.1.3, rewrite of file uploading to fix App Not Responding (ANR) errors; also BackgroundService.onStartCommand() now uses START_REDELIVER_INTENT
-	 * 17: app version 2.1.4, fixed a bug that still showed the next survey, even if that survey time had been deleted in the backend and the update had propagated to the phone
+	 * 17: app version 2.1.4, fixed a bug that still showed the next survey, even if that survey time had been deleted in the backend and the updatee had propagated to the phone
 	 * 18: app version 2.1.5, fixed bugs with recording received SMS messages and sent MMS messages
 	 * 19: app version 2.2.0, enabled app to point to any server URL; improved Registration and Password Reset interfaces and networking.
 	 * 20: app version 2.2.1, updated text on Registration screens
@@ -83,7 +82,6 @@ public class DeviceInfo {
 			if ( bluetoothAdapter == null || bluetoothAdapter.getAddress() == null ) { bluetoothMAC = ""; }
 			else { bluetoothMAC = bluetoothAdapter.getAddress(); }
 		}
-		TelephonyManager phoneManager = (TelephonyManager) appContext.getSystemService(Context.TELEPHONY_SERVICE);
 	}
 	
 	public static String getBeiweVersion() {
