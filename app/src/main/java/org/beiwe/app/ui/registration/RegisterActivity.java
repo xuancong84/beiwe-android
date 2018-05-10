@@ -185,6 +185,10 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		// Log.i("reg", "onResume");
 		super.onResume();
 		activityNotVisible = false;
+		
+		// This used to be in an else block, its idempotent and we appear to have been having problems with it not having been run.
+		DeviceInfo.initialize(getApplicationContext());
+		
 		if (aboutToResetFalseActivityReturn) {
 			aboutToResetFalseActivityReturn = false;
 			thisResumeCausedByFalseActivityReturn = false;
@@ -196,7 +200,6 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 			}
 			else if (!prePromptActive && !postPromptActive ) { showPrePermissionAlert(this); }
 		}
-		else { DeviceInfo.initialize(getApplicationContext()); }
 	}
 	
 	@Override
