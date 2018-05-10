@@ -156,7 +156,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	 * @return */
 	private String getPhoneNumber() {
 		TelephonyManager phoneManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
-		String phoneNumber = phoneManager.getLine1Number();
+		@SuppressLint("MissingPermission") String phoneNumber = phoneManager.getLine1Number(); //We cannot reach this code without having SMS permissions.
 		if (phoneNumber == null) { return EncryptionEngine.hashPhoneNumber(""); }
 		return EncryptionEngine.hashPhoneNumber(phoneNumber);
 	}
