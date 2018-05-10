@@ -28,6 +28,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -35,6 +37,10 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
+
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
+import io.sentry.dsn.InvalidDsnException;
 
 public class BackgroundService extends Service {
 	private Context appContext;
@@ -54,6 +60,14 @@ public class BackgroundService extends Service {
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
 	public void onCreate() {
 		appContext = this.getApplicationContext();
+		try {
+			String sentryDsn = BuildConfig.SENTRY_DSN;
+			Sentry.init(sentryDsn, new AndroidSentryClientFactory(appContext));
+		}
+		catch (InvalidDsnException ie){
+			Sentry.init(new AndroidSentryClientFactory(appContext));
+		}
+
 		Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(appContext));
 		PersistentData.initialize( appContext );
 		TextFileManager.initialize( appContext );
@@ -162,6 +176,7 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.upload_data_files_intent ) );
 		filter.addAction( appContext.getString( R.string.create_new_data_files_intent ) );
 		filter.addAction( appContext.getString( R.string.check_for_new_surveys_intent ) );
+		filter.addAction( ConnectivityManager.CONNECTIVITY_ACTION );
 		filter.addAction("crashBeiwe");
 		filter.addAction("enterANR");
 		List<String> surveyIds = PersistentData.getSurveyIds();
@@ -312,6 +327,7 @@ public class BackgroundService extends Service {
 			if (broadcastAction.equals( appContext.getString(R.string.create_new_data_files_intent) ) ) {
 				TextFileManager.makeNewFilesForEverything();
 				timer.setupExactSingleAlarm(PersistentData.getCreateNewDataFilesFrequencyMilliseconds(), Timer.createNewDataFilesIntent);
+                PostRequest.uploadAllFiles();
 				return; }
 			//Downloads the most recent survey questions and schedules the surveys.
 			if (broadcastAction.equals( appContext.getString(R.string.check_for_new_surveys_intent))) {
@@ -332,9 +348,17 @@ public class BackgroundService extends Service {
 				SurveyNotifications.displaySurveyNotification(appContext, broadcastAction);
 				SurveyScheduler.scheduleSurvey(broadcastAction);
 				return; }
-			
+
+			if (broadcastAction.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+				NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+				if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+					PostRequest.uploadAllFiles();
+					return;
+				}
+			}
+
 			//this is a special action that will only run if the app device is in debug mode.
-			if (broadcastAction == "crashBeiwe" && BuildConfig.APP_IS_BETA) {
+			if (broadcastAction.equals("crashBeiwe") && BuildConfig.APP_IS_BETA) {
 				throw new NullPointerException("beeeeeoooop."); }
 			//this is a special action that will only run if the app device is in debug mode.
 			if (broadcastAction.equals("enterANR") && BuildConfig.APP_IS_BETA) {

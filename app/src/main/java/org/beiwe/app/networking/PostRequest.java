@@ -41,6 +41,7 @@ public class PostRequest {
 	/** Simply runs the constructor, using the applcationContext to grab variables.  Idempotent. */
 	public static void initialize(Context applicationContext) { new PostRequest(applicationContext); }
 
+	private static final Object FILE_UPLOAD_LOCK = new Object() {}; //Our lock for file uploading
 
 	/*##################################################################################
 	 ##################### Publicly Accessible Functions ###############################
@@ -269,31 +270,42 @@ public class PostRequest {
 	}
 
 	/** Uploads all files to the Beiwe server.
-	 * Ensures that the upload task will stop itself ~2.5 seconds before the next upload event should occur.
 	 * Files get deleted as soon as a 200 OK code in received from the server. */
 	private static void doUploadAllFiles(){
-		long stopTime = System.currentTimeMillis() + (PersistentData.getUploadDataFilesFrequencyMilliseconds() - 2500);
-		String[] files = TextFileManager.getAllUploadableFiles();
-		Log.i("uploading", "uploading " + files.length + " files");
-		File file = null;
-		URL uploadUrl = null; //set up url, write a crash log and fail gracefully if this ever breaks.
-		try { uploadUrl = new URL(addWebsitePrefix(appContext.getResources().getString(R.string.data_upload_url))); }
-		catch (MalformedURLException e) { CrashHandler.writeCrashlog(e, appContext); return; }
-
-		for (String fileName: TextFileManager.getAllUploadableFiles()) {
+		synchronized (FILE_UPLOAD_LOCK) {
+			//long stopTime = System.currentTimeMillis() + PersistentData.getUploadDataFilesFrequencyMilliseconds();
+			long stopTime = System.currentTimeMillis() + 1000 * 60 * 60; //One hour to upload files
+			String[] files = TextFileManager.getAllUploadableFiles();
+			Log.i("uploading", "uploading " + files.length + " files");
+			File file = null;
+			URL uploadUrl = null; //set up url, write a crash log and fail gracefully if this ever breaks.
 			try {
-				 file = new File(appContext.getFilesDir() + "/" + fileName);
-//				Log.d("uploading", "uploading " + file.getName());
-				if ( PostRequest.doFileUpload(file, uploadUrl, stopTime) == 200 ) { TextFileManager.delete(fileName); }
-			}
-			catch (IOException e) { Log.w("PostRequest.java", "Failed to upload file " + fileName + ". Raised exception: " + e.getCause()); }
-
-			if (stopTime < System.currentTimeMillis()) {
-				Log.w("UPLOAD STUFF", "shutting down upload due to time limit, should restart in ~2.5 seconds.");
+				uploadUrl = new URL(addWebsitePrefix(appContext.getResources().getString(R.string.data_upload_url)));
+			} catch (MalformedURLException e) {
+				CrashHandler.writeCrashlog(e, appContext);
 				return;
 			}
+
+			for (String fileName : TextFileManager.getAllUploadableFiles()) {
+				try {
+					file = new File(appContext.getFilesDir() + "/" + fileName);
+//				Log.d("uploading", "uploading " + file.getName());
+					if (PostRequest.doFileUpload(file, uploadUrl, stopTime) == 200) {
+						TextFileManager.delete(fileName);
+					}
+				} catch (IOException e) {
+					Log.w("PostRequest.java", "Failed to upload file " + fileName + ". Raised exception: " + e.getCause());
+				}
+
+				if (stopTime < System.currentTimeMillis()) {
+					Log.w("UPLOAD STUFF", "shutting down upload due to time limit, we should never reach this.");
+                    TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis()+" upload time limit of 1 hr reached, there are likely files still on the phone that have not been uploaded." );
+					CrashHandler.writeCrashlog(new Exception("Upload took longer than 1 hour"), appContext);
+                    return;
+				}
+			}
+			Log.i("DOING UPLOAD STUFF", "DONE WITH UPLOAD");
 		}
-		Log.i("DOING UPLOAD STUFF", "DONE WITH UPLOAD");
 	}
 
 
