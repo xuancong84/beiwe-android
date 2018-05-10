@@ -109,19 +109,18 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 			}
 			PersistentData.setLoginCredentials(userID, tempPassword);
 			// Log.d("RegisterActivity", "trying \"" + LoginManager.getPatientID() + "\" with password \"" + LoginManager.getPassword() + "\"" );
-			tryToRegisterWithTheServer(addWebsitePrefix(getApplicationContext().getString(R.string.register_url)), newPassword);
+			tryToRegisterWithTheServer(this, addWebsitePrefix(getApplicationContext().getString(R.string.register_url)), newPassword);
 		}
 	}
 	
 	
 	/**Implements the server request logic for user, device registration. 
 	 * @param url the URL for device registration*/
-	private void tryToRegisterWithTheServer(final String url, final String newPassword) {
-		final Activity currentActivity = this;
-
-		new HTTPUIAsync(url, this) {
+	static private void tryToRegisterWithTheServer(final Activity currentActivity, final String url, final String newPassword) {
+		new HTTPUIAsync(url, currentActivity ) {
 			@Override
 			protected Void doInBackground(Void... arg0) {
+				DeviceInfo.initialize(currentActivity.getApplicationContext());
 				parameters= PostRequest.makeParameter("bluetooth_id", DeviceInfo.getBluetoothMAC() ) +
 							PostRequest.makeParameter("new_password", newPassword) +
 							PostRequest.makeParameter("phone_number", ((RegisterActivity) activity).getPhoneNumber() ) +
@@ -146,7 +145,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 					activity.startActivity(new Intent(activity.getApplicationContext(), PhoneNumberEntryActivity.class) );
 					activity.finish();
 				} else {
-					AlertsManager.showAlert(responseCode, getString(R.string.couldnt_register), currentActivity);
+					AlertsManager.showAlert(responseCode, currentActivity.getString(R.string.couldnt_register), currentActivity);
 				}
 			}
 		};
