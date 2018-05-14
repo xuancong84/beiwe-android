@@ -54,7 +54,10 @@ public class DeviceInfo {
 	 * 28: app version 2.3.1, Add ACCESS_COARSE_LOCATION to permission handler
 	 * 29: app version 2.3.2, Add more intents to wake up the app in the BootListener;
 	 * 		fixed crashes in SMS Sent Listener, SpannableString survey questions, and Registration
-	 * 		screen orientation change*/
+	 * 		screen orientation change
+	 * 30: app version 2.3.3, Adds a repeating timer to restart the Background Service if crashed,
+	 * 		improves file upload, fixes an occasional crash in audio recordings,
+	 * 		fixes an occasional crash in registration, handles image surveys without crashing */
 
 	private static String androidID;
 	private static String bluetoothMAC;

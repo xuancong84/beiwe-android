@@ -19,8 +19,8 @@ android {
         applicationId "org.beiwe.app"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 29       //TODO: update this Beiwe version code for new releases
-        versionName '2.3.2'  //TODO: update this Beiwe version number for new releases
+        versionCode 30       //TODO: update this Beiwe version code for new releases
+        versionName '2.3.3'  //TODO: update this Beiwe version number for new releases
         setProperty("archivesBaseName", "Beiwe-$versionName")
     }
     buildTypes {
