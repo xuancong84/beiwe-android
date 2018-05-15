@@ -46,8 +46,7 @@ public class SmsSentLogger extends ContentObserver {
 	public void onChange(boolean selfChange) {
 		super.onChange(selfChange);		
 		try {
-			Cursor cursor = appContext.getContentResolver().query( Uri.parse("content://sms"), null, null, null, null );
-
+			Cursor cursor = appContext.getContentResolver().query( Uri.parse("content://sms"), null, null, null, "date DESC" );
 			//Check if this cursor has data
 			if(cursor!=null && cursor.moveToFirst()) {
 				String address = cursor.getString(cursor.getColumnIndex("address"));

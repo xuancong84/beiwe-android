@@ -28,6 +28,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -36,9 +38,14 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
 
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
+import io.sentry.dsn.InvalidDsnException;
+
 public class BackgroundService extends Service {
 	private Context appContext;
 	public GPSListener gpsListener;
+	public PowerStateListener powerStateListener;
 	public AccelerometerListener accelerometerListener;
 	public BluetoothListener bluetoothListener;
 	public static Timer timer;
@@ -54,6 +61,14 @@ public class BackgroundService extends Service {
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
 	public void onCreate() {
 		appContext = this.getApplicationContext();
+		try {
+			String sentryDsn = BuildConfig.SENTRY_DSN;
+			Sentry.init(sentryDsn, new AndroidSentryClientFactory(appContext));
+		}
+		catch (InvalidDsnException ie){
+			Sentry.init(new AndroidSentryClientFactory(appContext));
+		}
+
 		Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(appContext));
 		PersistentData.initialize( appContext );
 		TextFileManager.initialize( appContext );
@@ -136,13 +151,20 @@ public class BackgroundService extends Service {
 	 * though they are for monitoring deeper power state changes in 5.0 and 6.0, respectively. */
 	@SuppressLint("InlinedApi")
 	private void startPowerStateListener() {
-		IntentFilter filter = new IntentFilter(); 
-		filter.addAction(Intent.ACTION_SCREEN_ON);
-		filter.addAction(Intent.ACTION_SCREEN_OFF);
-		if (android.os.Build.VERSION.SDK_INT >= 21) { filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED); }
-		if (android.os.Build.VERSION.SDK_INT >= 23) { filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED); }  
-		registerReceiver( (BroadcastReceiver) new PowerStateListener(), filter);
-		PowerStateListener.start(appContext);
+		if(powerStateListener == null) {
+			IntentFilter filter = new IntentFilter();
+			filter.addAction(Intent.ACTION_SCREEN_ON);
+			filter.addAction(Intent.ACTION_SCREEN_OFF);
+			if (android.os.Build.VERSION.SDK_INT >= 21) {
+				filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+			}
+			if (android.os.Build.VERSION.SDK_INT >= 23) {
+				filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+			}
+			powerStateListener = new PowerStateListener();
+			registerReceiver(powerStateListener, filter);
+			PowerStateListener.start(appContext);
+		}
 	}
 	
 	
@@ -166,6 +188,7 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.check_for_new_surveys_intent ) );
 		filter.addAction( appContext.getString( R.string.check_for_sms_enabled ) );
 		filter.addAction( appContext.getString( R.string.check_for_calls_enabled ) );
+		filter.addAction( ConnectivityManager.CONNECTIVITY_ACTION );
 		filter.addAction("crashBeiwe");
 		filter.addAction("enterANR");
 		List<String> surveyIds = PersistentData.getSurveyIds();
@@ -325,6 +348,7 @@ public class BackgroundService extends Service {
 			if (broadcastAction.equals( appContext.getString(R.string.create_new_data_files_intent) ) ) {
 				TextFileManager.makeNewFilesForEverything();
 				timer.setupExactSingleAlarm(PersistentData.getCreateNewDataFilesFrequencyMilliseconds(), Timer.createNewDataFilesIntent);
+                PostRequest.uploadAllFiles();
 				return; }
 			//Downloads the most recent survey questions and schedules the surveys.
 			if (broadcastAction.equals( appContext.getString(R.string.check_for_new_surveys_intent))) {
@@ -353,9 +377,17 @@ public class BackgroundService extends Service {
 				SurveyNotifications.displaySurveyNotification(appContext, broadcastAction);
 				SurveyScheduler.scheduleSurvey(broadcastAction);
 				return; }
-			
+
+			if (broadcastAction.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+				NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+				if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+					PostRequest.uploadAllFiles();
+					return;
+				}
+			}
+
 			//this is a special action that will only run if the app device is in debug mode.
-			if (broadcastAction == "crashBeiwe" && BuildConfig.APP_IS_BETA) {
+			if (broadcastAction.equals("crashBeiwe") && BuildConfig.APP_IS_BETA) {
 				throw new NullPointerException("beeeeeoooop."); }
 			//this is a special action that will only run if the app device is in debug mode.
 			if (broadcastAction.equals("enterANR") && BuildConfig.APP_IS_BETA) {
@@ -389,17 +421,11 @@ public class BackgroundService extends Service {
 	##############################################################################*/
 	
 	/** The BackgroundService is meant to be all the time, so we return START_STICKY */
-	@Override public int onStartCommand(Intent intent, int flags, int startId){
-		// startId 0 means normal, 1 means an intent is being redelivered as per START_REDELIVER_INTENT, 2 means the intent is a retry because onStartCommand failed to be called or failed to return.
-		Log.d("BackroundService onStartCommand", "started with flag " + flags );
-		if(intent!=null) { // Sometimes the intent is null
-			Log.d("BackroundService onStartCommand", "started with intent " + intent.getAction());
-		}
-		Log.d("BackroundService onStartCommand", "started with startId " + startId); // Seems to be an incrementing number of how many times this was called.
+	@Override public int onStartCommand(Intent intent, int flags, int startId){ //Log.d("BackroundService onStartCommand", "started with flag " + flags );
 		TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis()+" "+"started with flag " + flags);
-
-		return START_STICKY; // Start sticky tells the OS to try and restart the service if it ever dies
-		//return START_REDELIVER_INTENT; //Redeliver intent tells the OS to restart the service and redeliver the last intent if that intent was not finished being processed.
+		return START_STICKY;
+		//we are testing out this restarting behavior for the service.  It is entirely unclear that this will have any observable effect.
+		//return START_REDELIVER_INTENT;
 	}
 	//(the rest of these are identical, so I have compactified it)
 	@Override public void onTaskRemoved(Intent rootIntent) { //Log.d("BackroundService onTaskRemoved", "onTaskRemoved called with intent: " + rootIntent.toString() );

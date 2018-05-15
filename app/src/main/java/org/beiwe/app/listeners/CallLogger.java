@@ -81,6 +81,7 @@ public class CallLogger extends ContentObserver {
 		// Database information
 		textsDBQuery = appContext.getContentResolver().query(allCalls, null, null, null, android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
 		//TODO: Eli. low priority. Android Studio indicates that moveToFirst can blow up, investigate if we care.
+		if(textsDBQuery == null) return;
 		textsDBQuery.moveToFirst();
 		
 		int currentSize = textsDBQuery.getCount();
