@@ -45,6 +45,7 @@ import io.sentry.dsn.InvalidDsnException;
 public class BackgroundService extends Service {
 	private Context appContext;
 	public GPSListener gpsListener;
+	public PowerStateListener powerStateListener;
 	public AccelerometerListener accelerometerListener;
 	public BluetoothListener bluetoothListener;
 	public static Timer timer;
@@ -148,13 +149,20 @@ public class BackgroundService extends Service {
 	 * though they are for monitoring deeper power state changes in 5.0 and 6.0, respectively. */
 	@SuppressLint("InlinedApi")
 	private void startPowerStateListener() {
-		IntentFilter filter = new IntentFilter(); 
-		filter.addAction(Intent.ACTION_SCREEN_ON);
-		filter.addAction(Intent.ACTION_SCREEN_OFF);
-		if (android.os.Build.VERSION.SDK_INT >= 21) { filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED); }
-		if (android.os.Build.VERSION.SDK_INT >= 23) { filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED); }  
-		registerReceiver( (BroadcastReceiver) new PowerStateListener(), filter);
-		PowerStateListener.start(appContext);
+		if(powerStateListener == null) {
+			IntentFilter filter = new IntentFilter();
+			filter.addAction(Intent.ACTION_SCREEN_ON);
+			filter.addAction(Intent.ACTION_SCREEN_OFF);
+			if (android.os.Build.VERSION.SDK_INT >= 21) {
+				filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+			}
+			if (android.os.Build.VERSION.SDK_INT >= 23) {
+				filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+			}
+			powerStateListener = new PowerStateListener();
+			registerReceiver(powerStateListener, filter);
+			PowerStateListener.start(appContext);
+		}
 	}
 	
 	
