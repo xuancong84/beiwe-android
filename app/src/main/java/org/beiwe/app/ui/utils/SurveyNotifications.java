@@ -10,27 +10,39 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.support.v4.app.NotificationCompat;
-import android.util.Log;
+import android.graphics.Color;
+import android.os.Build;
 
 /**The purpose of this class is to deal with all that has to do with Survey Notifications.
  * This is a STATIC method, and is called from the background service.
  * @author Eli Jones */
 //TODO: Low priority: Eli. Redoc.
 public class SurveyNotifications {
+	private static final String CHANNEL_ID = "survey_notification_channel";
 	/**Creates a survey notification that transfers the user to the survey activity. 
 	 * Note: the notification can only be dismissed through submitting the survey
 	 * @param appContext */
 	public static void displaySurveyNotification(Context appContext, String surveyId) {
-		//activityIntent contains information on the action triggered by tapping the notification. 
+		//activityIntent contains information on the action triggered by tapping the notification.
+
+		Notification.Builder notificationBuilder;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			registerSurveyNotificationChannel(appContext);
+			notificationBuilder = new Notification.Builder(appContext, CHANNEL_ID);
+		}
+		else {
+			notificationBuilder = new Notification.Builder(appContext);
+		}
+
 		Intent activityIntent;
-		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(appContext);
 		notificationBuilder.setContentTitle( appContext.getString(R.string.survey_notification_app_name) );
+		notificationBuilder.setShowWhen(true); // As of API 24 this no longer defaults to true and must be set explicitly
 		if ( PersistentData.getSurveyType(surveyId).equals("tracking_survey" ) ) {
 			activityIntent = new Intent(appContext, SurveyActivity.class);
 			activityIntent.setAction( appContext.getString(R.string.start_tracking_survey) );
@@ -84,8 +96,28 @@ public class SurveyNotifications {
 		//And, finally, set the notification state for zombie alarms.
 		PersistentData.setSurveyNotificationState(surveyId, true);
 	}
-	
-	
+
+	// Apps targeting api 26 or later need a notification channel to display notifications
+	private static void registerSurveyNotificationChannel(Context context) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+			if (notificationManager == null || notificationManager.getNotificationChannel(CHANNEL_ID) != null) {
+				return;
+			}
+
+			NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Survey Notification", NotificationManager.IMPORTANCE_LOW);
+
+			// Copied these from an example, these values should change
+			notificationChannel.setDescription("Channel description");
+			notificationChannel.enableLights(true);
+			notificationChannel.setLightColor(Color.RED);
+			notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+			notificationChannel.enableVibration(true);
+
+			notificationManager.createNotificationChannel(notificationChannel);
+		}
+	}
+
 	/**Use to dismiss the notification corresponding the surveyIdInt.
 	 * @param appContext
 	 * @param surveyId */
