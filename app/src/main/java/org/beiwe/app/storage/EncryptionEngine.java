@@ -23,6 +23,11 @@ import android.annotation.SuppressLint;
 import android.util.Base64;
 import android.util.Log;
 
+import org.spongycastle.crypto.PBEParametersGenerator;
+import org.spongycastle.crypto.digests.SHA256Digest;
+import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.spongycastle.crypto.params.KeyParameter;
+
 /**The EncryptionEngine handles all encryption and hashing duties for the app.
  * Per-file AES encryption keys are generated and encrypted with the provided RSA key.
  * The RSA key is provided by the administrating server.
@@ -64,6 +69,20 @@ public class EncryptionEngine {
 		hash.update( input.getBytes("UTF-8") );
 		return toBase64String( hash.digest() );		
 	}
+
+	/** Takes a string as input, outputs a PBKDF2 hash.
+	 * @param input A String to hash.
+	 * @return a Base64 String of the hash result. */
+	public static String PBKDF2Hash (String input) {
+		byte[] salt = PersistentData.getHashSalt();
+		int iterations = PersistentData.getHashIterations();
+		PKCS5S2ParametersGenerator generator = new PKCS5S2ParametersGenerator(new SHA256Digest());
+		generator.init(PBEParametersGenerator.PKCS5PasswordToUTF8Bytes(input.toCharArray()), salt, iterations);
+
+		// keySize is 512 because we think it is the size of the digest
+		KeyParameter key = (KeyParameter)generator.generateDerivedMacParameters(512);
+		return toBase64String(key.getKey());
+	}
 	
 	/**Converts a phone number into a 64-character hexadecimal string.
 	 * First standardizes the phone numbers by grabbing the last 10 digits, so
@@ -87,7 +106,22 @@ public class EncryptionEngine {
 		else { last10 = justDigits; }
 
 		// Hash the last 10 digits
-		return safeHash(last10);
+
+		if (PersistentData.getUseAnonymizedHashing()) {
+			return PBKDF2Hash(last10);
+		}
+		else {
+			return safeHash(last10);
+		}
+	}
+
+	public static String hashMAC(String MAC) {
+		if (PersistentData.getUseAnonymizedHashing()) {
+			return PBKDF2Hash(MAC);
+		}
+		else {
+			return safeHash(MAC);
+		}
 	}
 	
 	
