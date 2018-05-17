@@ -118,6 +118,8 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 	 * @return boolean of whether hashing works */
 	private Boolean testHashing() {
 		// Runs the unsafe hashing function and catches errors, if it catches errors.
+		// The hashMAC function does not need to be tested here because it should not actually blow up.
+		// The source indicates that it should not blow up.
 		try { EncryptionEngine.unsafeHash("input"); }
 		catch (NoSuchAlgorithmException noSuchAlgorithm) { return false; }
 		catch (UnsupportedEncodingException unSupportedEncoding) { return false; }

@@ -103,6 +103,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 		Log.i("test encrypt - length:", "" + encrypted.length() );
 		Log.i("test encrypt - output:", encrypted );
 		Log.i("test hash:", EncryptionEngine.safeHash( encrypted ) );
+		Log.i("test hash:", EncryptionEngine.hashMAC( encrypted ) );
 	}
 	public void logDataToggles(View view) {
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Accelerometer: " + Boolean.toString(PersistentData.getAccelerometerEnabled()));
