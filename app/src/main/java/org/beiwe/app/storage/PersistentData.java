@@ -10,7 +10,9 @@ import org.beiwe.app.R;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.Random;
 
 /**A class for managing patient login sessions.
  * Uses SharedPreferences in order to save username-password combinations.
@@ -444,5 +446,50 @@ public class PersistentData {
 	public static void clearSurveyQuestionMemory(String surveyId) {
 		editor.putString(surveyId + "-questionIds", new JSONArray().toString() );
 		editor.commit();
+	}
+
+	/*###########################################################################################
+	###################################### Encryption ###########################################
+	###########################################################################################*/
+
+	private static final String HASH_SALT_KEY = "hash_salt_key";
+	private static final String HASH_ITERATIONS_KEY = "hash_iterations_key";
+	private static final String USE_ANONYMIZED_HASHING_KEY = "use_anonymized_hashing";
+
+	// Get salt for pbkdf2 hashing
+	public static byte[] getHashSalt() {
+		String saltString = pref.getString(HASH_SALT_KEY, null);
+		if(saltString == null) { // create salt if it does not exist
+			byte[] newSalt = SecureRandom.getSeed(64);
+			editor.putString(HASH_SALT_KEY, new String(newSalt));
+			editor.commit();
+			return newSalt;
+		}
+		else {
+			return saltString.getBytes();
+		}
+	}
+
+	// Get iterations for pbkdf2 hashing
+	public static int getHashIterations() {
+		int iterations = pref.getInt(HASH_ITERATIONS_KEY, 0);
+		if(iterations == 0) { // create iterations if it does not exist
+			// create random iteration count from 900 to 1100
+			int newIterations = 1100 - new Random().nextInt(200);
+			editor.putInt(HASH_ITERATIONS_KEY, newIterations);
+			editor.commit();
+			return newIterations;
+		}
+		else {
+			return iterations;
+		}
+	}
+
+	public static void setUseAnonymizedHashing(boolean useAnonymizedHashing) {
+		editor.putBoolean(USE_ANONYMIZED_HASHING_KEY, useAnonymizedHashing);
+		editor.commit();
+	}
+	public static boolean getUseAnonymizedHashing() {
+		return pref.getBoolean(USE_ANONYMIZED_HASHING_KEY, true); //If not present, default to safe hashing
 	}
 }

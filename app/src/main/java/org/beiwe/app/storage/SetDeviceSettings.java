@@ -63,5 +63,10 @@ public class SetDeviceSettings {
 		PersistentData.setConsentFormText(consentFormText);
 		String surveySubmitSuccessToastText = deviceSettings.getString("survey_submit_success_toast_text");
 		PersistentData.setSurveySubmitSuccessToastText(surveySubmitSuccessToastText);
+
+		// Anonymized hashing
+		boolean useAnonymizedHashing = deviceSettings.getBoolean("use_anonymized_hashing");
+		PersistentData.setUseAnonymizedHashing(useAnonymizedHashing);
+
 	}
 }
