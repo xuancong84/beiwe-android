@@ -39,7 +39,7 @@ public class WifiListener {
 				//we save some compute on the encryption here by dumping all the lines to print in one go.
 				StringBuilder data = new StringBuilder();
 				for (ScanResult result : scanResults){
-					data.append( EncryptionEngine.safeHash( result.BSSID) + "," + result.frequency + "," + result.level );
+					data.append( EncryptionEngine.hashMAC( result.BSSID) + "," + result.frequency + "," + result.level );
 					data.append("\n"); }
 
 				// Create a new file, write the data to it, and close the file

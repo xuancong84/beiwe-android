@@ -79,7 +79,7 @@ public class DeviceInfo {
 		if ( android.os.Build.VERSION.SDK_INT >= 23) { //This will not work on all devices: http://stackoverflow.com/questions/33377982/get-bluetooth-local-mac-address-in-marshmallow
 			String bluetoothAddress = Settings.Secure.getString(appContext.getContentResolver(), "bluetooth_address");
 			if (bluetoothAddress == null) { bluetoothAddress = ""; }
-			bluetoothMAC = EncryptionEngine.safeHash(bluetoothAddress); }
+			bluetoothMAC = EncryptionEngine.hashMAC(bluetoothAddress); }
 		else { //Android before version 6
 			BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();	
 			if ( bluetoothAdapter == null || bluetoothAdapter.getAddress() == null ) { bluetoothMAC = ""; }
@@ -103,5 +103,5 @@ public class DeviceInfo {
 	public static String getManufacturer() { return android.os.Build.MANUFACTURER; }
 	public static String getModel() { return android.os.Build.MODEL; }
 	public static String getAndroidID() { return EncryptionEngine.safeHash(androidID); }
-	public static String getBluetoothMAC() { return EncryptionEngine.safeHash(bluetoothMAC); }
+	public static String getBluetoothMAC() { return EncryptionEngine.hashMAC(bluetoothMAC); }
 }

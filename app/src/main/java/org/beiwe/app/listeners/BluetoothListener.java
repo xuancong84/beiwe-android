@@ -166,7 +166,7 @@ public class BluetoothListener extends BroadcastReceiver {
 	private LeScanCallback bluetoothCallback = new LeScanCallback() {
 		@Override
 		public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-			TextFileManager.getBluetoothLogFile().writeEncrypted( System.currentTimeMillis() + "," + EncryptionEngine.safeHash( device.toString() ) + "," + rssi );
+			TextFileManager.getBluetoothLogFile().writeEncrypted( System.currentTimeMillis() + "," + EncryptionEngine.hashMAC( device.toString() ) + "," + rssi );
 //			Log.i("Bluetooth",  System.currentTimeMillis() + "," + device.toString() + ", " + rssi );
 		} }; 
 	
