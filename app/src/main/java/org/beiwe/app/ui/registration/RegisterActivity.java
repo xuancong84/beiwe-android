@@ -121,6 +121,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 			@Override
 			protected Void doInBackground(Void... arg0) {
 				DeviceInfo.initialize(currentActivity.getApplicationContext());
+				// Always use anonymized hashing when first registering the phone.
 				parameters= PostRequest.makeParameter("bluetooth_id", DeviceInfo.getBluetoothMAC() ) +
 							PostRequest.makeParameter("new_password", newPassword) +
 							PostRequest.makeParameter("phone_number", ((RegisterActivity) activity).getPhoneNumber() ) +
@@ -134,6 +135,29 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 							PostRequest.makeParameter("product", DeviceInfo.getProduct() ) +
 							PostRequest.makeParameter("beiwe_version", DeviceInfo.getBeiweVersion() );
 				responseCode = PostRequest.httpRegister(parameters, url);
+
+				// If we are not using anonymized hashing, resubmit the phone identifying information
+				if (responseCode == 200 && !PersistentData.getUseAnonymizedHashing()) { // This short circuits so if the initial register fails, it won't try here
+					try {
+						//Sleep for one second so the backend does not receive information with overlapping timestamps
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					parameters= PostRequest.makeParameter("bluetooth_id", DeviceInfo.getBluetoothMAC() ) +
+							PostRequest.makeParameter("new_password", newPassword) +
+							PostRequest.makeParameter("phone_number", ((RegisterActivity) activity).getPhoneNumber() ) +
+							PostRequest.makeParameter("device_id", DeviceInfo.getAndroidID() ) +
+							PostRequest.makeParameter("device_os", "Android") +
+							PostRequest.makeParameter("os_version", DeviceInfo.getAndroidVersion() ) +
+							PostRequest.makeParameter("hardware_id", DeviceInfo.getHardwareId() ) +
+							PostRequest.makeParameter("brand", DeviceInfo.getBrand() ) +
+							PostRequest.makeParameter("manufacturer", DeviceInfo.getManufacturer() ) +
+							PostRequest.makeParameter("model", DeviceInfo.getModel() ) +
+							PostRequest.makeParameter("product", DeviceInfo.getProduct() ) +
+							PostRequest.makeParameter("beiwe_version", DeviceInfo.getBeiweVersion() );
+					int resp = PostRequest.httpRegisterAgain(parameters, url);
+				}
 				return null;
 			}
 		

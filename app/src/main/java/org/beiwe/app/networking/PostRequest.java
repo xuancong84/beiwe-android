@@ -65,6 +65,23 @@ public class PostRequest {
 			return 502; }
 	}
 
+	/**For use with Async tasks.
+	 * This opens a connection with the server, sends the HTTP parameters, then receives a response code, and returns it.
+	 * This function exists to resend registration data if we are using non anonymized hashing
+	 * @param parameters HTTP parameters
+	 * @return serverResponseCode */
+	public static int httpRegisterAgain( String parameters, String url ) {
+		try {
+			return doRegisterRequestSimple( parameters, new URL(url) ); }
+		catch (MalformedURLException e) {
+			Log.e("PostRequestFileUpload", "malformed URL");
+			e.printStackTrace();
+			return 0; }
+		catch (IOException e) {
+			e.printStackTrace();
+			Log.e("PostRequest","Network error: " + e.getMessage());
+			return 502; }
+	}
 
 	/**For use with Async tasks.
 	 * Makes an HTTP post request with the provided URL and parameters, returns the server's response code from that request
@@ -190,6 +207,15 @@ public class PostRequest {
 		return response;
 	}
 
+	// Simple registration that does not parse response data.
+	// This is used for resubmitting non anonymized identifier data during registration
+	private static int doRegisterRequestSimple(String parameters, URL url) throws IOException {
+		HttpsURLConnection connection = setupHTTP(parameters, url, null);
+		int response = connection.getResponseCode();
+		String responseBody = readResponse(connection);
+		connection.disconnect();
+		return response;
+	}
 	
 	private static int writeKey(String key, int httpResponse) {
 		if ( !key.startsWith("MIIBI") ) {
