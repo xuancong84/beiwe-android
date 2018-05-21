@@ -378,7 +378,7 @@ public class BackgroundService extends Service {
 				SurveyScheduler.scheduleSurvey(broadcastAction);
 				return; }
 
-			if (broadcastAction.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+			if ( PersistentData.isRegistered() && broadcastAction.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
 				NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 				if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
 					PostRequest.uploadAllFiles();
