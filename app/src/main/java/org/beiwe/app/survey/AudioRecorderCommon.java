@@ -41,7 +41,6 @@ public class AudioRecorderCommon extends SessionActivity {
 	 * behavior to occur inside of SessionActivity.  This was the least complex way to handle that detail. */
 	@Override public Boolean isAudioRecorderActivity() { return true; }
 
-	private final Integer ENCRYPTION_TIMEOUT_INTERVAL_MILLISECONDS = 20;
 	protected static final String LOG_TAG = "AudioRecorderActivity";
 	protected final float DISABLED_BUTTON_ALPHA = 0.5f;
 
