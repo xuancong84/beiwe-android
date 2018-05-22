@@ -113,26 +113,12 @@ public class AudioRecorderCommon extends SessionActivity {
 			displayPlaybackButton = false;
 			/* Delete the temporary, unencrypted audio file so that nobody can play it back after
 	         * the user leaves this screen. may be redundant. */
-			//waitUntilEncrypted();
 			if(notEncrypting) { AudioFileManager.delete(unencryptedTempAudioFileName); }
 			if (everEncrypted) {
 				Toast.makeText(getApplicationContext(), PersistentData.getSurveySubmitSuccessToastText(), Toast.LENGTH_LONG).show();
 			}
 			// TODO: show an error message if there was a recording and it failed to be encrypted
 		}
-	}
-
-	private void waitUntilEncrypted(){
-//		int count = 0;
-//		Log.d("audio - encryption", "notEncrypting: " + notEncrypting);
-		while (!notEncrypting){
-			try {
-//				count++;
-//				Log.d("audio - encryption", "encryption blocking...");
-				this.wait(ENCRYPTION_TIMEOUT_INTERVAL_MILLISECONDS);
-			} catch (InterruptedException e) { e.printStackTrace(); }
-		}
-//		Log.d("audio - encryption", "encryption blocked for " + count * ENCRYPTION_TIMEOUT_INTERVAL_MILLISECONDS + " milliseconds");
 	}
 	
 	private static String getPromptText(String surveyId, Context appContext) {
