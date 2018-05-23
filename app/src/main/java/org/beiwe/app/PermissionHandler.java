@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
+import android.util.Log;
 
 import org.beiwe.app.storage.PersistentData;
 
@@ -31,6 +32,8 @@ public class PermissionHandler {
 			permissionMap.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, 13 );
 			permissionMap.put( Manifest.permission.RECORD_AUDIO, 14 );
 			permissionMap.put( Manifest.permission.ACCESS_COARSE_LOCATION, 15);
+			permissionMap.put( Manifest.permission.RECEIVE_MMS, 16);
+			permissionMap.put( Manifest.permission.RECEIVE_SMS, 17);
 			permissionMap = Collections.unmodifiableMap(permissionMap); }
 	
 	private static Map <String, String> permissionMessages = new HashMap <String, String> ();
@@ -48,8 +51,10 @@ public class PermissionHandler {
 			permissionMessages.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, "start up on Boot." );
 			permissionMessages.put( Manifest.permission.RECORD_AUDIO, "access your Microphone." );
 			permissionMessages.put( Manifest.permission.ACCESS_COARSE_LOCATION, "use Location Services." );
+			permissionMessages.put( Manifest.permission.RECEIVE_MMS, "receive MMS messages.");
+			permissionMessages.put( Manifest.permission.RECEIVE_SMS, "receive SMS messages.");
 			permissionMessages = Collections.unmodifiableMap(permissionMessages); }
-	
+
 	public static String getNormalPermissionMessage(String permission) {
 		return String.format("For this study Beiwe needs permission to %s Please press allow on the following permissions request.", permissionMessages.get(permission) );
 	}

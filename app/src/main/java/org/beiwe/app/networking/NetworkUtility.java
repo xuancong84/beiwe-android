@@ -64,8 +64,13 @@ public class NetworkUtility {
 			return false; }     //so return no connectivity.
 		
 		for (Network network : networks ) {
+			// The documentation says this function returns null if it is not sent a valid network
 			NetworkInfo networkInfo = connManager.getNetworkInfo(network);
-			if ( networkInfo.getType() == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected() && networkInfo.isAvailable()) {
+
+			// Apparently we can't trust connManager.getAllNetworks() to return valid networks
+			// and thus we must make sure networkInfo is not null.
+			// Conditional short circuit makes sure we never hit networkInfo.getType() if networkInfo is null
+			if (networkInfo != null && (networkInfo.getType() == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected() && networkInfo.isAvailable())) {
 				return true; } //return true if there is a connected and available wifi connection! 
 		}
 		return false; //there were no wifi-type network connections active and available, return false.

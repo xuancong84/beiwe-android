@@ -223,7 +223,7 @@ public class PostRequest {
 			return 2; }
 		// Log.d( "PostRequest", "Received a key: " + key );
 		TextFileManager.getKeyFile().deleteSafely();
-		TextFileManager.getKeyFile().writePlaintext( key );
+		TextFileManager.getKeyFile().safeWritePlaintext( key );
 		return httpResponse;
 	}
 	

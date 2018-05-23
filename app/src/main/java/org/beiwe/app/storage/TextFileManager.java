@@ -25,6 +25,7 @@ import org.beiwe.app.survey.SurveyTimingsRecorder;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 /**The (Text)FileManager.
  * The FileManager is implemented as a Singleton.  More accurately the static object contains several
@@ -188,17 +189,46 @@ public class TextFileManager {
 			if ( !PersistentData.isRegistered() ) { return false; }
 			this.fileName = PersistentData.getPatientID() + "_" + this.name + "_" + System.currentTimeMillis() + ".csv";
 		}
-		//write the key to the file (if it has one)
-		if ( this.encrypted ) {
-			this.AESKey = EncryptionEngine.newAESKey();
-			try { this.writePlaintext( EncryptionEngine.encryptRSA( this.AESKey ) ); }
-			catch (InvalidKeySpecException e) {
-				Log.e("initializing a file", "could not get key, this is not expected behavior?");
-				CrashHandler.writeCrashlog(e, appContext); }
+
+		try {
+			//write the key to the file (if it has one)
+			if (this.encrypted) {
+				this.AESKey = EncryptionEngine.newAESKey();
+				this.unsafeWritePlaintext(EncryptionEngine.encryptRSA(this.AESKey));
+
+			}
+			//write the csv header, if the file has a header
+			if (header != null && header.length() > 0) {
+				// We will not call writeEncrypted here because we need to handle the specific case of the new file not being created properly.
+				this.unsafeWritePlaintext(EncryptionEngine.encryptAES(header, this.AESKey));
+
+			}
 		}
-		//write the csv header, if the file has a header
-		if ( header != null && header.length() > 0 ) {
-			this.writeEncrypted(header); }
+		catch (FileNotFoundException e) {
+			Log.e("TextFileManager", "could not find file to write to, " + this.fileName);
+			e.printStackTrace();
+			CrashHandler.writeCrashlog(e, appContext);
+			this.fileName = null;  // Set filename null so that the system tries to create the file again later
+			return false;}
+		catch (IOException e) {
+			if(e.getMessage().toLowerCase().contains("enospc")) { // If the device is out of storage, alert the user
+				Log.e("ENOSPC", "Out of storage space");
+			}
+			Log.e("TextFileManager", "error in the write operation: " + e.getMessage() );
+			e.printStackTrace();
+			CrashHandler.writeCrashlog(e, appContext);
+			this.fileName = null;
+			return false;}
+		catch (InvalidKeyException e) {
+			Log.e("TextFileManager", "encrypted write operation without an AES key: " + this.name + ", " + this.fileName);
+			CrashHandler.writeCrashlog(e, appContext);
+			this.fileName = null;
+			return false; }
+		catch (InvalidKeySpecException e) { //this occurs when an encrypted write operation occurs without an RSA key file, we eat this error because it only happens during registration/initial config.
+			Log.e("TextFileManager", "EncryptionEngine.AES_TOO_EARLY_ERROR: " + this.name + ", " + header);
+			e.printStackTrace();
+			this.fileName = null;
+			return false; }
 		return true;
 	}
 	
@@ -222,26 +252,36 @@ public class TextFileManager {
 	 * Prints a stacktrace on a write error, but does not crash. If there is no
 	 * file, a new file will be created.
 	 * @param data any unicode valid string*/
-	public synchronized void writePlaintext(String data){
+	private synchronized void unsafeWritePlaintext(String data) throws FileNotFoundException, IOException{
+		FileOutputStream outStream;
+		//write the output, we always want mode append
+		outStream = appContext.openFileOutput(this.fileName, Context.MODE_APPEND);
+		outStream.write( ( data ).getBytes() );
+		outStream.write( "\n".getBytes() );
+		outStream.flush();
+		outStream.close();
+
+	}
+
+	public synchronized void safeWritePlaintext(String data) {
 		if (this.isDummy) { return; }
 		if (fileName == null) this.newFile();
-		FileOutputStream outStream;
-		try {							//write the output, we always want mode append
-			outStream = appContext.openFileOutput(this.fileName, Context.MODE_APPEND);
-			outStream.write( ( data ).getBytes() );
-			outStream.write( "\n".getBytes() );
-			outStream.flush();
-			outStream.close(); }
+		try {
+			unsafeWritePlaintext(data);
+		}
 		catch (FileNotFoundException e) {
 			Log.e("TextFileManager", "could not find file to write to, " + this.fileName);
 			e.printStackTrace();
 			CrashHandler.writeCrashlog(e, appContext); }
 		catch (IOException e) {
+			if(e.getMessage().toLowerCase().contains("enospc")) { // If the device is out of storage, alert the user
+				Log.e("ENOSPC", "Out of storage space");
+			}
 			Log.e("TextFileManager", "error in the write operation: " + e.getMessage() );
 			e.printStackTrace();
 			CrashHandler.writeCrashlog(e, appContext); }
 	}
-	
+
 	/**Encrypts string data and writes it to a file.
 	 * @param data any unicode valid string */
 	public synchronized void writeEncrypted(String data) {
@@ -251,7 +291,7 @@ public class TextFileManager {
 			if (!this.newFile() ) { return; }
 		}
 		
-		try { this.writePlaintext( EncryptionEngine.encryptAES( data, this.AESKey ) ); }
+		try { this.safeWritePlaintext( EncryptionEngine.encryptAES( data, this.AESKey ) ); }
 		catch (InvalidKeyException e) {
 			Log.e("TextFileManager", "encrypted write operation without an AES key: " + this.name + ", " + this.fileName);
 			CrashHandler.writeCrashlog(e, appContext);
