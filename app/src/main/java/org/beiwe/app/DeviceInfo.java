@@ -57,7 +57,11 @@ public class DeviceInfo {
 	 * 		screen orientation change
 	 * 30: app version 2.3.3, Adds a repeating timer to restart the Background Service if crashed,
 	 * 		improves file upload, fixes an occasional crash in audio recordings,
-	 * 		fixes an occasional crash in registration, handles image surveys without crashing */
+	 * 		fixes an occasional crash in registration, handles image surveys without crashing
+	 * 31: app version 2.4.0, Updates compile target to SDK 26 (Android 8.0),
+	 *		implements anoynmized phone number and MAC address hashing,
+	 *		prevents creation of header-less files when the phone is out of storage space,
+	 *		fixes a crash in trying to upload files before registration */
 
 	private static String androidID;
 	private static String bluetoothMAC;
