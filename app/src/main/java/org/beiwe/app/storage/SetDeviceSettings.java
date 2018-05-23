@@ -21,7 +21,7 @@ public class SetDeviceSettings {
 		Boolean powerStateEnabled = deviceSettings.getBoolean("power_state");
 		PersistentData.setPowerStateEnabled(powerStateEnabled);
 		
-		Boolean allowUploadOverCellularData; //This one may not be present
+		Boolean allowUploadOverCellularData; // This key was added late, and if the server is old it may not be present
 		try { allowUploadOverCellularData = deviceSettings.getBoolean("allow_upload_over_cellular_data");}
 		catch (JSONException e) { allowUploadOverCellularData = false; }
 		PersistentData.setAllowUploadOverCellularData(allowUploadOverCellularData);
@@ -65,8 +65,9 @@ public class SetDeviceSettings {
 		PersistentData.setSurveySubmitSuccessToastText(surveySubmitSuccessToastText);
 
 		// Anonymized hashing
-		boolean useAnonymizedHashing = deviceSettings.getBoolean("use_anonymized_hashing");
+		boolean useAnonymizedHashing; // This key was added late, and if the server is old it may not be present
+		try { useAnonymizedHashing = deviceSettings.getBoolean("use_anonymized_hashing"); }
+		catch (JSONException e) { useAnonymizedHashing = false; }
 		PersistentData.setUseAnonymizedHashing(useAnonymizedHashing);
-
 	}
 }
