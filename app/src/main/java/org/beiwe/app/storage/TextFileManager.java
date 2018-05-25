@@ -62,7 +62,7 @@ public class TextFileManager {
 	
 	//"global" static variables
 	private static Context appContext;
-	private static int GETTER_TIMEOUT = 75; //value is in milliseconds
+	private static int GETTER_TIMEOUT = 50; //value is in milliseconds
 	private static String getter_error = "Tried to access %s before calling TextFileManager.start().";
 	private static String broken_getter_error = "Tried to access %s before calling TextFileManager.start(), but the timeout failed.";
 	private static void throwGetterError(String sourceName) { throw new NullPointerException( String.format(getter_error, sourceName) ); }
@@ -106,8 +106,19 @@ public class TextFileManager {
 	private static void checkAvailableWithTimeout(String textFile) {
 		if ( !checkTextFileAvailable(textFile) ) {
 			try {
-				Thread.sleep(GETTER_TIMEOUT);
-				if ( !checkTextFileAvailable(textFile) ) { throwGetterError(textFile); }
+				// The Background Service should be getting restarted as we speak
+				for(int x = 0; x < 40; x++) {
+					// previously, flat 75 ms. Now 50ms over 40 iterations. If this still fails then we have bigger problems
+					Thread.sleep(GETTER_TIMEOUT);
+
+					// From the documentation
+					// No response to an input event (such as key press or screen touch events) within 5 seconds.
+					// A BroadcastReceiver hasn't finished executing within 10 seconds.
+					// https://developer.android.com/training/articles/perf-anr
+					// As of: 2018-04-25
+					if ( checkTextFileAvailable(textFile) ) return;
+				}
+				throwGetterError(textFile);
 			}
 			catch (InterruptedException e) { throwTimeoutBrokeGetterError(textFile); }
 		}
