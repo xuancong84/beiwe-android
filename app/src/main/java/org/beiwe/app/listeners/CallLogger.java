@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.CallLog;
+import android.util.Log;
 
 /** The CallLogger logs data from voice call, sent or received.
  *  @author Dor Samet */
@@ -80,7 +81,7 @@ public class CallLogger extends ContentObserver {
 		
 		// Database information
 		textsDBQuery = appContext.getContentResolver().query(allCalls, null, null, null, android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-		//TODO: Eli. low priority. Android Studio indicates that moveToFirst can blow up, investigate if we care.
+
 		if(textsDBQuery == null || !textsDBQuery.moveToFirst()) return;
 		
 		int currentSize = textsDBQuery.getCount();
@@ -111,11 +112,11 @@ public class CallLogger extends ContentObserver {
 				currentID = textsDBQuery.getInt(textsDBQuery.getColumnIndex(id));
 			}
 
-			// While there exists a next row
+			// While there exists a previous row
 			while(!textsDBQuery.isBeforeFirst()) {
 				// Log.i("Call Logger", "" + (textsDBQuery.getInt(textsDBQuery.getColumnIndex(id))));
 				if (currentID <= lastRecordedID) {
-					textsDBQuery.moveToPrevious();
+					if(!textsDBQuery.moveToPrevious()) break; // Make sure we are pointed at an item that exists
 					currentID = textsDBQuery.getInt(textsDBQuery.getColumnIndex(id));
 					continue;
 				}
