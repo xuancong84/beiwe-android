@@ -61,7 +61,10 @@ public class DeviceInfo {
 	 * 31: app version 2.4.0, Updates compile target to SDK 26 (Android 8.0),
 	 *		implements anoynmized phone number and MAC address hashing,
 	 *		prevents creation of header-less files when the phone is out of storage space,
-	 *		fixes a crash in trying to upload files before registration */
+	 *		fixes a crash in trying to upload files before registration
+	 * 32: app version 2.4.1, Fixes survey notification crash on Android 4,
+	 * 		prevent crash in phone call logger,
+	 * 		protect against crash in MMS logger	*/
 
 	private static String androidID;
 	private static String bluetoothMAC;
