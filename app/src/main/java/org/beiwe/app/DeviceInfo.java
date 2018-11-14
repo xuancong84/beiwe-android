@@ -64,7 +64,8 @@ public class DeviceInfo {
 	 *		fixes a crash in trying to upload files before registration
 	 * 32: app version 2.4.1, Fixes survey notification crash on Android 4,
 	 * 		prevent crash in phone call logger,
-	 * 		protect against crash in MMS logger	*/
+	 * 		protect against crash in MMS logger
+	 * 33: app version 2.4.2, Fuzzes/anonymizes GPS data for studies on servers that enable it	*/
 
 	private static String androidID;
 	private static String bluetoothMAC;
