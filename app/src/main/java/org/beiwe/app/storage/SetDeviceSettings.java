@@ -69,5 +69,11 @@ public class SetDeviceSettings {
 		try { useAnonymizedHashing = deviceSettings.getBoolean("use_anonymized_hashing"); }
 		catch (JSONException e) { useAnonymizedHashing = false; }
 		PersistentData.setUseAnonymizedHashing(useAnonymizedHashing);
+
+		// Use GPS Fuzzing
+		boolean useGpsFuzzing; // This key was added late, and if the server is old it may not be present
+		try { useGpsFuzzing = deviceSettings.getBoolean("use_gps_fuzzing"); }
+		catch (JSONException e) { useGpsFuzzing = false; }
+		PersistentData.setUseGpsFuzzing(useGpsFuzzing);
 	}
 }

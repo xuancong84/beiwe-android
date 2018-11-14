@@ -2,6 +2,7 @@ package org.beiwe.app.listeners;
 
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.PermissionHandler;
+import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 
 import android.content.Context;
@@ -108,9 +109,14 @@ public class GPSListener implements LocationListener {
 		Long javaTimeCode = System.currentTimeMillis();
 //		Log.d("GPSListener", "gps update...");
 		//order: time, latitude, longitude, altitude, horizontal_accuracy\n
+
+		// Latitude and longitude offset should be 0 unless GPS fuzzing is enabled
+		double latitude = (location.getLatitude() + PersistentData.getLatitudeOffset());
+		double longitude = ((location.getLongitude() + PersistentData.getLongitudeOffset() + 180.0) % 360) - 180.0;
+
 		String data = javaTimeCode.toString() + TextFileManager.DELIMITER
-				+ location.getLatitude() + TextFileManager.DELIMITER
-				+ location.getLongitude() + TextFileManager.DELIMITER
+				+ latitude + TextFileManager.DELIMITER
+				+ longitude + TextFileManager.DELIMITER
 				+ location.getAltitude() + TextFileManager.DELIMITER
 				+ location.getAccuracy();
 		//note, altitude is notoriously inaccurate, getAccuracy only applies to latitude/longitude
