@@ -14,6 +14,7 @@ import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.util.Log;
 
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.DeviceInfo;
@@ -83,6 +84,8 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		String tempPassword = tempPasswordInput.getText().toString();
 		String newPassword = newPasswordInput.getText().toString();
 		String confirmNewPassword = confirmNewPasswordInput.getText().toString();
+
+		Log.d("serverUrl:", serverUrl);
 
 		if ((serverUrl.length() == 0) && (BuildConfig.CUSTOMIZABLE_SERVER_URL)) {
 			// If the study URL is empty, alert the user

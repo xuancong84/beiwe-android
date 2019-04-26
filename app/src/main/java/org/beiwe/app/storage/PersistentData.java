@@ -307,7 +307,7 @@ public class PersistentData {
 		editor.putString(SERVER_URL_KEY, prependHttpsToServerUrl(serverUrl));
 		editor.commit(); }
 	private static String prependHttpsToServerUrl(String serverUrl) {
-		if (serverUrl.startsWith("https://")) {
+		if (serverUrl.startsWith("http")) {
 			return serverUrl;
 		} else if (serverUrl.startsWith("http://")) {
 			return "https://" + serverUrl.substring(7, serverUrl.length());
