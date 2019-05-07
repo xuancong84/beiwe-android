@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.listeners.AccelerometerListener;
+import org.beiwe.app.listeners.AmbientLightListener;
 import org.beiwe.app.listeners.BluetoothListener;
 import org.beiwe.app.listeners.CallLogger;
 import org.beiwe.app.listeners.GPSListener;
@@ -48,6 +49,7 @@ public class TextFileManager {
 	//Static instances of the individual FileManager objects.
 	private static TextFileManager GPSFile;
 	private static TextFileManager accelFile;
+	private static TextFileManager ambientLightFile;
 	private static TextFileManager powerStateLog;
 	private static TextFileManager callLog;
 	private static TextFileManager textsLog;
@@ -72,6 +74,7 @@ public class TextFileManager {
 	// These are all simple and nearly identical, so they are squished into one-liners.
 	// checkAvailableWithTimeout throws an error and the app restarts if the TextFile is unavailable.
 	public static TextFileManager getAccelFile() { checkAvailableWithTimeout("accelFile"); return accelFile; }
+	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout("ambientLightFile"); return ambientLightFile; }
 	public static TextFileManager getGPSFile() { checkAvailableWithTimeout("GPSFile"); return GPSFile; }
 	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout("powerStateLog"); return powerStateLog; }
 	public static TextFileManager getCallLogFile() { checkAvailableWithTimeout("callLog"); return callLog; }
@@ -88,6 +91,7 @@ public class TextFileManager {
 	private static Boolean checkTextFileAvailable(String thing) {
 		//the check for availability is whether the appropriate variable is allocated
 		if (thing.equals("accelFile") ) { return (accelFile != null); }
+		if (thing.equals("ambientLightFile") ) { return (ambientLightFile != null); }
 		if (thing.equals("GPSFile") ) { return (GPSFile != null); }
 		if (thing.equals("powerStateLog") ) { return (powerStateLog != null); }
 		if (thing.equals("callLog") ) { return (callLog != null); }
@@ -152,6 +156,7 @@ public class TextFileManager {
 		// Regularly/periodically-created files
 		GPSFile = new TextFileManager(appContext, "gps", GPSListener.header, false, false, true, !PersistentData.getGpsEnabled());
 		accelFile = new TextFileManager(appContext, "accel", AccelerometerListener.header, false, false, true, !PersistentData.getAccelerometerEnabled());
+		ambientLightFile = new TextFileManager(appContext, "light", AmbientLightListener.header, false, false, true, !PersistentData.getAmbientLightEnabled());
 		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getTextsEnabled());
 		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getCallsEnabled());
 		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getPowerStateEnabled());
@@ -206,13 +211,11 @@ public class TextFileManager {
 			if (this.encrypted) {
 				this.AESKey = EncryptionEngine.newAESKey();
 				this.unsafeWritePlaintext(EncryptionEngine.encryptRSA(this.AESKey));
-
 			}
 			//write the csv header, if the file has a header
 			if (header != null && header.length() > 0) {
 				// We will not call writeEncrypted here because we need to handle the specific case of the new file not being created properly.
 				this.unsafeWritePlaintext(EncryptionEngine.encryptAES(header, this.AESKey));
-
 			}
 		}
 		catch (FileNotFoundException e) {
@@ -302,13 +305,12 @@ public class TextFileManager {
 			if (!this.newFile() ) { return; }
 		}
 		
-		try { this.safeWritePlaintext( EncryptionEngine.encryptAES( data, this.AESKey ) ); }
-		catch (InvalidKeyException e) {
+		try {
+			this.safeWritePlaintext( EncryptionEngine.encryptAES( data, this.AESKey ) );
+		} catch (InvalidKeyException e) {
 			Log.e("TextFileManager", "encrypted write operation without an AES key: " + this.name + ", " + this.fileName);
 			CrashHandler.writeCrashlog(e, appContext);
-//			throw new NullPointerException("encrypted write operation without an AES key: " + this.fileName );
-		}
-		catch (InvalidKeySpecException e) { //this occurs when an encrypted write operation occurs without an RSA key file, we eat this error because it only happens during registration/initial config.
+		} catch (InvalidKeySpecException e) { //this occurs when an encrypted write operation occurs without an RSA key file, we eat this error because it only happens during registration/initial config.
 			Log.e("TextFileManager", "EncryptionEngine.AES_TOO_EARLY_ERROR: " + this.name + ", " + data);
 			e.printStackTrace(); }
 	}
@@ -378,6 +380,7 @@ public class TextFileManager {
 //		Log.d("TextFileManager.java", "makeNewFilesForEverything() called");
 		GPSFile.newFile();
 		accelFile.newFile();
+		ambientLightFile.newFile();
 		powerStateLog.newFile();
 		callLog.newFile();
 		textsLog.newFile();
@@ -405,6 +408,7 @@ public class TextFileManager {
 		// These files are currently being written to, so they shouldn't be uploaded now
 		files.remove(TextFileManager.getGPSFile().fileName);
 		files.remove(TextFileManager.getAccelFile().fileName);
+		files.remove(TextFileManager.getAmbientLightFile().fileName);
 		files.remove(TextFileManager.getPowerStateFile().fileName);
 		files.remove(TextFileManager.getCallLogFile().fileName);
 		files.remove(TextFileManager.getTextsLogFile().fileName);

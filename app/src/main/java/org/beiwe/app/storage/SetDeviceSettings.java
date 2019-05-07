@@ -8,6 +8,8 @@ public class SetDeviceSettings {
 		// Write data stream booleans
 		Boolean accelerometerEnabled = deviceSettings.getBoolean("accelerometer");
 		PersistentData.setAccelerometerEnabled(accelerometerEnabled);
+		Boolean ambientlightEnabled = deviceSettings.getBoolean("ambientlight");
+		PersistentData.setAmbientLightEnabled(ambientlightEnabled);
 		Boolean gpsEnabled = deviceSettings.getBoolean("gps");
 		PersistentData.setGpsEnabled(gpsEnabled);
 		Boolean callsEnabled = deviceSettings.getBoolean("calls");
@@ -31,6 +33,8 @@ public class SetDeviceSettings {
 		PersistentData.setAccelerometerOffDurationSeconds(accelerometerOffDuration);
 		int accelerometerOnDuration = deviceSettings.getInt("accelerometer_on_duration_seconds");
 		PersistentData.setAccelerometerOnDurationSeconds(accelerometerOnDuration);
+		int ambientLightInterval = deviceSettings.getInt("ambientlight_interval_seconds");
+		PersistentData.setAmbientLightIntervalSeconds(ambientLightInterval);
 		int bluetoothOnDurationSeconds = deviceSettings.getInt("bluetooth_on_duration_seconds");
 		PersistentData.setBluetoothOnDurationSeconds(bluetoothOnDurationSeconds);
 		int bluetoothTotalDurationSeconds = deviceSettings.getInt("bluetooth_total_duration_seconds");

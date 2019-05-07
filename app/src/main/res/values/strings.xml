@@ -158,6 +158,7 @@
     <!-- Timer Action Strings -->
     <string name="turn_accelerometer_off">Accelerometer OFF</string>
     <string name="turn_accelerometer_on">Accelerometer On</string>
+    <string name="turn_ambientlight_on">AmbientLight On</string>
     <string name="turn_bluetooth_off">Bluetooth OFF</string>
     <string name="turn_bluetooth_on">Bluetooth On</string>
     <string name="turn_gps_off">GPS OFF</string>

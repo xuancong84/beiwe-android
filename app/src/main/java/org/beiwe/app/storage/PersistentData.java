@@ -40,6 +40,7 @@ public class PersistentData {
 	private static final String PASSWORD_RESET_NUMBER_KEY = "reset_number";
 
 	private static final String ACCELEROMETER = "accelerometer";
+	private static final String LIGHT = "light";
 	private static final String GPS = "gps";
 	private static final String CALLS = "calls";
 	private static final String TEXTS = "texts";
@@ -50,6 +51,7 @@ public class PersistentData {
 
 	private static final String ACCELEROMETER_OFF_DURATION_SECONDS = "accelerometer_off_duration_seconds";
 	private static final String ACCELEROMETER_ON_DURATION_SECONDS = "accelerometer_on_duration_seconds";
+	private static final String AMBIENTLIGHT_INTERVAL_SECONDS = "ambientlight_interval_seconds";
 	private static final String BLUETOOTH_ON_DURATION_SECONDS = "bluetooth_on_duration_seconds";
 	private static final String BLUETOOTH_TOTAL_DURATION_SECONDS = "bluetooth_total_duration_seconds";
 	private static final String BLUETOOTH_GLOBAL_OFFSET_SECONDS = "bluetooth_global_offset_seconds";
@@ -149,6 +151,7 @@ public class PersistentData {
 	#####################################################################################*/
 
 	public static boolean getAccelerometerEnabled(){ return pref.getBoolean(ACCELEROMETER, false); }
+	public static boolean getAmbientLightEnabled(){ return pref.getBoolean(LIGHT, false); }
 	public static boolean getGpsEnabled(){ return pref.getBoolean(GPS, false); }
 	public static boolean getCallsEnabled(){ return pref.getBoolean(CALLS, false); }
 	public static boolean getTextsEnabled(){ return pref.getBoolean(TEXTS, false); }
@@ -159,6 +162,9 @@ public class PersistentData {
 	
 	public static void setAccelerometerEnabled(boolean enabled) {
 		editor.putBoolean(ACCELEROMETER, enabled);
+		editor.commit(); }
+	public static void setAmbientLightEnabled(boolean enabled) {
+		editor.putBoolean(LIGHT, enabled);
 		editor.commit(); }
 	public static void setGpsEnabled(boolean enabled) {
 		editor.putBoolean(GPS, enabled);
@@ -189,6 +195,7 @@ public class PersistentData {
 	// Default timings (only used if app doesn't download custom timings)
 	private static final long DEFAULT_ACCELEROMETER_OFF_MINIMUM_DURATION = 10;
 	private static final long DEFAULT_ACCELEROMETER_ON_DURATION = 10 * 60;
+	private static final long DEFAULT_AMBIENTLIGHT_MINIMUM_INTERVAL = 60;
 	private static final long DEFAULT_BLUETOOTH_ON_DURATION = 1 * 60;
 	private static final long DEFAULT_BLUETOOTH_TOTAL_DURATION = 5 * 60;
 	private static final long DEFAULT_BLUETOOTH_GLOBAL_OFFSET = 0 * 60;
@@ -203,6 +210,7 @@ public class PersistentData {
 	
 	public static long getAccelerometerOffDurationMilliseconds() { return 1000L * pref.getLong(ACCELEROMETER_OFF_DURATION_SECONDS, DEFAULT_ACCELEROMETER_OFF_MINIMUM_DURATION); }
 	public static long getAccelerometerOnDurationMilliseconds() { return 1000L * pref.getLong(ACCELEROMETER_ON_DURATION_SECONDS, DEFAULT_ACCELEROMETER_ON_DURATION); }
+	public static long getAmbientLightIntervalMilliseconds() { return 1000L * pref.getLong(AMBIENTLIGHT_INTERVAL_SECONDS, DEFAULT_AMBIENTLIGHT_MINIMUM_INTERVAL); }
 	public static long getBluetoothOnDurationMilliseconds() { return 1000L * pref.getLong(BLUETOOTH_ON_DURATION_SECONDS, DEFAULT_BLUETOOTH_ON_DURATION); }
 	public static long getBluetoothTotalDurationMilliseconds() { return 1000L * pref.getLong(BLUETOOTH_TOTAL_DURATION_SECONDS, DEFAULT_BLUETOOTH_TOTAL_DURATION); }
 	public static long getBluetoothGlobalOffsetMilliseconds() { return 1000L * pref.getLong(BLUETOOTH_GLOBAL_OFFSET_SECONDS, DEFAULT_BLUETOOTH_GLOBAL_OFFSET); }
@@ -220,6 +228,9 @@ public class PersistentData {
 		editor.commit(); }
 	public static void setAccelerometerOnDurationSeconds(long seconds) {
 		editor.putLong(ACCELEROMETER_ON_DURATION_SECONDS, seconds);
+		editor.commit(); }
+	public static void setAmbientLightIntervalSeconds(long seconds) {
+		editor.putLong(AMBIENTLIGHT_INTERVAL_SECONDS, seconds);
 		editor.commit(); }
 	public static void setBluetoothOnDurationSeconds(long seconds) {
 		editor.putLong(BLUETOOTH_ON_DURATION_SECONDS, seconds);
@@ -309,8 +320,6 @@ public class PersistentData {
 	private static String prependHttpsToServerUrl(String serverUrl) {
 		if (serverUrl.startsWith("http")) {
 			return serverUrl;
-		} else if (serverUrl.startsWith("http://")) {
-			return "https://" + serverUrl.substring(7, serverUrl.length());
 		} else {
 			return "https://" + serverUrl;
 		}

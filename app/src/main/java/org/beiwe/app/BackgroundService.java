@@ -3,14 +3,7 @@ package org.beiwe.app;
 import java.util.Calendar;
 import java.util.List;
 
-import org.beiwe.app.listeners.AccelerometerListener;
-import org.beiwe.app.listeners.BluetoothListener;
-import org.beiwe.app.listeners.CallLogger;
-import org.beiwe.app.listeners.GPSListener;
-import org.beiwe.app.listeners.MMSSentLogger;
-import org.beiwe.app.listeners.PowerStateListener;
-import org.beiwe.app.listeners.SmsSentLogger;
-import org.beiwe.app.listeners.WifiListener;
+import org.beiwe.app.listeners.*;
 import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.networking.SurveyDownloader;
 import org.beiwe.app.storage.PersistentData;
@@ -47,6 +40,7 @@ public class BackgroundService extends Service {
 	public GPSListener gpsListener;
 	public PowerStateListener powerStateListener;
 	public AccelerometerListener accelerometerListener;
+	public AmbientLightListener ambientLightListener;
 	public BluetoothListener bluetoothListener;
 	public static Timer timer;
 	
@@ -85,6 +79,7 @@ public class BackgroundService extends Service {
 		gpsListener = new GPSListener(appContext); // Permissions are checked in the broadcast receiver
 		WifiListener.initialize( appContext );
 		if ( PersistentData.getAccelerometerEnabled() ) { accelerometerListener = new AccelerometerListener( appContext ); }
+		if ( PersistentData.getAmbientLightEnabled() ) { ambientLightListener = new AmbientLightListener( appContext ); }
 		//Bluetooth, wifi, gps, calls, and texts need permissions
 		if ( PermissionHandler.confirmBluetooth(appContext)) { startBluetooth(); }
 //		if ( PermissionHandler.confirmWifi(appContext) ) { WifiListener.initialize( appContext ); }
@@ -176,6 +171,7 @@ public class BackgroundService extends Service {
 		IntentFilter filter = new IntentFilter();
 		filter.addAction( appContext.getString( R.string.turn_accelerometer_off ) );
 		filter.addAction( appContext.getString( R.string.turn_accelerometer_on ) );
+		filter.addAction( appContext.getString( R.string.turn_ambientlight_on ) );
 		filter.addAction( appContext.getString( R.string.turn_bluetooth_off ) );
 		filter.addAction( appContext.getString( R.string.turn_bluetooth_on ) );
 		filter.addAction( appContext.getString( R.string.turn_gps_off ) );
@@ -214,6 +210,14 @@ public class BackgroundService extends Service {
 				accelerometerListener.turn_on();
 			}
 		}
+		if (PersistentData.getAmbientLightEnabled()) {  //if ambient light data recording is enabled and...
+			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_ambientlight_on )) < now || //the most recent accelerometer alarm time is in the past, or...
+					!timer.alarmIsSet(Timer.ambientLightIntent) ) { //there is no scheduled accelerometer-on timer.
+				sendBroadcast(Timer.ambientLightIntent); // start accelerometer timers (immediately runs accelerometer recording session).
+				//note: when there is no accelerometer-off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+			}
+		}
+
 		if ( PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gps_on )) < now || !timer.alarmIsSet(Timer.gpsOnIntent) ) {
 			sendBroadcast( Timer.gpsOnIntent ); }
 		else if(PersistentData.getGpsEnabled() && timer.alarmIsSet(Timer.gpsOffIntent)
@@ -306,6 +310,14 @@ public class BackgroundService extends Service {
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getAccelerometerOffDurationMilliseconds() + PersistentData.getAccelerometerOnDurationMilliseconds(), Timer.accelerometerOnIntent);
 				//record the system time that the next alarm is supposed to go off at, so that we can recover in the event of a reboot or crash. 
 				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_accelerometer_on), alarmTime );
+				return; }
+			//AmbientLight. We automatically have permissions required for ambient light sensor.
+			if (broadcastAction.equals( appContext.getString(R.string.turn_ambientlight_on) ) ) {
+				if ( !PersistentData.getAmbientLightEnabled() ) { Log.e("AmbientLight Listener", "invalid AmbientLight on received"); return; }
+				ambientLightListener.turn_on();
+				//start the next sensor-on-timer.
+				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getAmbientLightIntervalMilliseconds(), Timer.ambientLightIntent);
+				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_ambientlight_on), alarmTime );
 				return; }
 			//GPS. Almost identical logic to accelerometer above.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gps_on) ) ) {

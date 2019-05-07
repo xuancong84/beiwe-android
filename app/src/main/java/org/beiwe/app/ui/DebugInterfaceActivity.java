@@ -68,7 +68,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	
 	//Intent triggers caught in BackgroundService
 	public void accelerometerOn (View view) { appContext.sendBroadcast( Timer.accelerometerOnIntent ); }
-	public void accelerometerOff (View view) { appContext.sendBroadcast( Timer.accelerometerOffIntent ); }	
+	public void accelerometerOff (View view) { appContext.sendBroadcast( Timer.accelerometerOffIntent ); }
+	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
 	public void scanWifi (View view) { appContext.sendBroadcast( Timer.wifiLogIntent ); }
@@ -107,6 +108,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	}
 	public void logDataToggles(View view) {
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Accelerometer: " + Boolean.toString(PersistentData.getAccelerometerEnabled()));
+		Log.i("DebugInterfaceActivity.logDataToggles()", "AmbientLight: " + Boolean.toString(PersistentData.getAmbientLightEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "GPS: " + Boolean.toString(PersistentData.getGpsEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Calls: " + Boolean.toString(PersistentData.getCallsEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Texts: " + Boolean.toString(PersistentData.getTextsEnabled()));
@@ -123,6 +125,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	
 	public void getEnabledFeatures(View view) {
 		if ( PersistentData.getAccelerometerEnabled() ) { Log.i("features", "Accelerometer Enabled." ); } else { Log.e("features", "Accelerometer Disabled."); }
+		if ( PersistentData.getAmbientLightEnabled() ) { Log.i("features", "AmbientLight Sensor Enabled." ); } else { Log.e("features", "AmbientLight Sensor Disabled."); }
 		if ( PersistentData.getGpsEnabled() ) { Log.i("features", "Gps Enabled." ); } else { Log.e("features", "Gps Disabled."); }
 		if ( PersistentData.getCallsEnabled() ) { Log.i("features", "Calls Enabled." ); } else { Log.e("features", "Calls Disabled."); }
 		if ( PersistentData.getTextsEnabled() ) { Log.i("features", "Texts Enabled." ); } else { Log.e("features", "Texts Disabled."); }

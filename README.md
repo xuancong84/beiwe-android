@@ -24,3 +24,14 @@ There are three Build Variants of the Android app, specified in the `buildTypes`
 * **beta**- points to the staging server (staging.beiwe.org), has the Debug Interface, and allows passwords as short as 1 character.  The app is named "Beiwe-beta" when installed on the phone.
 
 * **development**- points to the staging server (staging.beiwe.org), has the Debug Interface, and allows passwords as short as 1 character.  The Debug Interface also has some extra buttons that are only useful for developers, like buttons to crash the app.  Also includes some extra logging statements (that are printed to Android Monitor if the phone is plugged into a debugger, but are not printed to Beiwe log files).  The app is named "Beiwe-development" when installed on the phone.
+
+
+### To add a new feature/sensor
+org.beiwe.app.listeners : add new class
+BackgroundService.java : startTimers(), timerReceiver(), registerTimers(), doSetup(), class BackgroundService
+PersistentData.java : class PersistentData, getters and setters, Default timings
+TextFileManager.java : class TextFileManager, checkTextFileAvailable(), initialize()
+DebugInterfaceActivity.java : class DebugInterfaceActivity, logDataToggles(), getEnabledFeatures(), makeNewFilesForEverything(), getAllUploadableFiles()
+SetDeviceSettings.java : writeDeviceSettings()
+Timer.java : class Timer, Timer()
+activity_debug_interface.xml

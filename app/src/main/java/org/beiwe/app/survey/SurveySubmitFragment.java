@@ -21,7 +21,6 @@ import java.util.ArrayList;
 /**
  * Created by Josh Zagorsky on 12/10/16.
  */
-
 public class SurveySubmitFragment extends Fragment {
     OnSubmitButtonClickedListener submitButtonClickedListener;
 
@@ -64,7 +63,7 @@ public class SurveySubmitFragment extends Fragment {
         return renderSubmitButton(inflater, "Submit Answers");
     }
 
-
+    @SuppressWarnings("unchecked")
     private LinearLayout showUnansweredQuestionsListAndTheSubmitButton(LayoutInflater inflater,
                                                                        ArrayList<String> unansweredQuestions) {
         LinearLayout unansweredQuestionsLayout = (LinearLayout) inflater.inflate(R.layout.survey_unanswered_questions_list, null);
