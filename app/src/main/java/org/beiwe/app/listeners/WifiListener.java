@@ -25,7 +25,7 @@ public class WifiListener {
 	private WifiListener (Context appContext) {
 		wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE); }
 	
-	public static void initialize( Context context ) { new WifiListener( context ); } 
+	public static WifiListener initialize( Context context ) { return new WifiListener( context ); }
 	
 	//#######################################################################################
 	//#############################  WIFI STATE #############################################

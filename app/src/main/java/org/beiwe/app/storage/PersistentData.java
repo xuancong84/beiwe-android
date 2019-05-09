@@ -3,6 +3,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.JSONUtils;
@@ -79,7 +81,12 @@ public class PersistentData {
 		editor = pref.edit();
 		editor.commit();
 		isInitialized = true;
-	} 
+	}
+
+	public static void resetAPP(View view){
+		appContext.deleteSharedPreferences(PREF_NAME);
+		isInitialized = false;
+	}
 
 	/*#####################################################################################
 	##################################### User State ######################################
@@ -314,15 +321,10 @@ public class PersistentData {
 	###########################################################################################*/
 
 	public static void setServerUrl(String serverUrl) {
-		if (editor == null) Log.e("LoginManager.java", "editor is null in setServerUrl()");
-		editor.putString(SERVER_URL_KEY, prependHttpsToServerUrl(serverUrl));
-		editor.commit(); }
-	private static String prependHttpsToServerUrl(String serverUrl) {
-		if (serverUrl.startsWith("http")) {
-			return serverUrl;
-		} else {
-			return "https://" + serverUrl;
-		}
+		if (!serverUrl.startsWith("http"))
+			serverUrl = "https://" + serverUrl;
+		editor.putString(SERVER_URL_KEY, serverUrl);
+		editor.commit();
 	}
 	public static String getServerUrl() { return pref.getString(SERVER_URL_KEY, null); }
 

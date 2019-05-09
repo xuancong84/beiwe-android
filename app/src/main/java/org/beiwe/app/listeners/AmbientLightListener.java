@@ -24,10 +24,6 @@ public class AmbientLightListener implements SensorEventListener{
 
 	private String accuracy;
 
-	public Boolean check_status(){
-		if (exists) return enabled;
-		return false; }
-
 	/**Listens for ambient light sensor updates.  NOT activated on instantiation.
 	 * Use the turn_on() function to log any ambient light sensor updates to the
 	 * ambient light sensor log.

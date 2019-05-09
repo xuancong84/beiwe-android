@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.StrictMode;
 import android.util.Log;
 
+import org.beiwe.app.BackgroundService;
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.DeviceInfo;
@@ -11,6 +12,7 @@ import org.beiwe.app.R;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.SetDeviceSettings;
 import org.beiwe.app.storage.TextFileManager;
+import org.beiwe.app.ui.registration.RegisterActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -323,6 +325,26 @@ public class PostRequest {
 				writeKey(key, response);
 				JSONObject deviceSettings = responseJSON.getJSONObject("device_settings");
 				SetDeviceSettings.writeDeviceSettings(deviceSettings);
+			} catch (JSONException e) {
+				CrashHandler.writeCrashlog(e, appContext);
+			}
+		}
+		connection.disconnect();
+		return response;
+	}
+
+	private static int doUpdateSettings() throws IOException {
+		String parameters = PostRequest.makeParameter("patient_id", PersistentData.getPatientID());
+		URL url = new URL(PersistentData.getServerUrl()+"/update_setting");
+		HttpsURLConnection connection = setupHTTP(parameters, url, null);
+		int response = connection.getResponseCode();
+		if (response == 200) {
+			String responseBody = readResponse(connection);
+			try {
+				JSONObject responseJSON = new JSONObject(responseBody);
+				JSONObject deviceSettings = responseJSON.getJSONObject("device_settings");
+				SetDeviceSettings.writeDeviceSettings(deviceSettings);
+				BackgroundService.localHandle.doSetup();
 			} catch (JSONException e) {
 				CrashHandler.writeCrashlog(e, appContext);
 			}

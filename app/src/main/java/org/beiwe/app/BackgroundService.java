@@ -42,6 +42,10 @@ public class BackgroundService extends Service {
 	public AccelerometerListener accelerometerListener;
 	public AmbientLightListener ambientLightListener;
 	public BluetoothListener bluetoothListener;
+	public WifiListener wifiListener;
+	public SmsSentLogger smsSentLogger;
+	public MMSSentLogger mmsSentLogger;
+	public CallLogger callLogger;
 	public static Timer timer;
 	
 	//localHandle is how static functions access the currently instantiated background service.
@@ -49,7 +53,7 @@ public class BackgroundService extends Service {
 	//that code needs to be able to update the IntentFilters associated with timerReceiver.
 	//This is Really Hacky and terrible style, but it is okay because the scheduling code can only ever
 	//begin to run with an already fully instantiated background service.
-	private static BackgroundService localHandle;
+	public static BackgroundService localHandle;
 	
 	@Override
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
@@ -73,20 +77,39 @@ public class BackgroundService extends Service {
 		doSetup();
 	}
 
-	public void doSetup() {
-		//Accelerometer and power state don't need permissons
-		startPowerStateListener();
-		gpsListener = new GPSListener(appContext); // Permissions are checked in the broadcast receiver
-		WifiListener.initialize( appContext );
-		if ( PersistentData.getAccelerometerEnabled() ) { accelerometerListener = new AccelerometerListener( appContext ); }
-		if ( PersistentData.getAmbientLightEnabled() ) { ambientLightListener = new AmbientLightListener( appContext ); }
+	public void doSetup() {		// now support updating sensor settings
+		if(PersistentData.getPowerStateEnabled() && powerStateListener==null)
+			powerStateListener = newPowerStateListener();
+		if(PersistentData.getGpsEnabled() && gpsListener==null)
+			gpsListener = new GPSListener(appContext); // Permissions are checked in the broadcast receiver
+		if(PersistentData.getWifiEnabled() && wifiListener==null)
+			wifiListener = WifiListener.initialize( appContext );
+		if ( PersistentData.getAccelerometerEnabled() && accelerometerListener==null)
+			accelerometerListener = new AccelerometerListener( appContext );
+		if ( PersistentData.getAmbientLightEnabled() && ambientLightListener==null)
+			ambientLightListener = new AmbientLightListener( appContext );
+
 		//Bluetooth, wifi, gps, calls, and texts need permissions
-		if ( PermissionHandler.confirmBluetooth(appContext)) { startBluetooth(); }
-//		if ( PermissionHandler.confirmWifi(appContext) ) { WifiListener.initialize( appContext ); }
-		if ( PermissionHandler.confirmTexts(appContext) ) { startSmsSentLogger(); startMmsSentLogger(); }
-		else if(PersistentData.getTextsEnabled() ){ sendBroadcast(Timer.checkForSMSEnabled); }
-		if ( PermissionHandler.confirmCalls(appContext) ) { startCallLogger(); }
-		else if (PersistentData.getCallsEnabled() ) { sendBroadcast(Timer.checkForCallsEnabled); }
+		if(PersistentData.getBluetoothEnabled() && bluetoothListener==null) {
+			if (PermissionHandler.confirmBluetooth(appContext))
+				startBluetooth();
+		}
+
+		if(PersistentData.getTextsEnabled()	&& smsSentLogger==null && mmsSentLogger==null) {
+			if (PermissionHandler.confirmTexts(appContext)) {
+				smsSentLogger = startSmsSentLogger();
+				mmsSentLogger = startMmsSentLogger();
+			} else
+				sendBroadcast(Timer.checkForSMSEnabled);
+		}
+
+		if(PersistentData.getCallsEnabled() && callLogger==null) {
+			if (PermissionHandler.confirmCalls(appContext))
+				callLogger = startCallLogger();
+			else
+				sendBroadcast(Timer.checkForCallsEnabled);
+		}
+
 		//Only do the following if the device is registered
 		if ( PersistentData.isRegistered() ) {
 			DeviceInfo.initialize( appContext ); //if at registration this has already been initialized. (we don't care.)			
@@ -126,18 +149,24 @@ public class BackgroundService extends Service {
 	}
 	
 	/** Initializes the sms logger. */
-	public void startSmsSentLogger() {
+	public SmsSentLogger startSmsSentLogger() {
 		SmsSentLogger smsSentLogger = new SmsSentLogger(new Handler(), appContext);
-		this.getContentResolver().registerContentObserver(Uri.parse("content://sms/"), true, smsSentLogger); }
+		this.getContentResolver().registerContentObserver(Uri.parse("content://sms/"), true, smsSentLogger);
+		return smsSentLogger;
+	}
 	
-	public void startMmsSentLogger(){
+	public MMSSentLogger startMmsSentLogger(){
 		MMSSentLogger mmsMonitor = new MMSSentLogger(new Handler(), appContext);
-		this.getContentResolver().registerContentObserver(Uri.parse("content://mms/"), true, mmsMonitor); }
+		this.getContentResolver().registerContentObserver(Uri.parse("content://mms/"), true, mmsMonitor);
+		return mmsMonitor;
+	}
 
 	/** Initializes the call logger. */
-	private void startCallLogger() {
+	private CallLogger startCallLogger() {
 		CallLogger callLogger = new CallLogger(new Handler(), appContext);
-		this.getContentResolver().registerContentObserver(Uri.parse("content://call_log/calls/"), true, callLogger); }
+		this.getContentResolver().registerContentObserver(Uri.parse("content://call_log/calls/"), true, callLogger);
+		return callLogger;
+	}
 	
 	/** Initializes the PowerStateListener. 
 	 * The PowerStateListener requires the ACTION_SCREEN_OFF and ACTION_SCREEN_ON intents
@@ -145,21 +174,20 @@ public class BackgroundService extends Service {
 	 * Same for the ACTION_POWER_SAVE_MODE_CHANGED and ACTION_DEVICE_IDLE_MODE_CHANGED filters,
 	 * though they are for monitoring deeper power state changes in 5.0 and 6.0, respectively. */
 	@SuppressLint("InlinedApi")
-	private void startPowerStateListener() {
-		if(powerStateListener == null) {
-			IntentFilter filter = new IntentFilter();
-			filter.addAction(Intent.ACTION_SCREEN_ON);
-			filter.addAction(Intent.ACTION_SCREEN_OFF);
-			if (android.os.Build.VERSION.SDK_INT >= 21) {
-				filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
-			}
-			if (android.os.Build.VERSION.SDK_INT >= 23) {
-				filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
-			}
-			powerStateListener = new PowerStateListener();
-			registerReceiver(powerStateListener, filter);
-			PowerStateListener.start(appContext);
+	private PowerStateListener newPowerStateListener() {
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(Intent.ACTION_SCREEN_ON);
+		filter.addAction(Intent.ACTION_SCREEN_OFF);
+		if (android.os.Build.VERSION.SDK_INT >= 21) {
+			filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
 		}
+		if (android.os.Build.VERSION.SDK_INT >= 23) {
+			filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+		}
+		PowerStateListener ret = new PowerStateListener();
+		registerReceiver(ret, filter);
+		PowerStateListener.start(appContext);
+		return ret;
 	}
 	
 	
@@ -344,36 +372,42 @@ public class BackgroundService extends Service {
 					if (bluetoothListener != null) bluetoothListener.enableBLEScan(); }
 				else { TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " user has not provided permission for Bluetooth."); }
 				timer.setupExactSingleAlarm(PersistentData.getBluetoothOnDurationMilliseconds(), Timer.bluetoothOffIntent);
-				return; }
+				return;
+			}
 			if (broadcastAction.equals( appContext.getString(R.string.turn_bluetooth_off) ) ) {
 				if ( PermissionHandler.checkBluetoothPermissions(appContext) ) {
 					if ( bluetoothListener != null) bluetoothListener.disableBLEScan(); }
 				timer.setupExactSingleAbsoluteTimeAlarm(PersistentData.getBluetoothTotalDurationMilliseconds(), PersistentData.getBluetoothGlobalOffsetMilliseconds(), Timer.bluetoothOnIntent);
-				return; }			
+				return;
+			}
 			
 			//starts a data upload attempt.
 			if (broadcastAction.equals( appContext.getString(R.string.upload_data_files_intent) ) ) {
 				PostRequest.uploadAllFiles();
 				timer.setupExactSingleAlarm(PersistentData.getUploadDataFilesFrequencyMilliseconds(), Timer.uploadDatafilesIntent);
-				return; }
+				return;
+			}
 			//creates new data files
 			if (broadcastAction.equals( appContext.getString(R.string.create_new_data_files_intent) ) ) {
 				TextFileManager.makeNewFilesForEverything();
 				timer.setupExactSingleAlarm(PersistentData.getCreateNewDataFilesFrequencyMilliseconds(), Timer.createNewDataFilesIntent);
                 PostRequest.uploadAllFiles();
-				return; }
+				return;
+			}
 			//Downloads the most recent survey questions and schedules the surveys.
 			if (broadcastAction.equals( appContext.getString(R.string.check_for_new_surveys_intent))) {
 				SurveyDownloader.downloadSurveys( getApplicationContext() );
 				timer.setupExactSingleAlarm(PersistentData.getCheckForNewSurveysFrequencyMilliseconds(), Timer.checkForNewSurveysIntent);
-				return; }
+				return;
+			}
 			// Signs out the user. (does not set up a timer, that is handled in activity and sign-in logic) 
 			if (broadcastAction.equals( appContext.getString(R.string.signout_intent) ) ) {
 				PersistentData.logout();
 				Intent loginPage = new Intent(appContext, LoginActivity.class);
 				loginPage.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				appContext.startActivity(loginPage);
-				return; }
+				return;
+			}
 
 			if (broadcastAction.equals( appContext.getString(R.string.check_for_sms_enabled) ) ) {
 				if ( PermissionHandler.confirmTexts(appContext) ) { startSmsSentLogger(); startMmsSentLogger(); }
@@ -388,7 +422,8 @@ public class BackgroundService extends Service {
 //				Log.i("BACKGROUND SERVICE", "new notification: " + broadcastAction);
 				SurveyNotifications.displaySurveyNotification(appContext, broadcastAction);
 				SurveyScheduler.scheduleSurvey(broadcastAction);
-				return; }
+				return;
+			}
 
 			if ( PersistentData.isRegistered() && broadcastAction.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
 				NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
@@ -399,8 +434,8 @@ public class BackgroundService extends Service {
 			}
 
 			//this is a special action that will only run if the app device is in debug mode.
-			if (broadcastAction.equals("crashBeiwe") && BuildConfig.APP_IS_BETA) {
-				throw new NullPointerException("beeeeeoooop."); }
+			if (broadcastAction.equals("crashBeiwe") && BuildConfig.APP_IS_BETA)
+				throw new NullPointerException("beeeeeoooop.");
 			//this is a special action that will only run if the app device is in debug mode.
 			if (broadcastAction.equals("enterANR") && BuildConfig.APP_IS_BETA) {
 				try {
