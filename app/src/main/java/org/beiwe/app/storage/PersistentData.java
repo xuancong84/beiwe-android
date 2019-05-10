@@ -43,6 +43,7 @@ public class PersistentData {
 
 	private static final String ACCELEROMETER = "accelerometer";
 	private static final String LIGHT = "light";
+	private static final String GYROSCOPE = "gyro";
 	private static final String GPS = "gps";
 	private static final String CALLS = "calls";
 	private static final String TEXTS = "texts";
@@ -61,6 +62,8 @@ public class PersistentData {
 	private static final String CREATE_NEW_DATA_FILES_FREQUENCY_SECONDS = "create_new_data_files_frequency_seconds";
 	private static final String GPS_OFF_DURATION_SECONDS = "gps_off_duration_seconds";
 	private static final String GPS_ON_DURATION_SECONDS = "gps_on_duration_seconds";
+	private static final String GYRO_OFF_DURATION_SECONDS = "gyro_off_duration_seconds";
+	private static final String GYRO_ON_DURATION_SECONDS = "gyro_on_duration_seconds";
 	private static final String SECONDS_BEFORE_AUTO_LOGOUT = "seconds_before_auto_logout";
 	private static final String UPLOAD_DATA_FILES_FREQUENCY_SECONDS = "upload_data_files_frequency_seconds";
 	private static final String VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS = "voice_recording_max_time_length_seconds";
@@ -159,6 +162,7 @@ public class PersistentData {
 
 	public static boolean getAccelerometerEnabled(){ return pref.getBoolean(ACCELEROMETER, false); }
 	public static boolean getAmbientLightEnabled(){ return pref.getBoolean(LIGHT, false); }
+	public static boolean getGyroscopeEnabled(){ return pref.getBoolean(GYROSCOPE, false); }
 	public static boolean getGpsEnabled(){ return pref.getBoolean(GPS, false); }
 	public static boolean getCallsEnabled(){ return pref.getBoolean(CALLS, false); }
 	public static boolean getTextsEnabled(){ return pref.getBoolean(TEXTS, false); }
@@ -172,6 +176,9 @@ public class PersistentData {
 		editor.commit(); }
 	public static void setAmbientLightEnabled(boolean enabled) {
 		editor.putBoolean(LIGHT, enabled);
+		editor.commit(); }
+	public static void setGyroscopeEnabled(boolean enabled) {
+		editor.putBoolean(GYROSCOPE, enabled);
 		editor.commit(); }
 	public static void setGpsEnabled(boolean enabled) {
 		editor.putBoolean(GPS, enabled);
@@ -200,7 +207,7 @@ public class PersistentData {
 	#####################################################################################*/
 
 	// Default timings (only used if app doesn't download custom timings)
-	private static final long DEFAULT_ACCELEROMETER_OFF_MINIMUM_DURATION = 10;
+	private static final long DEFAULT_ACCELEROMETER_OFF_MINIMUM_DURATION = 10 * 60;
 	private static final long DEFAULT_ACCELEROMETER_ON_DURATION = 10 * 60;
 	private static final long DEFAULT_AMBIENTLIGHT_MINIMUM_INTERVAL = 60;
 	private static final long DEFAULT_BLUETOOTH_ON_DURATION = 1 * 60;
@@ -210,6 +217,8 @@ public class PersistentData {
 	private static final long DEFAULT_CREATE_NEW_DATA_FILES_PERIOD = 15 * 60;
 	private static final long DEFAULT_GPS_OFF_MINIMUM_DURATION = 5 * 60;
 	private static final long DEFAULT_GPS_ON_DURATION = 5 * 60;
+	private static final long DEFAULT_GYRO_OFF_MINIMUM_DURATION = 10 * 60;
+	private static final long DEFAULT_GYRO_ON_DURATION = 10 * 60;
 	private static final long DEFAULT_SECONDS_BEFORE_AUTO_LOGOUT = 5 * 60;
 	private static final long DEFAULT_UPLOAD_DATA_FILES_PERIOD = 60;
 	private static final long DEFAULT_VOICE_RECORDING_MAX_TIME_LENGTH = 4 * 60;
@@ -225,6 +234,8 @@ public class PersistentData {
 	public static long getCreateNewDataFilesFrequencyMilliseconds() { return 1000L * pref.getLong(CREATE_NEW_DATA_FILES_FREQUENCY_SECONDS, DEFAULT_CREATE_NEW_DATA_FILES_PERIOD); }
 	public static long getGpsOffDurationMilliseconds() { return 1000L * pref.getLong(GPS_OFF_DURATION_SECONDS, DEFAULT_GPS_OFF_MINIMUM_DURATION); }
 	public static long getGpsOnDurationMilliseconds() { return 1000L * pref.getLong(GPS_ON_DURATION_SECONDS, DEFAULT_GPS_ON_DURATION); }
+	public static long getGyroOffDurationMilliseconds() { return 1000L * pref.getLong(GYRO_OFF_DURATION_SECONDS, DEFAULT_GYRO_OFF_MINIMUM_DURATION); }
+	public static long getGyroOnDurationMilliseconds() { return 1000L * pref.getLong(GYRO_ON_DURATION_SECONDS, DEFAULT_GYRO_ON_DURATION); }
 	public static long getMillisecondsBeforeAutoLogout() { return 1000L * pref.getLong(SECONDS_BEFORE_AUTO_LOGOUT, DEFAULT_SECONDS_BEFORE_AUTO_LOGOUT); }
 	public static long getUploadDataFilesFrequencyMilliseconds() { return 1000L * pref.getLong(UPLOAD_DATA_FILES_FREQUENCY_SECONDS, DEFAULT_UPLOAD_DATA_FILES_PERIOD); }
 	public static long getVoiceRecordingMaxTimeLengthMilliseconds() { return 1000L * pref.getLong(VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS, DEFAULT_VOICE_RECORDING_MAX_TIME_LENGTH); }
@@ -253,6 +264,12 @@ public class PersistentData {
 		editor.commit(); }
 	public static void setCreateNewDataFilesFrequencySeconds(long seconds) {
 		editor.putLong(CREATE_NEW_DATA_FILES_FREQUENCY_SECONDS, seconds);
+		editor.commit(); }
+	public static void setGyroOffDurationSeconds(long seconds) {
+		editor.putLong(GYRO_OFF_DURATION_SECONDS, seconds);
+		editor.commit(); }
+	public static void setGyroOnDurationSeconds(long seconds) {
+		editor.putLong(GYRO_ON_DURATION_SECONDS, seconds);
 		editor.commit(); }
 	public static void setGpsOffDurationSeconds(long seconds) {
 		editor.putLong(GPS_OFF_DURATION_SECONDS, seconds);

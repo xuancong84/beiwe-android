@@ -10,6 +10,8 @@ public class SetDeviceSettings {
 		PersistentData.setAccelerometerEnabled(accelerometerEnabled);
 		Boolean ambientlightEnabled = deviceSettings.getBoolean("ambientlight");
 		PersistentData.setAmbientLightEnabled(ambientlightEnabled);
+		Boolean gyroscopeEnabled = deviceSettings.getBoolean("gyro");
+		PersistentData.setGyroscopeEnabled(gyroscopeEnabled);
 		Boolean gpsEnabled = deviceSettings.getBoolean("gps");
 		PersistentData.setGpsEnabled(gpsEnabled);
 		Boolean callsEnabled = deviceSettings.getBoolean("calls");
@@ -45,6 +47,10 @@ public class SetDeviceSettings {
 		PersistentData.setCheckForNewSurveysFrequencySeconds(checkForNewSurveysSeconds);
 		int createNewDataFilesFrequencySeconds = deviceSettings.getInt("create_new_data_files_frequency_seconds");
 		PersistentData.setCreateNewDataFilesFrequencySeconds(createNewDataFilesFrequencySeconds);
+		int gyroOffDurationSeconds = deviceSettings.getInt("gyro_off_duration_seconds");
+		PersistentData.setGyroOffDurationSeconds(gyroOffDurationSeconds);
+		int gyroOnDurationSeconds = deviceSettings.getInt("gyro_on_duration_seconds");
+		PersistentData.setGyroOnDurationSeconds(gyroOnDurationSeconds);
 		int gpsOffDurationSeconds = deviceSettings.getInt("gps_off_duration_seconds");
 		PersistentData.setGpsOffDurationSeconds(gpsOffDurationSeconds);
 		int gpsOnDurationSeconds = deviceSettings.getInt("gps_on_duration_seconds");

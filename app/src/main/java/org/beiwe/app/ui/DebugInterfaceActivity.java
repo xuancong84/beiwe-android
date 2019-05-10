@@ -40,30 +40,6 @@ public class DebugInterfaceActivity extends SessionActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_debug_interface);
 		appContext = this.getApplicationContext();
-
-		if (BuildConfig.APP_IS_DEV) {
-			((TextView) findViewById(R.id.debugtexttwenty)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.button)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonPrintInternalLog)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonClearInternalLog)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonDeleteEverything)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonListFiles)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonTimer)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonGetKeyFile)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.testEncryption)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonLogDataToggles)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonAlarmStates)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonFeaturesEnabled)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonFeaturesPermissable)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonCrashUi)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonCrashBackground)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonCrashBackgroundInFive)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonTestManualErrorReport)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.stopBackgroundService)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonEnterANRUI)).setVisibility(View.VISIBLE);
-			((Button) findViewById(R.id.buttonEnterANRBackground)).setVisibility(View.VISIBLE);
-		}
-
 	}
 	
 	//Intent triggers caught in BackgroundService

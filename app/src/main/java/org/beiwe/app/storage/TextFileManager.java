@@ -1,6 +1,7 @@
 package org.beiwe.app.storage;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import org.beiwe.app.listeners.AmbientLightListener;
 import org.beiwe.app.listeners.BluetoothListener;
 import org.beiwe.app.listeners.CallLogger;
 import org.beiwe.app.listeners.GPSListener;
+import org.beiwe.app.listeners.GyroscopeListener;
 import org.beiwe.app.listeners.PowerStateListener;
 import org.beiwe.app.listeners.SmsSentLogger;
 import org.beiwe.app.listeners.WifiListener;
@@ -50,6 +52,7 @@ public class TextFileManager {
 	private static TextFileManager GPSFile;
 	private static TextFileManager accelFile;
 	private static TextFileManager ambientLightFile;
+	private static TextFileManager gyroFile;
 	private static TextFileManager powerStateLog;
 	private static TextFileManager callLog;
 	private static TextFileManager textsLog;
@@ -75,6 +78,7 @@ public class TextFileManager {
 	// checkAvailableWithTimeout throws an error and the app restarts if the TextFile is unavailable.
 	public static TextFileManager getAccelFile() { checkAvailableWithTimeout("accelFile"); return accelFile; }
 	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout("ambientLightFile"); return ambientLightFile; }
+	public static TextFileManager getGyroFile() { checkAvailableWithTimeout("gyroFile"); return gyroFile; }
 	public static TextFileManager getGPSFile() { checkAvailableWithTimeout("GPSFile"); return GPSFile; }
 	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout("powerStateLog"); return powerStateLog; }
 	public static TextFileManager getCallLogFile() { checkAvailableWithTimeout("callLog"); return callLog; }
@@ -92,6 +96,7 @@ public class TextFileManager {
 		//the check for availability is whether the appropriate variable is allocated
 		if (thing.equals("accelFile") ) { return (accelFile != null); }
 		if (thing.equals("ambientLightFile") ) { return (ambientLightFile != null); }
+		if (thing.equals("gyroFile") ) { return (gyroFile != null); }
 		if (thing.equals("GPSFile") ) { return (GPSFile != null); }
 		if (thing.equals("powerStateLog") ) { return (powerStateLog != null); }
 		if (thing.equals("callLog") ) { return (callLog != null); }
@@ -157,6 +162,7 @@ public class TextFileManager {
 		GPSFile = new TextFileManager(appContext, "gps", GPSListener.header, false, false, true, !PersistentData.getGpsEnabled());
 		accelFile = new TextFileManager(appContext, "accel", AccelerometerListener.header, false, false, true, !PersistentData.getAccelerometerEnabled());
 		ambientLightFile = new TextFileManager(appContext, "light", AmbientLightListener.header, false, false, true, !PersistentData.getAmbientLightEnabled());
+		gyroFile = new TextFileManager(appContext, "gyro", GyroscopeListener.header, false, false, true, !PersistentData.getGyroscopeEnabled());
 		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getTextsEnabled());
 		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getCallsEnabled());
 		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getPowerStateEnabled());
@@ -381,6 +387,7 @@ public class TextFileManager {
 		GPSFile.newFile();
 		accelFile.newFile();
 		ambientLightFile.newFile();
+		gyroFile.newFile();
 		powerStateLog.newFile();
 		callLog.newFile();
 		textsLog.newFile();
@@ -409,6 +416,7 @@ public class TextFileManager {
 		files.remove(TextFileManager.getGPSFile().fileName);
 		files.remove(TextFileManager.getAccelFile().fileName);
 		files.remove(TextFileManager.getAmbientLightFile().fileName);
+		files.remove(TextFileManager.getGyroFile().fileName);
 		files.remove(TextFileManager.getPowerStateFile().fileName);
 		files.remove(TextFileManager.getCallLogFile().fileName);
 		files.remove(TextFileManager.getTextsLogFile().fileName);

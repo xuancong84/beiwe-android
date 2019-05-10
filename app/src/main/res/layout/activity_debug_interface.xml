@@ -104,11 +104,25 @@
 	        android:text="Trigger Accelerometer Recording" />
 	    
 	    <Button
-	        android:id="@+id/buttonTDisableAccelerometer"
+	        android:id="@+id/buttonDisableAccelerometer"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:onClick="accelerometerOff"
 	        android:text="Stop Accelerometer Recording" />
+
+		<Button
+			android:id="@+id/buttonEnableGyroscope"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="gyroscopeOn"
+			android:text="Trigger Gyroscope Recording" />
+
+		<Button
+			android:id="@+id/buttonDisableGyroscope"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="gyroscopeOff"
+			android:text="Stop Gyroscope Recording" />
 
 		<Button
 			android:id="@+id/buttonEnableAmbientLight"
@@ -141,160 +155,140 @@
 			android:id="@+id/debugtexttwenty"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Everything below this point is intended for the developers of Beiwe, and really aren't all that interesting. (Well, maybe the crash buttons.)"
-			android:visibility="gone" />
+			android:text="Everything below this point is intended for the developers of Beiwe, and really aren't all that interesting. (Well, maybe the crash buttons.)" />
 
 		<Button
 			android:id="@+id/button"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="testJsonLogicParser"
-			android:text="(dev) Test Json Logic Parser"
-			android:visibility="gone"/>
+			android:text="(dev) Test Json Logic Parser"/>
 
 		<Button
 			android:id="@+id/buttonPrintInternalLog"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="printInternalLog"
-			android:text="(dev) Log Internal Log"
-		android:visibility="gone"/>
+			android:text="(dev) Log Internal Log"/>
 
 		<Button
 			android:id="@+id/buttonClearInternalLog"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="clearInternalLog"
-			android:text="(dev) Clear Internal Log"
-			android:visibility="gone"/>
+			android:text="(dev) Clear Internal Log"/>
 
 		<Button
 			android:id="@+id/buttonDeleteEverything"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="deleteEverything"
-			android:text="(dev) Delete ~Everything"
-			android:visibility="gone"/>
+			android:text="(dev) Delete ~Everything"/>
 
 		<Button
 			android:id="@+id/buttonListFiles"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="listFiles"
-			android:text="(dev) List All Files"
-			android:visibility="gone"/>
+			android:text="(dev) List All Files"/>
 
 		<Button
 			android:id="@+id/buttonTimer"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="buttonTimer"
-			android:text="(dev) Run Start Timer Logic"
-			android:visibility="gone"/>
+			android:text="(dev) Run Start Timer Logic"/>
 
 		<Button
 			android:id="@+id/buttonGetKeyFile"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="getKeyFile"
-			android:text="(dev) Log Key File"
-			android:visibility="gone"/>
+			android:text="(dev) Log Key File"/>
 
 		<Button
 			android:id="@+id/testEncryption"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="testEncrypt"
-			android:text="(dev) Test encryption"
-			android:visibility="gone"/>
+			android:text="(dev) Test encryption"/>
 
 		<Button
 			android:id="@+id/buttonLogDataToggles"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="logDataToggles"
-			android:text="(dev) Log Data Stream Toggles"
-			android:visibility="gone"/>
+			android:text="(dev) Log Data Stream Toggles"/>
 
 		<Button
 			android:id="@+id/buttonAlarmStates"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="getAlarmStates"
-			android:text="(dev) Log Most Recent Alarm Times"
-			android:visibility="gone"/>
+			android:text="(dev) Log Most Recent Alarm Times"/>
 
 		<Button
 			android:id="@+id/buttonFeaturesEnabled"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="getEnabledFeatures"
-			android:text="(dev) Log Enabled Features"
-			android:visibility="gone"/>
+			android:text="(dev) Log Enabled Features"/>
 
 		<Button
 			android:id="@+id/buttonFeaturesPermissable"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="getPermissableFeatures"
-			android:text="(dev) Log Permissions"
-			android:visibility="gone"/>
+			android:text="(dev) Log Permissions"/>
 
 		<Button
 			android:id="@+id/buttonCrashUi"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="crashUi"
-			android:text="(dev) Crash UI"
-			android:visibility="gone"/>
+			android:text="(dev) Crash UI"/>
 
 		<Button
 			android:id="@+id/buttonCrashBackground"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="crashBackground"
-			android:text="(dev) Crash Background Service"
-			android:visibility="gone"/>
+			android:text="(dev) Crash Background Service"/>
 
 		<Button
 			android:id="@+id/buttonCrashBackgroundInFive"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="crashBackgroundInFive"
-			android:text="(dev) Crash Background Service in Five"
-			android:visibility="gone"/>
+			android:text="(dev) Crash Background Service in Five"/>
 
 		<Button
 			android:id="@+id/buttonEnterANRUI"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="enterANRUI"
-			android:text="(dev) Send UI into ANR"
-			android:visibility="gone"/>
+			android:text="(dev) Send UI into ANR"/>
 
 		<Button
 			android:id="@+id/buttonEnterANRBackground"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="enterANRBackground"
-			android:text="(dev) Send Background Service into ANR"
-			android:visibility="gone"/>
+			android:text="(dev) Send Background Service into ANR"/>
 
 		<Button
 			android:id="@+id/buttonTestManualErrorReport"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="testManualErrorReport"
-			android:text="(dev) Test Manual Error Report"
-			android:visibility="gone"/>
+			android:text="(dev) Test Manual Error Report"/>
 
 		<Button
 			android:id="@+id/stopBackgroundService"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="stopBackgroundService"
-			android:text="(dev) Stop Background Service Safely"
-			android:visibility="gone"/>
+			android:text="(dev) Stop Background Service Safely"/>
 
 	</LinearLayout>
 </ScrollView>
