@@ -6,12 +6,10 @@ import org.beiwe.app.storage.PersistentData;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.support.v7.app.AlertDialog;
 
 /**The about page!
@@ -23,30 +21,32 @@ public class AboutActivityLoggedOut extends RunningBackgroundServiceActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_about);
 
-		TextView aboutPageBody = (TextView) findViewById(R.id.about_page_body);
-		aboutPageBody.setText(PersistentData.getAboutPageText());
+		findViewById(R.id.resetAPP).setVisibility(View.INVISIBLE);
+		((TextView)findViewById(R.id.about_page_body)).setText(PersistentData.getAboutPageText());
+	}
+
+	private static int nNeedToClick = 10;
+	public void onClickText(View view){
+		if(--nNeedToClick==0)
+			findViewById(R.id.resetAPP).setVisibility(View.VISIBLE);
 	}
 
 	private static View s_view;
-	private static AboutActivityLoggedOut s_handle;
-
 	public void resetAPP(View view){
-		s_handle = this;
 		s_view = view;
 
 		LayoutInflater li = LayoutInflater.from(this);
 		View promptsView = li.inflate(R.layout.password_prompt, null);
-		final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+		final EditText userInput = promptsView.findViewById(R.id.editTextDialogUserInput);
 
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == DialogInterface.BUTTON_POSITIVE && userInput.getText().toString().equals("P@ssw0rd")){
-					Toast.makeText(s_handle, "Resetting APP, restarting now ...", Toast.LENGTH_SHORT).show();
 					PersistentData.resetAPP(AboutActivityLoggedOut.s_view);
 					moveTaskToBack(true);
 					android.os.Process.killProcess(android.os.Process.myPid());
-					System.exit(1);
+					System.exit(0);
 				}
 			}
 		};

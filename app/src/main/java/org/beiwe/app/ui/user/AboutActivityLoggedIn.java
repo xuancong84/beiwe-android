@@ -6,7 +6,6 @@ import org.beiwe.app.storage.PersistentData;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 /**The about page!
@@ -18,8 +17,8 @@ public class AboutActivityLoggedIn extends SessionActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_about);
 		
-		TextView aboutPageBody = (TextView) findViewById(R.id.about_page_body);
-		aboutPageBody.setText(PersistentData.getAboutPageText());
 		findViewById(R.id.resetAPP).setVisibility(View.INVISIBLE);
+		((TextView)findViewById(R.id.about_page_body)).setText(PersistentData.getAboutPageText());
 	}
+	public void onClickText(View view){}
 }
