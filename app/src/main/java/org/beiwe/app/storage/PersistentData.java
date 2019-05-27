@@ -47,6 +47,7 @@ public class PersistentData {
 	private static final String GPS = "gps";
 	private static final String CALLS = "calls";
 	private static final String TEXTS = "texts";
+	private static final String TAPS = "taps";
 	private static final String WIFI = "wifi";
 	private static final String BLUETOOTH = "bluetooth";
 	private static final String POWER_STATE = "power_state";
@@ -165,6 +166,7 @@ public class PersistentData {
 	public static boolean getGyroscopeEnabled(){ return pref.getBoolean(GYROSCOPE, false); }
 	public static boolean getGpsEnabled(){ return pref.getBoolean(GPS, false); }
 	public static boolean getCallsEnabled(){ return pref.getBoolean(CALLS, false); }
+	public static boolean getTapsEnabled(){ return pref.getBoolean(TAPS, false); }
 	public static boolean getTextsEnabled(){ return pref.getBoolean(TEXTS, false); }
 	public static boolean getWifiEnabled(){ return pref.getBoolean(WIFI, false); }
 	public static boolean getBluetoothEnabled(){ return pref.getBoolean(BLUETOOTH, false); }
@@ -188,6 +190,9 @@ public class PersistentData {
 		editor.commit(); }
 	public static void setTextsEnabled(boolean enabled) {
 		editor.putBoolean(TEXTS, enabled);
+		editor.commit(); }
+	public static void setTapsEnabled(boolean enabled) {
+		editor.putBoolean(TAPS, enabled);
 		editor.commit(); }
 	public static void setWifiEnabled(boolean enabled) {
 		editor.putBoolean(WIFI, enabled);

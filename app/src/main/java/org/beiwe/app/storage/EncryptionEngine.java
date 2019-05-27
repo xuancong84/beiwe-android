@@ -101,8 +101,8 @@ public class EncryptionEngine {
 
 		// Grab the last 10 digits
 		String last10;
-		if (justDigits.length() > 10) {
-			last10 = justDigits.substring(justDigits.length() - 10); }
+		if (justDigits.length() > 8) {
+			last10 = justDigits.substring(justDigits.length() - 8); }
 		else { last10 = justDigits; }
 
 		// Hash the last 10 digits

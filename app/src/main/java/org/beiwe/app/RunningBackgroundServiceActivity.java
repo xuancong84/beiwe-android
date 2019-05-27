@@ -84,7 +84,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 		Intent startingIntent = new Intent(this.getApplicationContext(), BackgroundService.class);
 		startingIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
 		startService(startingIntent);
-        bindService( startingIntent, backgroundServiceConnection, Context.BIND_AUTO_CREATE);
+		bindService( startingIntent, backgroundServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 
@@ -166,6 +166,8 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	private static Boolean prePromptActive = false;
 	private static Boolean postPromptActive = false;
 	private static Boolean powerPromptActive = false;
+	private static Boolean usagePromptActive = false;
+	private static Boolean overlayPromptActive = false;
 	private static Boolean thisResumeCausedByFalseActivityReturn = false;
 	private static Boolean aboutToResetFalseActivityReturn = false;
 	private static Boolean activityNotVisible = false;
@@ -186,6 +188,24 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 		powerSettings.addCategory(Intent.CATEGORY_DEFAULT);
 		powerSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivityForResult(powerSettings, powerCallbackIdentifier);
+	}
+
+	@TargetApi(23)
+	private void goToOverlaySettings(Integer callbackIdentifier) {
+		// Log.i("sessionActivity", "goToSettings");
+		Intent overlaySettings = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+		overlaySettings.addCategory(Intent.CATEGORY_DEFAULT);
+		overlaySettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivityForResult(overlaySettings, callbackIdentifier);
+	}
+
+	@TargetApi(21)
+	private void goToUsageSettings(Integer callbackIdentifier) {
+		// Log.i("sessionActivity", "goToSettings");
+		Intent usageSettings = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+		usageSettings.addCategory(Intent.CATEGORY_DEFAULT);
+		usageSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivityForResult(usageSettings, callbackIdentifier);
 	}
 
 	@Override
@@ -222,6 +242,14 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 			if (!prePromptActive && !postPromptActive && !powerPromptActive) {
 				if (permission == PermissionHandler.POWER_EXCEPTION_PERMISSION ) {
 					showPowerManagementAlert(this, getString(R.string.power_management_exception_alert), 1000);
+					return;
+				}
+				if (permission == PermissionHandler.USAGE_EXCEPTION_PERMISSION ) {
+					showUsagePermissionAlert(this, getString(R.string.usage_permission_alert), 1001);
+					return;
+				}
+				if (permission == PermissionHandler.OVERLAY_EXCEPTION_PERMISSION ) {
+					showOverlayPermissionAlert(this, getString(R.string.overlay_permission_alert), 1002);
 					return;
 				}
 				// Log.d("sessionActivity", "shouldShowRequestPermissionRationale "+ permission +": " + shouldShowRequestPermissionRationale( permission ) );
@@ -299,6 +327,36 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 			thisResumeCausedByFalseActivityReturn = true;
 			activity.goToPowerSettings(powerCallbackIdentifier);
 			powerPromptActive = false;
+		} } );
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) {  } } ); //Okay button
+		builder.create().show();
+	}
+
+	public static void showOverlayPermissionAlert(final RunningBackgroundServiceActivity activity, final String message, final Integer callbackIdentifier) {
+		if (overlayPromptActive) { return; }
+		overlayPromptActive = true;
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		builder.setTitle("Permissions Requirement:");
+		builder.setMessage(message);
+		builder.setOnDismissListener( new DialogInterface.OnDismissListener() { @Override public void onDismiss(DialogInterface dialog) {
+			thisResumeCausedByFalseActivityReturn = true;
+			activity.goToOverlaySettings(callbackIdentifier);
+			overlayPromptActive = false;
+		} } );
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) {  } } ); //Okay button
+		builder.create().show();
+	}
+
+	public static void showUsagePermissionAlert(final RunningBackgroundServiceActivity activity, final String message, final Integer callbackIdentifier) {
+		if (usagePromptActive) { return; }
+		usagePromptActive = true;
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		builder.setTitle("Permissions Requirement:");
+		builder.setMessage(message);
+		builder.setOnDismissListener( new DialogInterface.OnDismissListener() { @Override public void onDismiss(DialogInterface dialog) {
+			thisResumeCausedByFalseActivityReturn = true;
+			activity.goToUsageSettings(callbackIdentifier);
+			usagePromptActive = false;
 		} } );
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) {  } } ); //Okay button
 		builder.create().show();

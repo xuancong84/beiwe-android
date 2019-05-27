@@ -33,6 +33,7 @@ public class SmsSentLogger extends ContentObserver {
 	private TextFileManager smsLogFile = null;
 	private Handler handler = null;
 	private Context appContext = null;
+	private static long prev_time_stamp = 0;
 	
 	public SmsSentLogger(Handler theHandler, Context context) {
 		super(theHandler);
@@ -40,18 +41,14 @@ public class SmsSentLogger extends ContentObserver {
 		appContext = context;
 		smsLogFile = TextFileManager.getTextsLogFile();
 	}
-	
-	
+
 	@Override
 	public void onChange(boolean selfChange) {
-		super.onChange(selfChange);		
+		super.onChange(selfChange);
 		try {
 			Cursor cursor = appContext.getContentResolver().query( Uri.parse("content://sms"), null, null, null, "date DESC" );
 			//Check if this cursor has data
 			if(cursor!=null && cursor.moveToFirst()) {
-				String address = cursor.getString(cursor.getColumnIndex("address"));
-				String body = cursor.getString(cursor.getColumnIndex("body"));
-				String timestamp = cursor.getString(cursor.getColumnIndex("date"));
 				int msgType = cursor.getInt(cursor.getColumnIndex("type"));
 
 				/* Improvement idea: we could log all message types; TextBasedSmsColumns has 6 types of messages:
@@ -60,12 +57,26 @@ public class SmsSentLogger extends ContentObserver {
 				 * We could also use this class to log incoming messages as well as outgoing messages. */
 				if (msgType == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
 					//			"timestamp,hashed phone number,sent vs received,message length,time sent";
+					String address = cursor.getString(cursor.getColumnIndex("address"));
+					String body = cursor.getString(cursor.getColumnIndex("body"));
+					String timestamp = cursor.getString(cursor.getColumnIndex("date"));
 					String data = "" + timestamp + TextFileManager.DELIMITER;
 					data += EncryptionEngine.hashPhoneNumber(address) + TextFileManager.DELIMITER;
 					data += "sent SMS" + TextFileManager.DELIMITER;
 					data += body.length();
 
-					smsLogFile.writeEncrypted(data);
+					// use timestamp to eliminate redundant messages
+					boolean doWrite = true;
+					try{
+						long curr_time_stamp = Integer.parseInt(timestamp);
+						if(curr_time_stamp <= prev_time_stamp)
+							doWrite = false;
+						else
+							prev_time_stamp = curr_time_stamp;
+					}catch (Exception e){}
+
+					if(doWrite)
+						smsLogFile.writeEncrypted(data);
 
 					/* Note: Android often records a text message multiple times. This
 					 * may happen as a message is moved among the outbox, sent, and

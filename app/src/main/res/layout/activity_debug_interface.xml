@@ -290,5 +290,11 @@
 			android:onClick="stopBackgroundService"
 			android:text="(dev) Stop Background Service Safely"/>
 
+		<Button
+			android:id="@+id/resetAPP"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="resetAPP"
+			android:text="(dev) Unregister Study and Reset APP"/>
 	</LinearLayout>
 </ScrollView>

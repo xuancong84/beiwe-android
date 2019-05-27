@@ -17,18 +17,23 @@ import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.survey.JsonSkipLogic;
+import org.beiwe.app.ui.user.AboutActivityLoggedOut;
 import org.beiwe.app.ui.user.MainMenuActivity;
 import org.beiwe.app.ui.utils.SurveyNotifications;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.support.v7.app.AlertDialog;
 
 
 public class DebugInterfaceActivity extends SessionActivity {
@@ -45,6 +50,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	//Intent triggers caught in BackgroundService
 	public void accelerometerOn (View view) { appContext.sendBroadcast( Timer.accelerometerOnIntent ); }
 	public void accelerometerOff (View view) { appContext.sendBroadcast( Timer.accelerometerOffIntent ); }
+	public void gyroscopeOn (View view) { appContext.sendBroadcast( Timer.gyroscopeOnIntent ); }
+	public void gyroscopeOff (View view) { appContext.sendBroadcast( Timer.gyroscopeOffIntent ); }
 	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
@@ -86,6 +93,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Accelerometer: " + Boolean.toString(PersistentData.getAccelerometerEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "AmbientLight: " + Boolean.toString(PersistentData.getAmbientLightEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "GPS: " + Boolean.toString(PersistentData.getGpsEnabled()));
+		Log.i("DebugInterfaceActivity.logDataToggles()", "Gyroscope: " + Boolean.toString(PersistentData.getGyroscopeEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Calls: " + Boolean.toString(PersistentData.getCallsEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "Texts: " + Boolean.toString(PersistentData.getTextsEnabled()));
 		Log.i("DebugInterfaceActivity.logDataToggles()", "WiFi: " + Boolean.toString(PersistentData.getWifiEnabled()));
@@ -103,7 +111,9 @@ public class DebugInterfaceActivity extends SessionActivity {
 		if ( PersistentData.getAccelerometerEnabled() ) { Log.i("features", "Accelerometer Enabled." ); } else { Log.e("features", "Accelerometer Disabled."); }
 		if ( PersistentData.getAmbientLightEnabled() ) { Log.i("features", "AmbientLight Sensor Enabled." ); } else { Log.e("features", "AmbientLight Sensor Disabled."); }
 		if ( PersistentData.getGpsEnabled() ) { Log.i("features", "Gps Enabled." ); } else { Log.e("features", "Gps Disabled."); }
+		if ( PersistentData.getGyroscopeEnabled() ) { Log.i("features", "Gyro Enabled." ); } else { Log.e("features", "Gyro Disabled."); }
 		if ( PersistentData.getCallsEnabled() ) { Log.i("features", "Calls Enabled." ); } else { Log.e("features", "Calls Disabled."); }
+		if ( PersistentData.getTapsEnabled() ) { Log.i("features", "Taps Enabled." ); } else { Log.e("features", "Taps Disabled."); }
 		if ( PersistentData.getTextsEnabled() ) { Log.i("features", "Texts Enabled." ); } else { Log.e("features", "Texts Disabled."); }
 		if ( PersistentData.getWifiEnabled() ) { Log.i("features", "Wifi Enabled." ); } else { Log.e("features", "Wifi Disabled."); }
 		if ( PersistentData.getBluetoothEnabled() ) { Log.i("features", "Bluetooth Enabled." ); } else { Log.e("features", "Bluetooth Disabled."); }
@@ -239,5 +249,31 @@ public class DebugInterfaceActivity extends SessionActivity {
 		Log.v("debug", "" + i); i++;
 	}
 
+	private static View s_view;
+	public void resetAPP(View view){
+		s_view = view;
 
+		LayoutInflater li = LayoutInflater.from(this);
+		View promptsView = li.inflate(R.layout.password_prompt, null);
+		final EditText userInput = promptsView.findViewById(R.id.editTextDialogUserInput);
+
+		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == DialogInterface.BUTTON_POSITIVE && userInput.getText().toString().equals("P@ssw0rd")){
+					PersistentData.resetAPP(DebugInterfaceActivity.s_view);
+					moveTaskToBack(true);
+					android.os.Process.killProcess(android.os.Process.myPid());
+					System.exit(0);
+				}
+			}
+		};
+
+		new AlertDialog.Builder(this)
+				.setView(promptsView)
+				.setTitle("Warning")
+				.setMessage("This will unregister any study and reset the APP. Are you sure?")
+				.setPositiveButton("OK", dialogClickListener)
+				.setNegativeButton("Cancel", dialogClickListener).show();
+	}
 }

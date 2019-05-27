@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
@@ -85,9 +86,15 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		String confirmNewPassword = confirmNewPasswordInput.getText().toString();
 
 		if(BuildConfig.APP_IS_BETA && serverUrl.isEmpty()){
-			serverUrl = "ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com";
-			userID = "hywvod27";
-			tempPassword = newPassword = confirmNewPassword = "abcd1234";
+			if(Build.MANUFACTURER.equals("unknown")) {
+				serverUrl = "ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com";
+				userID = "hywvod27";
+				tempPassword = newPassword = confirmNewPassword = "abcd1234";
+			}else{
+				serverUrl = "ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com";
+				userID = "iawlsn1e";
+				tempPassword = newPassword = confirmNewPassword = "abcd1234";
+			}
 		}
 
 		Log.d("serverUrl:", serverUrl);

@@ -30,8 +30,8 @@ There are three Build Variants of the Android app, specified in the `buildTypes`
 org.beiwe.app.listeners : add new class
 BackgroundService.java : startTimers(), timerReceiver(), registerTimers(), doSetup(), class BackgroundService
 PersistentData.java : class PersistentData, getters and setters, Default timings
-TextFileManager.java : class TextFileManager, checkTextFileAvailable(), initialize()
-DebugInterfaceActivity.java : class DebugInterfaceActivity, logDataToggles(), getEnabledFeatures(), makeNewFilesForEverything(), getAllUploadableFiles()
+TextFileManager.java : class TextFileManager, checkTextFileAvailable(), initialize(), makeNewFilesForEverything(), getAllUploadableFiles()
+DebugInterfaceActivity.java : class DebugInterfaceActivity, logDataToggles(), getEnabledFeatures()
 SetDeviceSettings.java : writeDeviceSettings()
 Timer.java : class Timer, Timer()
 activity_debug_interface.xml

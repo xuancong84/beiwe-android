@@ -55,6 +55,7 @@ public class TextFileManager {
 	private static TextFileManager gyroFile;
 	private static TextFileManager powerStateLog;
 	private static TextFileManager callLog;
+	private static TextFileManager tapsLog;
 	private static TextFileManager textsLog;
 	private static TextFileManager bluetoothLog;
 	private static TextFileManager debugLogFile;
@@ -83,6 +84,7 @@ public class TextFileManager {
 	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout("powerStateLog"); return powerStateLog; }
 	public static TextFileManager getCallLogFile() { checkAvailableWithTimeout("callLog"); return callLog; }
 	public static TextFileManager getTextsLogFile() { checkAvailableWithTimeout("textsLog"); return textsLog; }
+	public static TextFileManager getTapsLogFile() { checkAvailableWithTimeout("tapsLog"); return tapsLog; }
 	public static TextFileManager getBluetoothLogFile() { checkAvailableWithTimeout("bluetoothLog"); return bluetoothLog; }
 	public static TextFileManager getWifiLogFile() { checkAvailableWithTimeout("wifiLog"); return wifiLog; }
 	public static TextFileManager getSurveyTimingsFile() { checkAvailableWithTimeout("surveyTimings"); return surveyTimings; }
@@ -101,6 +103,7 @@ public class TextFileManager {
 		if (thing.equals("powerStateLog") ) { return (powerStateLog != null); }
 		if (thing.equals("callLog") ) { return (callLog != null); }
 		if (thing.equals("textsLog") ) { return (textsLog != null); }
+		if (thing.equals("tapsLog") ) { return (tapsLog != null); }
 		if (thing.equals("bluetoothLog") ) { return (bluetoothLog != null); }
 		if (thing.equals("wifiLog") ) { return (wifiLog != null); }
 		if (thing.equals("surveyTimings") ) { return (surveyTimings != null); }
@@ -163,6 +166,7 @@ public class TextFileManager {
 		accelFile = new TextFileManager(appContext, "accel", AccelerometerListener.header, false, false, true, !PersistentData.getAccelerometerEnabled());
 		ambientLightFile = new TextFileManager(appContext, "light", AmbientLightListener.header, false, false, true, !PersistentData.getAmbientLightEnabled());
 		gyroFile = new TextFileManager(appContext, "gyro", GyroscopeListener.header, false, false, true, !PersistentData.getGyroscopeEnabled());
+		tapsLog = new TextFileManager(appContext, "tapsLog", SmsSentLogger.header, false, false, true, !PersistentData.getTapsEnabled());
 		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getTextsEnabled());
 		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getCallsEnabled());
 		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getPowerStateEnabled());
@@ -390,6 +394,7 @@ public class TextFileManager {
 		gyroFile.newFile();
 		powerStateLog.newFile();
 		callLog.newFile();
+		tapsLog.newFile();
 		textsLog.newFile();
 		bluetoothLog.newFile();
 		debugLogFile.newFile();
@@ -419,6 +424,7 @@ public class TextFileManager {
 		files.remove(TextFileManager.getGyroFile().fileName);
 		files.remove(TextFileManager.getPowerStateFile().fileName);
 		files.remove(TextFileManager.getCallLogFile().fileName);
+		files.remove(TextFileManager.getTapsLogFile().fileName);
 		files.remove(TextFileManager.getTextsLogFile().fileName);
 		files.remove(TextFileManager.getDebugLogFile().fileName);
 		files.remove(TextFileManager.getBluetoothLogFile().fileName);

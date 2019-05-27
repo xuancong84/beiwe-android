@@ -11,6 +11,7 @@ import android.util.Log;
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.BackgroundService.BackgroundServiceBinder;
 import org.beiwe.app.BuildConfig;
+import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.storage.EncryptionEngine;
@@ -66,6 +67,7 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Context ctx = this.getApplicationContext();
+		BackgroundService.activity = this;
 
 		try {
 			String sentryDsn = BuildConfig.SENTRY_DSN;
@@ -76,6 +78,8 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 		}
 
 		setContentView(R.layout.activity_loading);
+//		PermissionHandler.requestOverlayPermission(this);
+//		PermissionHandler.requestUsagePermission(this);
 				
 		if ( testHashing() ) {
 			Intent startingIntent = new Intent(this.getApplicationContext(), BackgroundService.class);

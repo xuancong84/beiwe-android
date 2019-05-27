@@ -2,6 +2,8 @@ package org.beiwe.app;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.beiwe.app.listeners.*;
 import org.beiwe.app.networking.PostRequest;
@@ -13,10 +15,15 @@ import org.beiwe.app.ui.user.LoginActivity;
 import org.beiwe.app.ui.utils.SurveyNotifications;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -25,11 +32,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import io.sentry.Sentry;
 import io.sentry.android.AndroidSentryClientFactory;
@@ -47,6 +57,8 @@ public class BackgroundService extends Service {
 	public SmsSentLogger smsSentLogger;
 	public MMSSentLogger mmsSentLogger;
 	public CallLogger callLogger;
+	public TapsListener tapsListener;
+
 	public static Timer timer;
 	
 	//localHandle is how static functions access the currently instantiated background service.
@@ -55,16 +67,22 @@ public class BackgroundService extends Service {
 	//This is Really Hacky and terrible style, but it is okay because the scheduling code can only ever
 	//begin to run with an already fully instantiated background service.
 	public static BackgroundService localHandle;
+	public static boolean isTapAdded = false;
+
+	public static Activity activity = null;
+	public static ActivityManager activityManager = null;
+	public static UsageStatsManager usageStatsManager = null;
 	
 	@Override
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
 	public void onCreate() {
 		appContext = this.getApplicationContext();
+		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+		usageStatsManager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
 		try {
 			String sentryDsn = BuildConfig.SENTRY_DSN;
 			Sentry.init(sentryDsn, new AndroidSentryClientFactory(appContext));
-		}
-		catch (InvalidDsnException ie){
+		} catch (InvalidDsnException ie) {
 			Sentry.init(new AndroidSentryClientFactory(appContext));
 		}
 
@@ -74,8 +92,33 @@ public class BackgroundService extends Service {
 		PostRequest.initialize( appContext );
 		localHandle = this;  //yes yes, hacky, I know.
 		registerTimers(appContext);
-		
+
 		doSetup();
+	}
+
+//	public String getForegroundAppName() {
+//		List<ActivityManager.RunningTaskInfo> runningTaskInfo = activityManager.getRunningTasks(1);
+//		ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
+//		return componentInfo.getPackageName();
+//	}
+
+	public String getForegroundAppName() {
+		String topPackageName = null;
+		if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+			ActivityManager.RunningTaskInfo foregroundTaskInfo = activityManager.getRunningTasks(1).get(0);
+			topPackageName = foregroundTaskInfo.topActivity.getPackageName();
+		} else {
+			long time = System.currentTimeMillis();
+			List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000*1000, time);
+			if (stats != null) {
+				SortedMap<Long, UsageStats> runningTask = new TreeMap<Long,UsageStats>();
+				for (UsageStats usageStats : stats) {
+					runningTask.put(usageStats.getLastTimeUsed(), usageStats);
+				}
+				topPackageName = runningTask.isEmpty()?"None":runningTask.get(runningTask.lastKey()).getPackageName();
+			}
+		}
+		return topPackageName;
 	}
 
 	public void doSetup() {		// now support updating sensor settings
@@ -91,6 +134,8 @@ public class BackgroundService extends Service {
 			ambientLightListener = new AmbientLightListener( appContext );
 		if ( PersistentData.getGyroscopeEnabled() && gyroscopeListener==null)
 			gyroscopeListener = new GyroscopeListener( appContext );
+		if ( PersistentData.getTapsEnabled() && tapsListener ==null )
+			tapsListener = new TapsListener( this );
 
 		//Bluetooth, wifi, gps, calls, and texts need permissions
 		if(PersistentData.getBluetoothEnabled() && bluetoothListener==null) {
@@ -98,12 +143,15 @@ public class BackgroundService extends Service {
 				startBluetooth();
 		}
 
-		if(PersistentData.getTextsEnabled()	&& smsSentLogger==null && mmsSentLogger==null) {
-			if (PermissionHandler.confirmTexts(appContext)) {
-				smsSentLogger = startSmsSentLogger();
-				mmsSentLogger = startMmsSentLogger();
-			} else
+		if(PersistentData.getTextsEnabled()){
+			if (!PermissionHandler.confirmTexts(appContext))
 				sendBroadcast(Timer.checkForSMSEnabled);
+			else{
+				if(smsSentLogger==null)
+					smsSentLogger = startSmsSentLogger();
+				if(mmsSentLogger==null)
+					mmsSentLogger = startMmsSentLogger();
+			}
 		}
 
 		if(PersistentData.getCallsEnabled() && callLogger==null) {
@@ -137,18 +185,19 @@ public class BackgroundService extends Service {
 			this.bluetoothListener = new BluetoothListener();
 			if ( this.bluetoothListener.isBluetoothEnabled() ) {
 //				Log.i("Background Service", "success, actually doing bluetooth things.");
-				registerReceiver(this.bluetoothListener, new IntentFilter("android.bluetooth.adapter.action.STATE_CHANGED") ); }
-			else {
+				registerReceiver(this.bluetoothListener, new IntentFilter("android.bluetooth.adapter.action.STATE_CHANGED") );
+			} else {
 				//TODO: Low priority. Eli. Track down why this error log pops up, cleanup.  -- the above check should be for the (new) doesBluetoothCapabilityExist function instead of isBluetoothEnabled
 				Log.e("Background Service", "bluetooth Failure. Should not have gotten this far.");
-				TextFileManager.getDebugLogFile().writeEncrypted("bluetooth Failure, device should not have gotten to this line of code"); }
-		}
-		else {
+				TextFileManager.getDebugLogFile().writeEncrypted("bluetooth Failure, device should not have gotten to this line of code");
+			}
+		} else {
 			if (PersistentData.getBluetoothEnabled()) {
 				TextFileManager.getDebugLogFile().writeEncrypted("Device does not support bluetooth LE, bluetooth features disabled.");
 				Log.w("BackgroundService bluetooth init", "Device does not support bluetooth LE, bluetooth features disabled."); }
 			// else { Log.d("BackgroundService bluetooth init", "Bluetooth not enabled for study."); }
-			this.bluetoothListener = null; }
+			this.bluetoothListener = null;
+		}
 	}
 	
 	/** Initializes the sms logger. */
@@ -244,15 +293,14 @@ public class BackgroundService extends Service {
 			}
 		}
 
-		if (PersistentData.getGyroscopeEnabled()) {  //if accelerometer data recording is enabled and...
+		if (PersistentData.getGyroscopeEnabled()) {
 			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_gyroscope_on )) < now || //the most recent accelerometer alarm time is in the past, or...
-					!timer.alarmIsSet(Timer.accelerometerOnIntent) ) { //there is no scheduled accelerometer-on timer.
-				sendBroadcast(Timer.accelerometerOnIntent); // start accelerometer timers (immediately runs accelerometer recording session).
-				//note: when there is no accelerometer-off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+					!timer.alarmIsSet(Timer.gyroscopeOnIntent) ) {
+				sendBroadcast(Timer.gyroscopeOnIntent);
 			}
-			else if(timer.alarmIsSet(Timer.accelerometerOffIntent)
-					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_accelerometer_on )) - PersistentData.getAccelerometerOffDurationMilliseconds() + 1000 > now ) {
-				accelerometerListener.turn_on();
+			else if(timer.alarmIsSet(Timer.gyroscopeOffIntent)
+					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gyroscope_on )) - PersistentData.getGyroOffDurationMilliseconds() + 1000 > now ) {
+				gyroscopeListener.turn_on();
 			}
 		}
 

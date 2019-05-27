@@ -1,43 +1,61 @@
 package org.beiwe.app;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.AppOpsManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 
 import org.beiwe.app.storage.PersistentData;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PermissionHandler {
 	public static final int PERMISSION_GRANTED = PackageManager.PERMISSION_GRANTED;
 	public static int PERMISSION_DENIED = PackageManager.PERMISSION_DENIED;
 	public static String POWER_EXCEPTION_PERMISSION = "POWER_EXCEPTION_PERMISSION";
+	public static String USAGE_EXCEPTION_PERMISSION = "USAGE_EXCEPTION_PERMISSION";
+	public static String OVERLAY_EXCEPTION_PERMISSION = "OVERLAY_EXCEPTION_PERMISSION";
 	
 	public static Map <String, Integer> permissionMap = new HashMap <String, Integer> ();	  
-	static {permissionMap.put( Manifest.permission.ACCESS_FINE_LOCATION, 1 );
-			permissionMap.put( Manifest.permission.ACCESS_NETWORK_STATE, 2 );
-			permissionMap.put( Manifest.permission.ACCESS_WIFI_STATE, 3 );
-			permissionMap.put( Manifest.permission.READ_SMS, 4 );
-			permissionMap.put( Manifest.permission.BLUETOOTH, 5 );
-			permissionMap.put( Manifest.permission.BLUETOOTH_ADMIN, 6 );
-			permissionMap.put( Manifest.permission.CALL_PHONE, 8 );
-			permissionMap.put( Manifest.permission.INTERNET, 9 );
-			permissionMap.put( Manifest.permission.READ_CALL_LOG, 10 );
-			permissionMap.put( Manifest.permission.READ_CONTACTS, 11 );
-			permissionMap.put( Manifest.permission.READ_PHONE_STATE, 12 );
-			permissionMap.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, 13 );
-			permissionMap.put( Manifest.permission.RECORD_AUDIO, 14 );
-			permissionMap.put( Manifest.permission.ACCESS_COARSE_LOCATION, 15);
-			permissionMap.put( Manifest.permission.RECEIVE_MMS, 16);
-			permissionMap.put( Manifest.permission.RECEIVE_SMS, 17);
-			permissionMap = Collections.unmodifiableMap(permissionMap); }
+	static {
+		permissionMap.put( Manifest.permission.ACCESS_FINE_LOCATION, 1 );
+		permissionMap.put( Manifest.permission.ACCESS_NETWORK_STATE, 2 );
+		permissionMap.put( Manifest.permission.ACCESS_WIFI_STATE, 3 );
+		permissionMap.put( Manifest.permission.READ_SMS, 4 );
+		permissionMap.put( Manifest.permission.BLUETOOTH, 5 );
+		permissionMap.put( Manifest.permission.BLUETOOTH_ADMIN, 6 );
+		permissionMap.put( Manifest.permission.CALL_PHONE, 8 );
+		permissionMap.put( Manifest.permission.INTERNET, 9 );
+		permissionMap.put( Manifest.permission.READ_CALL_LOG, 10 );
+		permissionMap.put( Manifest.permission.READ_CONTACTS, 11 );
+		permissionMap.put( Manifest.permission.READ_PHONE_STATE, 12 );
+		permissionMap.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, 13 );
+		permissionMap.put( Manifest.permission.RECORD_AUDIO, 14 );
+		permissionMap.put( Manifest.permission.ACCESS_COARSE_LOCATION, 15);
+		permissionMap.put( Manifest.permission.RECEIVE_MMS, 16);
+		permissionMap.put( Manifest.permission.RECEIVE_SMS, 17);
+		permissionMap.put( Manifest.permission.SYSTEM_ALERT_WINDOW, 18);
+		permissionMap.put( Manifest.permission.BIND_ACCESSIBILITY_SERVICE, 19);
+		permissionMap.put( Manifest.permission.GET_TASKS, 20);
+		permissionMap = Collections.unmodifiableMap(permissionMap);
+	}
 	
 	private static Map <String, String> permissionMessages = new HashMap <String, String> ();
-	static {permissionMessages.put( Manifest.permission.ACCESS_FINE_LOCATION, "use Location Services." );
+	static {
+			permissionMessages.put( Manifest.permission.ACCESS_FINE_LOCATION, "use Location Services." );
 			permissionMessages.put( Manifest.permission.ACCESS_NETWORK_STATE, "view your Network State." );
 			permissionMessages.put( Manifest.permission.ACCESS_WIFI_STATE, "view your Wifi State." );
 			permissionMessages.put( Manifest.permission.READ_SMS, "view your SMS messages." );
@@ -52,8 +70,11 @@ public class PermissionHandler {
 			permissionMessages.put( Manifest.permission.RECORD_AUDIO, "access your Microphone." );
 			permissionMessages.put( Manifest.permission.ACCESS_COARSE_LOCATION, "use Location Services." );
 			permissionMessages.put( Manifest.permission.RECEIVE_MMS, "receive MMS messages.");
-			permissionMessages.put( Manifest.permission.RECEIVE_SMS, "receive SMS messages.");
-			permissionMessages = Collections.unmodifiableMap(permissionMessages); }
+			permissionMessages.put( Manifest.permission.SYSTEM_ALERT_WINDOW, "create system alert window.");
+			permissionMessages.put( Manifest.permission.BIND_ACCESSIBILITY_SERVICE, "bind accessibility service.");
+			permissionMessages.put( Manifest.permission.GET_TASKS, "get task list.");
+			permissionMessages = Collections.unmodifiableMap(permissionMessages);
+	}
 
 	public static String getNormalPermissionMessage(String permission) {
 		return String.format("For this study Beiwe needs permission to %s Please press allow on the following permissions request.", permissionMessages.get(permission) );
@@ -98,7 +119,10 @@ public class PermissionHandler {
 	public static Boolean checkAccessReceiveMms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_MMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessReceiveSms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessRecordAudio(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED;} else { return true; } }
-	
+	public static Boolean checkSystemAlertPermission(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PERMISSION_GRANTED;} else { return true; } }
+	public static Boolean checkBindAccessibility(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.BIND_ACCESSIBILITY_SERVICE) == PERMISSION_GRANTED;} else { return true; } }
+	public static Boolean checkGetTasks(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.GET_TASKS) == PERMISSION_GRANTED;} else { return true; } }
+
 	public static boolean checkGpsPermissions( Context context ) { return ( checkAccessFineLocation(context) ); }
 	public static boolean checkCallsPermissions( Context context ) { return ( checkAccessReadPhoneState(context) && checkAccessCallPhone(context) && checkAccessReadCallLog(context) ); }
 	public static boolean checkTextsPermissions( Context context ) { return ( checkAccessReadContacts(context) && checkAccessReadSms(context) && checkAccessReceiveMms(context) && checkAccessReceiveSms(context) ); }
@@ -136,16 +160,67 @@ public class PermissionHandler {
 		if (includeRecording) {
 			if ( !checkAccessRecordAudio(context)) { return Manifest.permission.RECORD_AUDIO; } }
 
+		//if ( !checkSystemAlertPermission(context)) return Manifest.permission.SYSTEM_ALERT_WINDOW;
+		//if ( !checkBindAccessibility(context)) return Manifest.permission.BIND_ACCESSIBILITY_SERVICE;
+		if ( !checkGetTasks(context)) return Manifest.permission.GET_TASKS;
+
 		//The phone call permission is invariant, it is required for all studies in order for the
 		// call clinician functionality to work
 		if ( !checkAccessCallPhone(context)) return Manifest.permission.CALL_PHONE;
 
 		if ( android.os.Build.VERSION.SDK_INT >= 23 ) {
 			PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-			if (! pm.isIgnoringBatteryOptimizations(context.getPackageName()) ) {
+			if (! pm.isIgnoringBatteryOptimizations(context.getPackageName()) )
 				return POWER_EXCEPTION_PERMISSION;
-			}
+		}
+
+		if ( android.os.Build.VERSION.SDK_INT >= 21 ) {	// usage
+			try {
+				ApplicationInfo localAppInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
+				AppOpsManager opsManager = (AppOpsManager) context.getSystemService("appops");
+				if (opsManager == null || opsManager.checkOpNoThrow("android:get_usage_stats", localAppInfo.uid, localAppInfo.packageName) != 0)
+					return USAGE_EXCEPTION_PERMISSION;
+			}catch (Exception e){}
+		}
+
+		if ( android.os.Build.VERSION.SDK_INT >= 23 ) {	// overlay
+			if (!Settings.canDrawOverlays(context))
+				return OVERLAY_EXCEPTION_PERMISSION;
 		}
 		return null;
 	}
+
+	public static void requestOverlayPermission(Context paramContext)
+	{
+		boolean canDraw = (Build.VERSION.SDK_INT >= 23)?Settings.canDrawOverlays(paramContext):true;
+		if ((!canDraw) && (Build.VERSION.SDK_INT >= 23))
+		{
+			Activity localActivity = (Activity)paramContext;
+			localActivity.startActivityForResult(new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION",
+					Uri.parse("package:" + paramContext.getPackageName())), 778);
+		}
+	}
+
+	public static int requestUsagePermission(Context paramContext)
+	{
+		boolean canUsage = (Build.VERSION.SDK_INT < 21);
+		try
+		{
+			ApplicationInfo localApplicationInfo = paramContext.getPackageManager().getApplicationInfo(paramContext.getPackageName(), 0);
+			AppOpsManager opsManager = (AppOpsManager) paramContext.getSystemService("appops");
+			int i;
+			if (opsManager != null) {
+				i = opsManager.checkOpNoThrow("android:get_usage_stats", localApplicationInfo.uid, localApplicationInfo.packageName);
+			} else {
+				i = 0;
+			}
+			if (i == 0)
+				canUsage = true;
+		} catch (Exception e) {}
+		if ((!canUsage) && (Build.VERSION.SDK_INT >= 21)) {
+			((Activity)paramContext).startActivityForResult(new Intent("android.settings.USAGE_ACCESS_SETTINGS"), 777);
+		}
+		return 776;
+	}
+
 }

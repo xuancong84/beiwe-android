@@ -16,6 +16,8 @@ public class SetDeviceSettings {
 		PersistentData.setGpsEnabled(gpsEnabled);
 		Boolean callsEnabled = deviceSettings.getBoolean("calls");
 		PersistentData.setCallsEnabled(callsEnabled);
+		Boolean tapsEnabled = deviceSettings.getBoolean("taps");
+		PersistentData.setTapsEnabled(tapsEnabled);
 		Boolean textsEnabled = deviceSettings.getBoolean("texts");
 		PersistentData.setTextsEnabled(textsEnabled);
 		Boolean wifiEnabled = deviceSettings.getBoolean("wifi");
