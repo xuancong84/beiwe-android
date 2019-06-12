@@ -10,6 +10,7 @@ import org.beiwe.app.CrashHandler;
 import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.R;
 import org.beiwe.app.Timer;
+import org.beiwe.app.listeners.AccessibilityListener;
 import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.networking.SurveyDownloader;
 import org.beiwe.app.session.SessionActivity;
@@ -50,6 +51,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	//Intent triggers caught in BackgroundService
 	public void accelerometerOn (View view) { appContext.sendBroadcast( Timer.accelerometerOnIntent ); }
 	public void accelerometerOff (View view) { appContext.sendBroadcast( Timer.accelerometerOffIntent ); }
+	public void accessibilityOn (View view) { AccessibilityListener.listen = true; }
+	public void accessibilityOff (View view) { AccessibilityListener.listen = false; }
 	public void gyroscopeOn (View view) { appContext.sendBroadcast( Timer.gyroscopeOnIntent ); }
 	public void gyroscopeOff (View view) { appContext.sendBroadcast( Timer.gyroscopeOffIntent ); }
 	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
@@ -90,15 +93,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 		Log.i("test hash:", EncryptionEngine.hashMAC( encrypted ) );
 	}
 	public void logDataToggles(View view) {
-		Log.i("DebugInterfaceActivity.logDataToggles()", "Accelerometer: " + Boolean.toString(PersistentData.getAccelerometerEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "AmbientLight: " + Boolean.toString(PersistentData.getAmbientLightEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "GPS: " + Boolean.toString(PersistentData.getGpsEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "Gyroscope: " + Boolean.toString(PersistentData.getGyroscopeEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "Calls: " + Boolean.toString(PersistentData.getCallsEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "Texts: " + Boolean.toString(PersistentData.getTextsEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "WiFi: " + Boolean.toString(PersistentData.getWifiEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "Bluetooth: " + Boolean.toString(PersistentData.getBluetoothEnabled()));
-		Log.i("DebugInterfaceActivity.logDataToggles()", "Power State: " + Boolean.toString(PersistentData.getPowerStateEnabled()));
+		for(String feature : PersistentData.feature_list)
+			Log.i("DebugInterfaceActivity.logDataToggles()", feature + ": " + Boolean.toString(PersistentData.getEnabled(feature)));
 	}
 	public void getAlarmStates(View view) {
 		List<String> ids = PersistentData.getSurveyIds();
@@ -108,16 +104,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	}
 	
 	public void getEnabledFeatures(View view) {
-		if ( PersistentData.getAccelerometerEnabled() ) { Log.i("features", "Accelerometer Enabled." ); } else { Log.e("features", "Accelerometer Disabled."); }
-		if ( PersistentData.getAmbientLightEnabled() ) { Log.i("features", "AmbientLight Sensor Enabled." ); } else { Log.e("features", "AmbientLight Sensor Disabled."); }
-		if ( PersistentData.getGpsEnabled() ) { Log.i("features", "Gps Enabled." ); } else { Log.e("features", "Gps Disabled."); }
-		if ( PersistentData.getGyroscopeEnabled() ) { Log.i("features", "Gyro Enabled." ); } else { Log.e("features", "Gyro Disabled."); }
-		if ( PersistentData.getCallsEnabled() ) { Log.i("features", "Calls Enabled." ); } else { Log.e("features", "Calls Disabled."); }
-		if ( PersistentData.getTapsEnabled() ) { Log.i("features", "Taps Enabled." ); } else { Log.e("features", "Taps Disabled."); }
-		if ( PersistentData.getTextsEnabled() ) { Log.i("features", "Texts Enabled." ); } else { Log.e("features", "Texts Disabled."); }
-		if ( PersistentData.getWifiEnabled() ) { Log.i("features", "Wifi Enabled." ); } else { Log.e("features", "Wifi Disabled."); }
-		if ( PersistentData.getBluetoothEnabled() ) { Log.i("features", "Bluetooth Enabled." ); } else { Log.e("features", "Bluetooth Disabled."); }
-		if ( PersistentData.getPowerStateEnabled() ) { Log.i("features", "PowerState Enabled." ); } else { Log.e("features", "PowerState Disabled."); }
+		for(String feature : PersistentData.feature_list)
+				Log.i("features", "Accelerometer Enabled."+(PersistentData.getEnabled(feature)?"Enabled":"Disabled") );
 	}
 	
 	public void getPermissableFeatures(View view) {

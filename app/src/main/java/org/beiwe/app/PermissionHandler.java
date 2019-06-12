@@ -1,25 +1,18 @@
 package org.beiwe.app;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AppOpsManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.util.Log;
 
+import org.beiwe.app.listeners.AccessibilityListener;
 import org.beiwe.app.storage.PersistentData;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PermissionHandler {
@@ -27,7 +20,8 @@ public class PermissionHandler {
 	public static int PERMISSION_DENIED = PackageManager.PERMISSION_DENIED;
 	public static String POWER_EXCEPTION_PERMISSION = "POWER_EXCEPTION_PERMISSION";
 	public static String USAGE_EXCEPTION_PERMISSION = "USAGE_EXCEPTION_PERMISSION";
-	public static String OVERLAY_EXCEPTION_PERMISSION = "OVERLAY_EXCEPTION_PERMISSION";
+	public static String APPLICATION_OVERLAY_PERMISSION = "APPLICATION_OVERLAY_PERMISSION";
+	public static String ACCESSIBILITY_OVERLAY_PERMISSION = "ACCESSIBILITY_OVERLAY_PERMISSION";
 	
 	public static Map <String, Integer> permissionMap = new HashMap <String, Integer> ();	  
 	static {
@@ -132,27 +126,27 @@ public class PermissionHandler {
 	public static boolean checkWifiPermissions( Context context ) { return ( checkAccessWifiState(context) && checkAccessNetworkState(context)) ; }
 	public static boolean checkBluetoothPermissions( Context context ) { return ( checkAccessBluetooth(context) && checkAccessBluetoothAdmin(context)); }
 
-	public static boolean confirmGps( Context context ) { return ( PersistentData.getGpsEnabled() && checkGpsPermissions(context) ); }
-	public static boolean confirmCalls( Context context ) { return ( PersistentData.getCallsEnabled() && checkCallsPermissions(context) ); }
-	public static boolean confirmTexts( Context context ) { return ( PersistentData.getTextsEnabled() && checkTextsPermissions(context) ); }
-	public static boolean confirmWifi( Context context ) { return ( PersistentData.getWifiEnabled() && checkWifiPermissions(context) && checkAccessFineLocation(context) && checkAccessCoarseLocation(context) ) ; }
-	public static boolean confirmBluetooth( Context context ) { return ( PersistentData.getBluetoothEnabled() && checkBluetoothPermissions(context)); }
+	public static boolean confirmGps( Context context ) { return ( PersistentData.getEnabled(PersistentData.GPS) && checkGpsPermissions(context) ); }
+	public static boolean confirmCalls( Context context ) { return ( PersistentData.getEnabled(PersistentData.CALLS) && checkCallsPermissions(context) ); }
+	public static boolean confirmTexts( Context context ) { return ( PersistentData.getEnabled(PersistentData.TEXTS) && checkTextsPermissions(context) ); }
+	public static boolean confirmWifi( Context context ) { return ( PersistentData.getEnabled(PersistentData.WIFI) && checkWifiPermissions(context) && checkAccessFineLocation(context) && checkAccessCoarseLocation(context) ) ; }
+	public static boolean confirmBluetooth( Context context ) { return ( PersistentData.getEnabled(PersistentData.BLUETOOTH) && checkBluetoothPermissions(context)); }
 	
 	public static String getNextPermission(Context context, Boolean includeRecording) {
-		if (PersistentData.getGpsEnabled()) {
+		if (PersistentData.getEnabled(PersistentData.GPS)) {
 			if ( !checkAccessFineLocation(context) ) { return Manifest.permission.ACCESS_FINE_LOCATION; } }
-		if (PersistentData.getWifiEnabled()) {
+		if (PersistentData.getEnabled(PersistentData.WIFI)) {
 			if ( !checkAccessWifiState(context)) return Manifest.permission.ACCESS_WIFI_STATE;
 			if ( !checkAccessNetworkState(context)) return Manifest.permission.ACCESS_NETWORK_STATE;
 			if ( !checkAccessCoarseLocation(context)) return Manifest.permission.ACCESS_COARSE_LOCATION;
 			if ( !checkAccessFineLocation(context)) return Manifest.permission.ACCESS_FINE_LOCATION; }
-		if (PersistentData.getBluetoothEnabled()) {
+		if (PersistentData.getEnabled(PersistentData.BLUETOOTH)) {
 			if ( !checkAccessBluetooth(context)) return Manifest.permission.BLUETOOTH;
 			if ( !checkAccessBluetoothAdmin(context)) return Manifest.permission.BLUETOOTH_ADMIN; }
-		if (PersistentData.getCallsEnabled() ) {
+		if (PersistentData.getEnabled(PersistentData.CALLS) ) {
 			if ( !checkAccessReadPhoneState(context)) return Manifest.permission.READ_PHONE_STATE;  
 			if ( !checkAccessReadCallLog(context)) return Manifest.permission.READ_CALL_LOG; }
-		if (PersistentData.getTextsEnabled()) {
+		if (PersistentData.getEnabled(PersistentData.TEXTS)) {
 			if ( !checkAccessReadContacts(context)) return Manifest.permission.READ_CONTACTS;  
 			if ( !checkAccessReadSms(context)) return Manifest.permission.READ_SMS;
 			if ( !checkAccessReceiveMms(context)) return Manifest.permission.RECEIVE_MMS;
@@ -161,7 +155,6 @@ public class PermissionHandler {
 			if ( !checkAccessRecordAudio(context)) { return Manifest.permission.RECORD_AUDIO; } }
 
 		//if ( !checkSystemAlertPermission(context)) return Manifest.permission.SYSTEM_ALERT_WINDOW;
-		//if ( !checkBindAccessibility(context)) return Manifest.permission.BIND_ACCESSIBILITY_SERVICE;
 		if ( !checkGetTasks(context)) return Manifest.permission.GET_TASKS;
 
 		//The phone call permission is invariant, it is required for all studies in order for the
@@ -174,7 +167,7 @@ public class PermissionHandler {
 				return POWER_EXCEPTION_PERMISSION;
 		}
 
-		if ( android.os.Build.VERSION.SDK_INT >= 21 ) {	// usage
+		if ( android.os.Build.VERSION.SDK_INT >= 21 ) {	// App usage
 			try {
 				ApplicationInfo localAppInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
 				AppOpsManager opsManager = (AppOpsManager) context.getSystemService("appops");
@@ -183,44 +176,17 @@ public class PermissionHandler {
 			}catch (Exception e){}
 		}
 
-		if ( android.os.Build.VERSION.SDK_INT >= 23 ) {	// overlay
-			if (!Settings.canDrawOverlays(context))
-				return OVERLAY_EXCEPTION_PERMISSION;
+		// Taps uses TYPE_APPLICATION_OVERLAY
+		if ( PersistentData.getEnabled(PersistentData.TAPS) ) {
+			if ( android.os.Build.VERSION.SDK_INT >= 23 )
+				if (!Settings.canDrawOverlays(context))
+					return APPLICATION_OVERLAY_PERMISSION;
 		}
+
+		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) && AccessibilityListener.service_handle==null )
+			return ACCESSIBILITY_OVERLAY_PERMISSION;
+
 		return null;
-	}
-
-	public static void requestOverlayPermission(Context paramContext)
-	{
-		boolean canDraw = (Build.VERSION.SDK_INT >= 23)?Settings.canDrawOverlays(paramContext):true;
-		if ((!canDraw) && (Build.VERSION.SDK_INT >= 23))
-		{
-			Activity localActivity = (Activity)paramContext;
-			localActivity.startActivityForResult(new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION",
-					Uri.parse("package:" + paramContext.getPackageName())), 778);
-		}
-	}
-
-	public static int requestUsagePermission(Context paramContext)
-	{
-		boolean canUsage = (Build.VERSION.SDK_INT < 21);
-		try
-		{
-			ApplicationInfo localApplicationInfo = paramContext.getPackageManager().getApplicationInfo(paramContext.getPackageName(), 0);
-			AppOpsManager opsManager = (AppOpsManager) paramContext.getSystemService("appops");
-			int i;
-			if (opsManager != null) {
-				i = opsManager.checkOpNoThrow("android:get_usage_stats", localApplicationInfo.uid, localApplicationInfo.packageName);
-			} else {
-				i = 0;
-			}
-			if (i == 0)
-				canUsage = true;
-		} catch (Exception e) {}
-		if ((!canUsage) && (Build.VERSION.SDK_INT >= 21)) {
-			((Activity)paramContext).startActivityForResult(new Intent("android.settings.USAGE_ACCESS_SETTINGS"), 777);
-		}
-		return 776;
 	}
 
 }

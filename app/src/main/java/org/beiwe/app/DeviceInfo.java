@@ -18,6 +18,16 @@ import org.beiwe.app.storage.EncryptionEngine;
  * @author Dor Samet, Eli Jones */  
 
 public class DeviceInfo {
+	public static int phone_number_length = 8;
+	public static String last_substr(String s, int length){
+		if ( s == null )
+			return "";
+		String ret = s.length()>length?s.substring(s.length()-length):s;
+		return ret;
+	}
+	public static String last_substr(String s){
+		return last_substr(s, phone_number_length);
+	}
 	/* TODO:  Ensure this number is updated whenever a version of the app is pushed to the website for any reason.
 	 * Don't forget to update the version in the android manifest, only the version string is visible to the user.
 	 * Version history:

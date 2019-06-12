@@ -168,6 +168,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	private static Boolean powerPromptActive = false;
 	private static Boolean usagePromptActive = false;
 	private static Boolean overlayPromptActive = false;
+	private static Boolean accessibilityPromptActive = false;
 	private static Boolean thisResumeCausedByFalseActivityReturn = false;
 	private static Boolean aboutToResetFalseActivityReturn = false;
 	private static Boolean activityNotVisible = false;
@@ -183,7 +184,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 
 	@TargetApi(23)
 	private void goToPowerSettings(Integer powerCallbackIdentifier) {
-		// Log.i("sessionActivity", "goToSettings");
+		// Log.i("sessionActivity", "goToPowerSettings");
 		@SuppressLint("BatteryLife") Intent powerSettings = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName()));
 		powerSettings.addCategory(Intent.CATEGORY_DEFAULT);
 		powerSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -191,9 +192,18 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	}
 
 	@TargetApi(23)
+	private void goToAccessibilitySettings(Integer callbackIdentifier) {
+		// Log.i("sessionActivity", "goToAccessibilitySettings");
+		Intent accessibilitySettings = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+		accessibilitySettings.addCategory(Intent.CATEGORY_DEFAULT);
+		accessibilitySettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivityForResult(accessibilitySettings, callbackIdentifier);
+	}
+
+	@TargetApi(23)
 	private void goToOverlaySettings(Integer callbackIdentifier) {
-		// Log.i("sessionActivity", "goToSettings");
-		Intent overlaySettings = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+		// Log.i("sessionActivity", "goToOverlaySettings");
+		Intent overlaySettings = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
 		overlaySettings.addCategory(Intent.CATEGORY_DEFAULT);
 		overlaySettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivityForResult(overlaySettings, callbackIdentifier);
@@ -201,7 +211,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 
 	@TargetApi(21)
 	private void goToUsageSettings(Integer callbackIdentifier) {
-		// Log.i("sessionActivity", "goToSettings");
+		// Log.i("sessionActivity", "goToUsageSettings");
 		Intent usageSettings = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
 		usageSettings.addCategory(Intent.CATEGORY_DEFAULT);
 		usageSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -223,11 +233,6 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	protected void checkPermissionsLogic() {
 		//gets called as part of onResume,
 		activityNotVisible = false;
-		// Log.i("sessionactivity", "checkPermissionsLogic");
-		// Log.i("sessionActivity", "prePromptActive: " + prePromptActive);
-		// Log.i("sessionActivity", "postPromptActive: " + postPromptActive);
-		// Log.i("sessionActivity", "thisResumeCausedByFalseActivityReturn: " + thisResumeCausedByFalseActivityReturn);
-		// Log.i("sessionActivity", "aboutToResetFalseActivityReturn: " + aboutToResetFalseActivityReturn);
 
 		if (aboutToResetFalseActivityReturn) {
 			aboutToResetFalseActivityReturn = false;
@@ -248,11 +253,14 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 					showUsagePermissionAlert(this, getString(R.string.usage_permission_alert), 1001);
 					return;
 				}
-				if (permission == PermissionHandler.OVERLAY_EXCEPTION_PERMISSION ) {
+				if (permission == PermissionHandler.APPLICATION_OVERLAY_PERMISSION) {
 					showOverlayPermissionAlert(this, getString(R.string.overlay_permission_alert), 1002);
 					return;
 				}
-				// Log.d("sessionActivity", "shouldShowRequestPermissionRationale "+ permission +": " + shouldShowRequestPermissionRationale( permission ) );
+				if (permission == PermissionHandler.ACCESSIBILITY_OVERLAY_PERMISSION) {
+					showAccessibilityPermissionAlert(this, getString(R.string.accessibility_permission_alert), 1003);
+					return;
+				}
 				if (shouldShowRequestPermissionRationale( permission ) ) {
 					if (!prePromptActive && !postPromptActive ) { showAlertThatForcesUserToGrantPermission(this, PermissionHandler.getBumpingPermissionMessage(permission),
 							PermissionHandler.permissionMap.get(permission) ); }
@@ -327,6 +335,21 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 			thisResumeCausedByFalseActivityReturn = true;
 			activity.goToPowerSettings(powerCallbackIdentifier);
 			powerPromptActive = false;
+		} } );
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) {  } } ); //Okay button
+		builder.create().show();
+	}
+
+	public static void showAccessibilityPermissionAlert(final RunningBackgroundServiceActivity activity, final String message, final Integer callbackIdentifier) {
+		if (accessibilityPromptActive) { return; }
+		accessibilityPromptActive = true;
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		builder.setTitle("Permissions Requirement:");
+		builder.setMessage(message);
+		builder.setOnDismissListener( new DialogInterface.OnDismissListener() { @Override public void onDismiss(DialogInterface dialog) {
+			thisResumeCausedByFalseActivityReturn = true;
+			activity.goToAccessibilitySettings(callbackIdentifier);
+			accessibilityPromptActive = false;
 		} } );
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) {  } } ); //Okay button
 		builder.create().show();

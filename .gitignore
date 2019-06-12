@@ -1,9 +1,11 @@
 # built application files
 *.apk
 *.ap_
+app/proguard-rules.pro
 
 # files for the dex VM
 *.dex
+*.swp
 
 # Java class files
 *.class

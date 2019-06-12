@@ -111,11 +111,25 @@
 	        android:text="Stop Accelerometer Recording" />
 
 		<Button
+			android:id="@+id/buttonEnableAccessibility"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="accessibilityOnOn"
+			android:text="Start Accessibility Tracking" />
+
+		<Button
+			android:id="@+id/buttonDisableAccessibility"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="accessibilityOffOff"
+			android:text="Stop Accessibility Tracking" />
+
+		<Button
 			android:id="@+id/buttonEnableGyroscope"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:onClick="gyroscopeOn"
-			android:text="Trigger Gyroscope Recording" />
+			android:text="Start Gyroscope Recording" />
 
 		<Button
 			android:id="@+id/buttonDisableGyroscope"

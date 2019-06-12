@@ -23,7 +23,6 @@ import android.app.Service;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -32,14 +31,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.util.Log;
-import android.widget.Toast;
 
 import io.sentry.Sentry;
 import io.sentry.android.AndroidSentryClientFactory;
@@ -58,6 +54,7 @@ public class BackgroundService extends Service {
 	public MMSSentLogger mmsSentLogger;
 	public CallLogger callLogger;
 	public TapsListener tapsListener;
+	public AccessibilityListener accessibilityListener;
 
 	public static Timer timer;
 	
@@ -72,7 +69,7 @@ public class BackgroundService extends Service {
 	public static Activity activity = null;
 	public static ActivityManager activityManager = null;
 	public static UsageStatsManager usageStatsManager = null;
-	
+
 	@Override
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
 	public void onCreate() {
@@ -122,28 +119,32 @@ public class BackgroundService extends Service {
 	}
 
 	public void doSetup() {		// now support updating sensor settings
-		if(PersistentData.getPowerStateEnabled() && powerStateListener==null)
+		if(PersistentData.getEnabled(PersistentData.POWER_STATE) && powerStateListener==null)
 			powerStateListener = newPowerStateListener();
-		if(PersistentData.getGpsEnabled() && gpsListener==null)
+		if(PersistentData.getEnabled(PersistentData.GPS) && gpsListener==null)
 			gpsListener = new GPSListener(appContext); // Permissions are checked in the broadcast receiver
-		if(PersistentData.getWifiEnabled() && wifiListener==null)
+		if(PersistentData.getEnabled(PersistentData.WIFI) && wifiListener==null)
 			wifiListener = WifiListener.initialize( appContext );
-		if ( PersistentData.getAccelerometerEnabled() && accelerometerListener==null)
+		if ( PersistentData.getEnabled(PersistentData.ACCELEROMETER) && accelerometerListener==null)
 			accelerometerListener = new AccelerometerListener( appContext );
-		if ( PersistentData.getAmbientLightEnabled() && ambientLightListener==null)
+		if ( PersistentData.getEnabled(PersistentData.AMBIENTLIGHT) && ambientLightListener==null)
 			ambientLightListener = new AmbientLightListener( appContext );
-		if ( PersistentData.getGyroscopeEnabled() && gyroscopeListener==null)
+		if ( PersistentData.getEnabled(PersistentData.GYROSCOPE) && gyroscopeListener==null)
 			gyroscopeListener = new GyroscopeListener( appContext );
-		if ( PersistentData.getTapsEnabled() && tapsListener ==null )
+		if ( PersistentData.getEnabled(PersistentData.TAPS) && tapsListener==null )
 			tapsListener = new TapsListener( this );
+		if ( AccessibilityListener.service_handle != null ) {
+			accessibilityListener = AccessibilityListener.service_handle;
+			AccessibilityListener.backgroundService = this;
+		}
 
 		//Bluetooth, wifi, gps, calls, and texts need permissions
-		if(PersistentData.getBluetoothEnabled() && bluetoothListener==null) {
+		if(PersistentData.getEnabled(PersistentData.BLUETOOTH) && bluetoothListener==null) {
 			if (PermissionHandler.confirmBluetooth(appContext))
 				startBluetooth();
 		}
 
-		if(PersistentData.getTextsEnabled()){
+		if(PersistentData.getEnabled(PersistentData.TEXTS)){
 			if (!PermissionHandler.confirmTexts(appContext))
 				sendBroadcast(Timer.checkForSMSEnabled);
 			else{
@@ -154,7 +155,7 @@ public class BackgroundService extends Service {
 			}
 		}
 
-		if(PersistentData.getCallsEnabled() && callLogger==null) {
+		if(PersistentData.getEnabled(PersistentData.CALLS) && callLogger==null) {
 			if (PermissionHandler.confirmCalls(appContext))
 				callLogger = startCallLogger();
 			else
@@ -181,7 +182,7 @@ public class BackgroundService extends Service {
 	public void startBluetooth(){
 		//Note: the Bluetooth listener is a BroadcastReceiver, which means it must have a 0-argument constructor in order for android can instantiate it on broadcast receipts.
 		//The following check must be made, but it requires a Context that we cannot pass into the BluetoothListener, so we do the check in the BackgroundService.
-		if ( appContext.getPackageManager().hasSystemFeature( PackageManager.FEATURE_BLUETOOTH_LE ) && PersistentData.getBluetoothEnabled() ) {
+		if ( appContext.getPackageManager().hasSystemFeature( PackageManager.FEATURE_BLUETOOTH_LE ) && PersistentData.getEnabled(PersistentData.BLUETOOTH) ) {
 			this.bluetoothListener = new BluetoothListener();
 			if ( this.bluetoothListener.isBluetoothEnabled() ) {
 //				Log.i("Background Service", "success, actually doing bluetooth things.");
@@ -192,7 +193,7 @@ public class BackgroundService extends Service {
 				TextFileManager.getDebugLogFile().writeEncrypted("bluetooth Failure, device should not have gotten to this line of code");
 			}
 		} else {
-			if (PersistentData.getBluetoothEnabled()) {
+			if (PersistentData.getEnabled(PersistentData.BLUETOOTH)) {
 				TextFileManager.getDebugLogFile().writeEncrypted("Device does not support bluetooth LE, bluetooth features disabled.");
 				Log.w("BackgroundService bluetooth init", "Device does not support bluetooth LE, bluetooth features disabled."); }
 			// else { Log.d("BackgroundService bluetooth init", "Bluetooth not enabled for study."); }
@@ -281,7 +282,7 @@ public class BackgroundService extends Service {
 	public void startTimers() {
 		Long now = System.currentTimeMillis();
 		Log.i("BackgroundService", "running startTimer logic.");
-		if (PersistentData.getAccelerometerEnabled()) {  //if accelerometer data recording is enabled and...
+		if (PersistentData.getEnabled(PersistentData.ACCELEROMETER)) {  //if accelerometer data recording is enabled and...
 			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_accelerometer_on )) < now || //the most recent accelerometer alarm time is in the past, or...
 					!timer.alarmIsSet(Timer.accelerometerOnIntent) ) { //there is no scheduled accelerometer-on timer.
 				sendBroadcast(Timer.accelerometerOnIntent); // start accelerometer timers (immediately runs accelerometer recording session).
@@ -293,7 +294,7 @@ public class BackgroundService extends Service {
 			}
 		}
 
-		if (PersistentData.getGyroscopeEnabled()) {
+		if (PersistentData.getEnabled(PersistentData.GYROSCOPE)) {
 			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_gyroscope_on )) < now || //the most recent accelerometer alarm time is in the past, or...
 					!timer.alarmIsSet(Timer.gyroscopeOnIntent) ) {
 				sendBroadcast(Timer.gyroscopeOnIntent);
@@ -304,7 +305,7 @@ public class BackgroundService extends Service {
 			}
 		}
 
-		if (PersistentData.getAmbientLightEnabled()) {  //if ambient light data recording is enabled and...
+		if (PersistentData.getEnabled(PersistentData.AMBIENTLIGHT)) {  //if ambient light data recording is enabled and...
 			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_ambientlight_on )) < now || //the most recent accelerometer alarm time is in the past, or...
 					!timer.alarmIsSet(Timer.ambientLightIntent) ) { //there is no scheduled accelerometer-on timer.
 				sendBroadcast(Timer.ambientLightIntent); // start accelerometer timers (immediately runs accelerometer recording session).
@@ -314,7 +315,7 @@ public class BackgroundService extends Service {
 
 		if ( PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gps_on )) < now || !timer.alarmIsSet(Timer.gpsOnIntent) ) {
 			sendBroadcast( Timer.gpsOnIntent ); }
-		else if(PersistentData.getGpsEnabled() && timer.alarmIsSet(Timer.gpsOffIntent)
+		else if(PersistentData.getEnabled(PersistentData.GPS) && timer.alarmIsSet(Timer.gpsOffIntent)
 				&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gps_on )) - PersistentData.getGpsOffDurationMilliseconds() + 1000 > now ) {
 			gpsListener.turn_on();
 		}
@@ -400,7 +401,7 @@ public class BackgroundService extends Service {
 			/** Enable active sensors, reset timers. */
 			//Accelerometer. We automatically have permissions required for accelerometer.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_accelerometer_on) ) ) {
-				if ( !PersistentData.getAccelerometerEnabled() ) { Log.e("BackgroundService Listener", "invalid Accelerometer on received"); return; }
+				if ( !PersistentData.getEnabled(PersistentData.ACCELEROMETER) ) { Log.e("BackgroundService Listener", "invalid Accelerometer on received"); return; }
 				accelerometerListener.turn_on();
 				//start both the sensor-off-action timer, and the next sensor-on-timer.
 				long off_duration = PersistentData.getAccelerometerOffDurationMilliseconds();
@@ -413,7 +414,7 @@ public class BackgroundService extends Service {
 
 			//AmbientLight. We automatically have permissions required for ambient light sensor.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_ambientlight_on) ) ) {
-				if ( !PersistentData.getAmbientLightEnabled() ) { Log.e("BackgroundService Listener", "invalid AmbientLight on received"); return; }
+				if ( !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT) ) { Log.e("BackgroundService Listener", "invalid AmbientLight on received"); return; }
 				ambientLightListener.turn_on();
 				//start the next sensor-on-timer.
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getAmbientLightIntervalMilliseconds(), Timer.ambientLightIntent);
@@ -422,7 +423,7 @@ public class BackgroundService extends Service {
 
 			//Gyroscope. Almost identical logic to accelerometer above.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gyroscope_on) ) ) {
-				if ( !PersistentData.getGyroscopeEnabled() ) { Log.e("BackgroundService Listener", "invalid Gyroscope on received"); return; }
+				if ( !PersistentData.getEnabled(PersistentData.GYROSCOPE) ) { Log.e("BackgroundService Listener", "invalid Gyroscope on received"); return; }
 				gyroscopeListener.turn_on();
 				long off_duration = PersistentData.getGyroOffDurationMilliseconds();
 				if(off_duration>0)
@@ -433,7 +434,7 @@ public class BackgroundService extends Service {
 
 			//GPS. Almost identical logic to accelerometer above.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gps_on) ) ) {
-				if ( !PersistentData.getGpsEnabled() ) { Log.e("BackgroundService Listener", "invalid GPS on received"); return; }
+				if ( !PersistentData.getEnabled(PersistentData.GPS) ) { Log.e("BackgroundService Listener", "invalid GPS on received"); return; }
 				gpsListener.turn_on();
 				long off_duration = PersistentData.getGpsOffDurationMilliseconds();
 				if(off_duration>0)
@@ -444,7 +445,7 @@ public class BackgroundService extends Service {
 
 			//run a wifi scan.  Most similar to GPS, but without an off-timer.
 			if (broadcastAction.equals( appContext.getString(R.string.run_wifi_log) ) ) {
-				if ( !PersistentData.getWifiEnabled() ) { Log.e("BackgroundService Listener", "invalid WiFi scan received"); return; }
+				if ( !PersistentData.getEnabled(PersistentData.WIFI) ) { Log.e("BackgroundService Listener", "invalid WiFi scan received"); return; }
 				if ( PermissionHandler.checkWifiPermissions(appContext) ) { WifiListener.scanWifi(); }
 				else { TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " user has not provided permission for Wifi."); }
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getWifiLogFrequencyMilliseconds(), Timer.wifiLogIntent);
@@ -454,7 +455,7 @@ public class BackgroundService extends Service {
 			/** Bluetooth timers are unlike GPS and Accelerometer because it uses an absolute-point-in-time as a trigger, and therefore we don't need to store most-recent-timer state.
 			 * The Bluetooth-on action sets the corresponding Bluetooth-off timer, the Bluetooth-off action sets the next Bluetooth-on timer.*/
 			if (broadcastAction.equals( appContext.getString(R.string.turn_bluetooth_on) ) ) {
-				if ( !PersistentData.getBluetoothEnabled() ) { Log.e("BackgroundService Listener", "invalid Bluetooth on received"); return; }
+				if ( !PersistentData.getEnabled(PersistentData.BLUETOOTH) ) { Log.e("BackgroundService Listener", "invalid Bluetooth on received"); return; }
 				if ( PermissionHandler.checkBluetoothPermissions(appContext) ) {
 					if (bluetoothListener != null) bluetoothListener.enableBLEScan(); }
 				else { TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " user has not provided permission for Bluetooth."); }
@@ -498,11 +499,11 @@ public class BackgroundService extends Service {
 
 			if (broadcastAction.equals( appContext.getString(R.string.check_for_sms_enabled) ) ) {
 				if ( PermissionHandler.confirmTexts(appContext) ) { startSmsSentLogger(); startMmsSentLogger(); }
-				else if (PersistentData.getTextsEnabled() ) { timer.setupExactSingleAlarm(30000L, Timer.checkForSMSEnabled); }
+				else if (PersistentData.getEnabled(PersistentData.TEXTS) ) { timer.setupExactSingleAlarm(30000L, Timer.checkForSMSEnabled); }
 			}
 			if (broadcastAction.equals( appContext.getString(R.string.check_for_calls_enabled) ) ) {
 				if ( PermissionHandler.confirmCalls(appContext) ) { startCallLogger(); }
-				else if (PersistentData.getCallsEnabled() ) { timer.setupExactSingleAlarm(30000L, Timer.checkForCallsEnabled); }
+				else if (PersistentData.getEnabled(PersistentData.CALLS) ) { timer.setupExactSingleAlarm(30000L, Timer.checkForCallsEnabled); }
 			}
 			//checks if the action is the id of a survey (expensive), if so pop up the notification for that survey, schedule the next alarm
 			if ( PersistentData.getSurveyIds().contains( broadcastAction ) ) {

@@ -41,17 +41,33 @@ public class PersistentData {
 	private static final String PCP_PHONE_KEY = "primary_care";
 	private static final String PASSWORD_RESET_NUMBER_KEY = "reset_number";
 
-	private static final String ACCELEROMETER = "accelerometer";
-	private static final String LIGHT = "light";
-	private static final String GYROSCOPE = "gyro";
-	private static final String GPS = "gps";
-	private static final String CALLS = "calls";
-	private static final String TEXTS = "texts";
-	private static final String TAPS = "taps";
-	private static final String WIFI = "wifi";
-	private static final String BLUETOOTH = "bluetooth";
-	private static final String POWER_STATE = "power_state";
-	private static final String ALLOW_UPLOAD_OVER_CELLULAR_DATA = "allow_upload_over_cellular_data";
+	public static final String ACCELEROMETER = "accelerometer";
+	public static final String ACCESSIBILITY = "accessibility";
+	public static final String AMBIENTLIGHT = "ambientlight";
+	public static final String GYROSCOPE = "gyro";
+	public static final String GPS = "gps";
+	public static final String CALLS = "calls";
+	public static final String TEXTS = "texts";
+	public static final String TAPS = "taps";
+	public static final String WIFI = "wifi";
+	public static final String BLUETOOTH = "bluetooth";
+	public static final String POWER_STATE = "power_state";
+	public static final String ALLOW_UPLOAD_OVER_CELLULAR_DATA = "allow_upload_over_cellular_data";
+
+	public static String [] feature_list = {
+			ACCELEROMETER,
+			ACCESSIBILITY,
+			AMBIENTLIGHT,
+			GYROSCOPE,
+			GPS,
+			CALLS,
+			TEXTS,
+			TAPS,
+			WIFI,
+			BLUETOOTH,
+			POWER_STATE,
+			ALLOW_UPLOAD_OVER_CELLULAR_DATA
+	};
 
 	private static final String ACCELEROMETER_OFF_DURATION_SECONDS = "accelerometer_off_duration_seconds";
 	private static final String ACCELEROMETER_ON_DURATION_SECONDS = "accelerometer_on_duration_seconds";
@@ -160,9 +176,10 @@ public class PersistentData {
 	/*#####################################################################################
 	################################# Listener Settings ###################################
 	#####################################################################################*/
-
+/*
 	public static boolean getAccelerometerEnabled(){ return pref.getBoolean(ACCELEROMETER, false); }
-	public static boolean getAmbientLightEnabled(){ return pref.getBoolean(LIGHT, false); }
+	public static boolean getAccessibilityEnabled(){ return pref.getBoolean(ACCESSIBILITY, false); }
+	public static boolean getAmbientLightEnabled(){ return pref.getBoolean(AMBIENTLIGHT, false); }
 	public static boolean getGyroscopeEnabled(){ return pref.getBoolean(GYROSCOPE, false); }
 	public static boolean getGpsEnabled(){ return pref.getBoolean(GPS, false); }
 	public static boolean getCallsEnabled(){ return pref.getBoolean(CALLS, false); }
@@ -172,12 +189,15 @@ public class PersistentData {
 	public static boolean getBluetoothEnabled(){ return pref.getBoolean(BLUETOOTH, false); }
 	public static boolean getPowerStateEnabled(){ return pref.getBoolean(POWER_STATE, false); }
 	public static boolean getAllowUploadOverCellularData(){ return pref.getBoolean(ALLOW_UPLOAD_OVER_CELLULAR_DATA, false); }
-	
+
 	public static void setAccelerometerEnabled(boolean enabled) {
 		editor.putBoolean(ACCELEROMETER, enabled);
 		editor.commit(); }
+	public static void setAccessibilityEnabled(boolean enabled) {
+		editor.putBoolean(ACCESSIBILITY, enabled);
+		editor.commit(); }
 	public static void setAmbientLightEnabled(boolean enabled) {
-		editor.putBoolean(LIGHT, enabled);
+		editor.putBoolean(AMBIENTLIGHT, enabled);
 		editor.commit(); }
 	public static void setGyroscopeEnabled(boolean enabled) {
 		editor.putBoolean(GYROSCOPE, enabled);
@@ -205,8 +225,14 @@ public class PersistentData {
 		editor.commit(); }
 	public static void setAllowUploadOverCellularData(boolean enabled) {
 		editor.putBoolean(ALLOW_UPLOAD_OVER_CELLULAR_DATA, enabled);
-		editor.commit(); }
-	
+		editor.commit(); }*/
+
+	public static boolean getEnabled(String feature){ return pref.getBoolean(feature, false); }
+	public static void setEnabled(String feature, boolean enabled){
+		editor.putBoolean(feature, enabled);
+		editor.commit();
+	}
+
 	/*#####################################################################################
 	################################## Timer Settings #####################################
 	#####################################################################################*/

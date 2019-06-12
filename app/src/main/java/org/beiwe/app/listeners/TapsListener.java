@@ -17,6 +17,7 @@ import org.beiwe.app.storage.TextFileManager;
 
 public class TapsListener
 {
+	public static String header = "timestamp,in_app_name,orientation";
 	private final Context context;
 	private BackgroundService service;
 	private InvisibleTouchView layerView;
@@ -42,7 +43,7 @@ public class TapsListener
 		else
 			localLayoutParams = new WindowManager.LayoutParams(1, 1, 2002, 262184, -3);
 
-		WindowManager localWindowManager = (WindowManager)this.context.getSystemService("window");
+		WindowManager localWindowManager = (WindowManager)this.context.getSystemService(Context.WINDOW_SERVICE);
 		this.layerView = new InvisibleTouchView(this.context);
 		if (Build.VERSION.SDK_INT >= 23)
 		{
@@ -67,7 +68,7 @@ public class TapsListener
 		try {
 			if (this.layerView == null)
 				throw new Exception("layerView is null");
-			WindowManager localWindowManager = (WindowManager)this.context.getSystemService("window");
+			WindowManager localWindowManager = (WindowManager)this.context.getSystemService(Context.WINDOW_SERVICE);
 			if (localWindowManager == null)
 				throw new Exception("localWindowManager is null");
 			localWindowManager.removeView(this.layerView);

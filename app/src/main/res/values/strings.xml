@@ -12,8 +12,9 @@
     <string name="permission_registration_actually_need_sms_alert"> Beiwe requires SMS permissions in order to register for a study, but you appear to have denied it permission. We are going to bump you to the Beiwe app\'s settings so that you can manually enable SMS access. </string>
 
     <string name="power_management_exception_alert"> This permission prompt you are about to see is required to allow Beiwe to execute in the background. </string>
-    <string name="usage_permission_alert"> This permission prompt you are about to see is required to allow Beiwe to acquire APP usage. </string>
+    <string name="accessibility_permission_alert"> This permission prompt you are about to see is required to allow Beiwe to bind accessibility service. </string>
     <string name="overlay_permission_alert"> This permission prompt you are about to see is required to allow Beiwe to draw overlay. </string>
+    <string name="usage_permission_alert"> This permission prompt you are about to see is required to allow Beiwe to acquire APP usage. </string>
     <string name="cant_make_phone_call_alert_title">Beiwe can\'t initiate phone calls</string>
     <string name="cant_make_a_phone_call_permissions_alert">In order for Beiwe to initiate a phone call, you must go to Settings -> Permissions and grant the Beiwe app the \'Phone\' permission.\n\nOr, you can open the Phone app and make the phone call yourself.</string>
 

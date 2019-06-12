@@ -1,7 +1,6 @@
 package org.beiwe.app.storage;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,15 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.beiwe.app.CrashHandler;
-import org.beiwe.app.listeners.AccelerometerListener;
-import org.beiwe.app.listeners.AmbientLightListener;
-import org.beiwe.app.listeners.BluetoothListener;
-import org.beiwe.app.listeners.CallLogger;
-import org.beiwe.app.listeners.GPSListener;
-import org.beiwe.app.listeners.GyroscopeListener;
-import org.beiwe.app.listeners.PowerStateListener;
-import org.beiwe.app.listeners.SmsSentLogger;
-import org.beiwe.app.listeners.WifiListener;
+import org.beiwe.app.listeners.*;
 import org.beiwe.app.survey.AudioRecorderActivity;
 import org.beiwe.app.survey.AudioRecorderEnhancedActivity;
 import org.beiwe.app.survey.SurveyAnswersRecorder;
@@ -28,7 +19,6 @@ import org.beiwe.app.survey.SurveyTimingsRecorder;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 /**The (Text)FileManager.
  * The FileManager is implemented as a Singleton.  More accurately the static object contains several
@@ -51,6 +41,7 @@ public class TextFileManager {
 	//Static instances of the individual FileManager objects.
 	private static TextFileManager GPSFile;
 	private static TextFileManager accelFile;
+	private static TextFileManager accessibilityLog;
 	private static TextFileManager ambientLightFile;
 	private static TextFileManager gyroFile;
 	private static TextFileManager powerStateLog;
@@ -78,6 +69,7 @@ public class TextFileManager {
 	// These are all simple and nearly identical, so they are squished into one-liners.
 	// checkAvailableWithTimeout throws an error and the app restarts if the TextFile is unavailable.
 	public static TextFileManager getAccelFile() { checkAvailableWithTimeout("accelFile"); return accelFile; }
+	public static TextFileManager getAccessibilityLogFile() { checkAvailableWithTimeout("accessibilityLog"); return accessibilityLog; }
 	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout("ambientLightFile"); return ambientLightFile; }
 	public static TextFileManager getGyroFile() { checkAvailableWithTimeout("gyroFile"); return gyroFile; }
 	public static TextFileManager getGPSFile() { checkAvailableWithTimeout("GPSFile"); return GPSFile; }
@@ -97,6 +89,7 @@ public class TextFileManager {
 	private static Boolean checkTextFileAvailable(String thing) {
 		//the check for availability is whether the appropriate variable is allocated
 		if (thing.equals("accelFile") ) { return (accelFile != null); }
+		if (thing.equals("accessibilityLog") ) { return (accessibilityLog != null); }
 		if (thing.equals("ambientLightFile") ) { return (ambientLightFile != null); }
 		if (thing.equals("gyroFile") ) { return (gyroFile != null); }
 		if (thing.equals("GPSFile") ) { return (GPSFile != null); }
@@ -162,19 +155,20 @@ public class TextFileManager {
 		// The debug file is no longer persistent, so that we can upload it to the server associated with a user, otherwise it has the name "logfile.txt" and fails to upload.
 		debugLogFile = new TextFileManager(appContext, "logFile", "THIS LINE IS A LOG FILE HEADER", false, false, true, false);
 		// Regularly/periodically-created files
-		GPSFile = new TextFileManager(appContext, "gps", GPSListener.header, false, false, true, !PersistentData.getGpsEnabled());
-		accelFile = new TextFileManager(appContext, "accel", AccelerometerListener.header, false, false, true, !PersistentData.getAccelerometerEnabled());
-		ambientLightFile = new TextFileManager(appContext, "light", AmbientLightListener.header, false, false, true, !PersistentData.getAmbientLightEnabled());
-		gyroFile = new TextFileManager(appContext, "gyro", GyroscopeListener.header, false, false, true, !PersistentData.getGyroscopeEnabled());
-		tapsLog = new TextFileManager(appContext, "tapsLog", SmsSentLogger.header, false, false, true, !PersistentData.getTapsEnabled());
-		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getTextsEnabled());
-		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getCallsEnabled());
-		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getPowerStateEnabled());
-		bluetoothLog = new TextFileManager(appContext, "bluetoothLog", BluetoothListener.header, false, false, true, !PersistentData.getBluetoothEnabled());
+		GPSFile = new TextFileManager(appContext, "gps", GPSListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GPS));
+		accelFile = new TextFileManager(appContext, "accel", AccelerometerListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCELEROMETER));
+		accessibilityLog = new TextFileManager(appContext, "accessibilityLog", AccessibilityListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCESSIBILITY));
+		ambientLightFile = new TextFileManager(appContext, "light", AmbientLightListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT));
+		gyroFile = new TextFileManager(appContext, "gyro", GyroscopeListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GYROSCOPE));
+		tapsLog = new TextFileManager(appContext, "tapsLog", TapsListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.TAPS));
+		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.TEXTS));
+		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.CALLS));
+		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.POWER_STATE));
+		bluetoothLog = new TextFileManager(appContext, "bluetoothLog", BluetoothListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.BLUETOOTH));
 		// Files created on specific events/written to in one go.
 		surveyTimings = new TextFileManager(appContext, "surveyTimings_", SurveyTimingsRecorder.header, false, false, true, false);
 		surveyAnswers = new TextFileManager(appContext, "surveyAnswers_", SurveyAnswersRecorder.header, false, false, true, false);
-		wifiLog = new TextFileManager(appContext, "wifiLog", WifiListener.header, false, false, true, !PersistentData.getWifiEnabled());
+		wifiLog = new TextFileManager(appContext, "wifiLog", WifiListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.WIFI));
 	}
 	
 	/*###############################################################################
@@ -284,7 +278,6 @@ public class TextFileManager {
 		outStream.write( "\n".getBytes() );
 		outStream.flush();
 		outStream.close();
-
 	}
 
 	public synchronized void safeWritePlaintext(String data) {
@@ -390,6 +383,7 @@ public class TextFileManager {
 //		Log.d("TextFileManager.java", "makeNewFilesForEverything() called");
 		GPSFile.newFile();
 		accelFile.newFile();
+		accessibilityLog.newFile();
 		ambientLightFile.newFile();
 		gyroFile.newFile();
 		powerStateLog.newFile();
@@ -420,6 +414,7 @@ public class TextFileManager {
 		// These files are currently being written to, so they shouldn't be uploaded now
 		files.remove(TextFileManager.getGPSFile().fileName);
 		files.remove(TextFileManager.getAccelFile().fileName);
+		files.remove(TextFileManager.getAccessibilityLogFile().fileName);
 		files.remove(TextFileManager.getAmbientLightFile().fileName);
 		files.remove(TextFileManager.getGyroFile().fileName);
 		files.remove(TextFileManager.getPowerStateFile().fileName);
@@ -452,7 +447,7 @@ public class TextFileManager {
 	/**For Debug Only.  Deletes all files, creates new ones. */
 	public static synchronized void deleteEverything() {
 		//Get complete list of all files, then make new files, then delete all files from the old files list.
-		Set<String> files = new HashSet<String>(); 
+		Set<String> files = new HashSet<String>();
 		Collections.addAll(files, getAllFilesSafely());
 		
 		//Need to do this crap or else we end up deleting the persistent files repeatedly

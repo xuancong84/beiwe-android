@@ -23,6 +23,7 @@ import android.annotation.SuppressLint;
 import android.util.Base64;
 import android.util.Log;
 
+import org.beiwe.app.DeviceInfo;
 import org.spongycastle.crypto.PBEParametersGenerator;
 import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
@@ -99,20 +100,11 @@ public class EncryptionEngine {
 		// Strip from the string any characters that aren't digits 0-9
 		String justDigits = phoneNumber.replaceAll("\\D+", "");
 
-		// Grab the last 10 digits
-		String last10;
-		if (justDigits.length() > 8) {
-			last10 = justDigits.substring(justDigits.length() - 8); }
-		else { last10 = justDigits; }
+		// Grab the last N digits
+		String lastN = DeviceInfo.last_substr(justDigits);
 
-		// Hash the last 10 digits
-
-		if (PersistentData.getUseAnonymizedHashing()) {
-			return PBKDF2Hash(last10);
-		}
-		else {
-			return safeHash(last10);
-		}
+		// Hash the last N digits
+		return PersistentData.getUseAnonymizedHashing() ? PBKDF2Hash(lastN) : safeHash(lastN);
 	}
 
 	public static String hashMAC(String MAC) {

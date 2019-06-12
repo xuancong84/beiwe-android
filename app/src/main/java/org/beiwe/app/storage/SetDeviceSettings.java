@@ -6,8 +6,21 @@ import org.json.JSONObject;
 public class SetDeviceSettings {
 	public static void writeDeviceSettings(JSONObject deviceSettings) throws JSONException {
 		// Write data stream booleans
+		for(String feature : PersistentData.feature_list) {
+			boolean value;
+			try {
+				value = deviceSettings.getBoolean(feature);
+			}catch (Exception e){
+				value = false;
+			}
+			PersistentData.setEnabled(feature, value);
+		}
+
+		/*
 		Boolean accelerometerEnabled = deviceSettings.getBoolean("accelerometer");
 		PersistentData.setAccelerometerEnabled(accelerometerEnabled);
+		Boolean accessibilityEnabled = deviceSettings.getBoolean("accessibility");
+		PersistentData.setAccessibilityEnabled(accessibilityEnabled);
 		Boolean ambientlightEnabled = deviceSettings.getBoolean("ambientlight");
 		PersistentData.setAmbientLightEnabled(ambientlightEnabled);
 		Boolean gyroscopeEnabled = deviceSettings.getBoolean("gyro");
@@ -30,7 +43,7 @@ public class SetDeviceSettings {
 		Boolean allowUploadOverCellularData; // This key was added late, and if the server is old it may not be present
 		try { allowUploadOverCellularData = deviceSettings.getBoolean("allow_upload_over_cellular_data");}
 		catch (JSONException e) { allowUploadOverCellularData = false; }
-		PersistentData.setAllowUploadOverCellularData(allowUploadOverCellularData);
+		PersistentData.setAllowUploadOverCellularData(allowUploadOverCellularData);*/
 		
 		// Write timer settings
 		int accelerometerOffDuration = deviceSettings.getInt("accelerometer_off_duration_seconds");

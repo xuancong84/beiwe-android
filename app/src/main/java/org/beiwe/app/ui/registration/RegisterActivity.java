@@ -24,6 +24,7 @@ import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.networking.HTTPUIAsync;
 import org.beiwe.app.networking.PostRequest;
+import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.survey.TextFieldKeyboard;
 import org.beiwe.app.ui.utils.AlertsManager;
@@ -76,8 +77,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	}
 
 
-	/** Registration sequence begins here, called when the submit button is pressed.
-	 * @param view */
+	/** Registration sequence begins here, called when the submit button is pressed. * @param view */
 	public synchronized void registerButtonPressed(View view) {
 		String serverUrl = serverUrlInput.getText().toString();
 		String userID = userIdInput.getText().toString();
@@ -184,7 +184,8 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	private String getPhoneInfo() {
 		TelephonyManager phoneManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
 		String phoneInfo = phoneManager.getLine1Number();
-		return phoneInfo==null?"null":phoneInfo; //EncryptionEngine.hashPhoneNumber
+		String hashedInfo = EncryptionEngine.hashPhoneNumber(phoneInfo);
+		return hashedInfo;
 	}
 	
 	
@@ -199,12 +200,12 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	private static Boolean activityNotVisible = false;
 
 	private void goToSettings() {
-		// Log.i("reg", "goToSettings");
-        Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
-        myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
-        myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivityForResult(myAppSettings, REQUEST_PERMISSIONS_IDENTIFIER);
-    }
+	// Log.i("reg", "goToSettings");
+		Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
+		myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+		myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivityForResult(myAppSettings, REQUEST_PERMISSIONS_IDENTIFIER);
+	}
 
 	
 	@Override
@@ -236,10 +237,10 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	};
 	
 	@Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		// Log.i("reg", "onActivityResult. requestCode: " + requestCode + ", resultCode: " + resultCode );
 		aboutToResetFalseActivityReturn = true;
-    }
+	}
 
 	@Override
 	public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
