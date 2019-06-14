@@ -183,7 +183,7 @@ public class PermissionHandler {
 					return APPLICATION_OVERLAY_PERMISSION;
 		}
 
-		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) && AccessibilityListener.service_handle==null )
+		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) && !AccessibilityListener.isEnabled(context) )
 			return ACCESSIBILITY_OVERLAY_PERMISSION;
 
 		// do final setup: certain features need to instantiate after granting permission

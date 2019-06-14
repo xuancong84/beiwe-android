@@ -242,8 +242,8 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 
 		if ( !thisResumeCausedByFalseActivityReturn ) {
 			String permission = PermissionHandler.getNextPermission( getApplicationContext(), this.isAudioRecorderActivity() );
-			if (permission == null) { return; }
-
+			if (permission == null) return;
+			BackgroundService.finalSetupDone = false;
 			if (!prePromptActive && !postPromptActive && !powerPromptActive) {
 				if (permission == PermissionHandler.POWER_EXCEPTION_PERMISSION ) {
 					showPowerManagementAlert(this, getString(R.string.power_management_exception_alert), 1000);

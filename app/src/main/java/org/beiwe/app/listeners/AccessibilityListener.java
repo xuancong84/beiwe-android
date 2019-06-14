@@ -1,6 +1,8 @@
 package org.beiwe.app.listeners;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.Gravity;
@@ -9,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityRecord;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -24,10 +27,20 @@ import java.util.List;
 
 public class AccessibilityListener extends AccessibilityService {
 	public static String header = "timestamp,,";
-	public static AccessibilityListener service_handle = null;
-	public static BackgroundService backgroundService = null;
 	public static boolean show, listen;
 	public static int level;
+
+	public static boolean isEnabled(Context context){
+		AccessibilityManager accessibilityManager = (AccessibilityManager)context.getSystemService(Context.ACCESSIBILITY_SERVICE);
+		if ( accessibilityManager == null )
+			return false;
+		List<AccessibilityServiceInfo> runningServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityEvent.TYPES_ALL_MASK);
+		for ( AccessibilityServiceInfo info : runningServices ){
+			if (info.getId().startsWith(context.getPackageName()))
+				return true;
+		}
+		return false;
+	}
 
 	public static String removeTrivialFields(String S){
 		if(S==null)
@@ -52,6 +65,10 @@ public class AccessibilityListener extends AccessibilityService {
 
 	public static String CS2S(CharSequence seq){
 		return (seq==null?"":(String)seq);
+	}
+
+	public static String CS2S(List<CharSequence> seq){
+		return (seq==null?"":seq.toString());
 	}
 
 	public static String traverseWindowInfo(AccessibilityWindowInfo info) {
@@ -86,15 +103,18 @@ public class AccessibilityListener extends AccessibilityService {
 	}
 
 	public static String convertKeyChar(String text){
-		switch (text){
-			case "Back":
-			case "Delete":
-			case "Backspace":
-			case "Enter":
-			case "Recent apps":
-			case "Overview":
-			case "Home":
-			case "Close all recent apps":
+		if(text.startsWith("[") && text.endsWith("]"))
+			return text;
+		switch (text.toLowerCase()){
+			case "back":
+			case "delete":
+			case "backspace":
+			case "enter":
+			case "recent apps":
+			case "overview":
+			case "home":
+			case "clear all":
+			case "close all recent apps":
 				return text;
 			default:
 				if(text.length()==1){
@@ -104,7 +124,7 @@ public class AccessibilityListener extends AccessibilityService {
 					return ".";
 				}
 		}
-		return "[Other]";
+		return "[OTHER]";
 	}
 
 	public void logi(String tag, Object object){
@@ -118,8 +138,10 @@ public class AccessibilityListener extends AccessibilityService {
 			}
 		} else {
 			AccessibilityEvent event = (AccessibilityEvent)object;
-			String ch = convertKeyChar(CS2S(event.getContentDescription()));
-			String data = System.currentTimeMillis()+","+CS2S(event.getPackageName())+","+ch+","
+			String msg = CS2S(event.getContentDescription());
+			if( msg.isEmpty() )
+				msg = CS2S(event.getText());
+			String data = System.currentTimeMillis()+","+CS2S(event.getPackageName())+","+convertKeyChar(msg)+","
 					+ getBaseContext().getResources().getConfiguration().orientation;
 			TextFileManager fileManager = TextFileManager.getAccessibilityLogFile();
 			if( fileManager != null )
@@ -161,6 +183,6 @@ public class AccessibilityListener extends AccessibilityService {
 		super.onServiceConnected();
 		level = 0;
 		listen = true;
-		service_handle = this;
+		BackgroundService.localHandle.accessibilityListener = this;
 	}
 }

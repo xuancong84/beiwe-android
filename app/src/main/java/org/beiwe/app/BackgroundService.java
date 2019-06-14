@@ -132,9 +132,9 @@ public class BackgroundService extends Service {
 			gyroscopeListener = new GyroscopeListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.TAPS) && !isTapAdded )
 			tapsListener = new TapsListener( this );
-		if ( AccessibilityListener.service_handle != null ) {
-			accessibilityListener = AccessibilityListener.service_handle;
-			AccessibilityListener.backgroundService = this;
+		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) ) {
+			if ( !AccessibilityListener.isEnabled(getApplicationContext()))
+				accessibilityListener = null;
 		}
 
 		//Bluetooth, wifi, gps, calls, and texts need permissions
