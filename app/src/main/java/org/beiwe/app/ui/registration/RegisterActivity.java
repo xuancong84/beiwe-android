@@ -85,7 +85,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		String newPassword = newPasswordInput.getText().toString();
 		String confirmNewPassword = confirmNewPasswordInput.getText().toString();
 
-		if(BuildConfig.APP_IS_BETA && serverUrl.isEmpty()){
+		if(BuildConfig.APP_IS_DEV && userID.isEmpty()){
 			if(Build.MANUFACTURER.equals("unknown")) {
 				serverUrl = "ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com";
 				userID = "hywvod27";

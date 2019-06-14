@@ -2,6 +2,7 @@
 *.apk
 *.ap_
 app/proguard-rules.pro
+publish-to-aws.sh
 
 # files for the dex VM
 *.dex

@@ -1,5 +1,6 @@
 package org.beiwe.app.listeners;
 
+import org.beiwe.app.BuildConfig;
 import org.beiwe.app.storage.TextFileManager;
 
 import android.content.Context;
@@ -72,6 +73,8 @@ public class AmbientLightListener implements SensorEventListener{
 		float value = arg0.values[0];
 		String data = javaTimeCode.toString() + ',' + accuracy + ',' + value;
 		TextFileManager.getAmbientLightFile().writeEncrypted(data);
+		if(BuildConfig.APP_IS_DEV)
+			Log.i("AmbientLight:", data );
 		turn_off();
 	}
 }

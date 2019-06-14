@@ -96,7 +96,8 @@ public class TapsListener
 						+ "," + service.getForegroundAppName()
 						+ "," + context.getResources().getConfiguration().orientation;
 				TextFileManager.getTapsLogFile().writeEncrypted(data);
-//				Log.i("Taps", data);
+				if(BuildConfig.APP_IS_DEV)
+					Log.i("Taps", data);
 			}
 			return false;
 		}

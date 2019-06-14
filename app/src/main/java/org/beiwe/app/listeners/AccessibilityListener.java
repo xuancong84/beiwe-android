@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import org.beiwe.app.BackgroundService;
+import org.beiwe.app.BuildConfig;
 import org.beiwe.app.R;
 import org.beiwe.app.storage.TextFileManager;
 
@@ -123,7 +124,8 @@ public class AccessibilityListener extends AccessibilityService {
 			TextFileManager fileManager = TextFileManager.getAccessibilityLogFile();
 			if( fileManager != null )
 				fileManager.writeEncrypted(data);
-			Log.i("Gesture:onAccessibilityEvent", data);
+			if(BuildConfig.APP_IS_DEV)
+				Log.i("Gesture:onAccessibilityEvent", data);
 		}
 	}
 

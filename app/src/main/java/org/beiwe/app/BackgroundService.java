@@ -119,19 +119,19 @@ public class BackgroundService extends Service {
 	}
 
 	public void doSetup() {		// now support updating sensor settings
-		if(PersistentData.getEnabled(PersistentData.POWER_STATE) && powerStateListener==null)
+		if ( PersistentData.getEnabled(PersistentData.POWER_STATE) && powerStateListener==null )
 			powerStateListener = newPowerStateListener();
-		if(PersistentData.getEnabled(PersistentData.GPS) && gpsListener==null)
+		if ( PersistentData.getEnabled(PersistentData.GPS) && gpsListener==null )
 			gpsListener = new GPSListener(appContext); // Permissions are checked in the broadcast receiver
-		if(PersistentData.getEnabled(PersistentData.WIFI) && wifiListener==null)
+		if ( PersistentData.getEnabled(PersistentData.WIFI) && wifiListener==null )
 			wifiListener = WifiListener.initialize( appContext );
-		if ( PersistentData.getEnabled(PersistentData.ACCELEROMETER) && accelerometerListener==null)
+		if ( PersistentData.getEnabled(PersistentData.ACCELEROMETER) && accelerometerListener==null )
 			accelerometerListener = new AccelerometerListener( appContext );
-		if ( PersistentData.getEnabled(PersistentData.AMBIENTLIGHT) && ambientLightListener==null)
+		if ( PersistentData.getEnabled(PersistentData.AMBIENTLIGHT) && ambientLightListener==null )
 			ambientLightListener = new AmbientLightListener( appContext );
-		if ( PersistentData.getEnabled(PersistentData.GYROSCOPE) && gyroscopeListener==null)
+		if ( PersistentData.getEnabled(PersistentData.GYROSCOPE) && gyroscopeListener==null )
 			gyroscopeListener = new GyroscopeListener( appContext );
-		if ( PersistentData.getEnabled(PersistentData.TAPS) && tapsListener==null )
+		if ( PersistentData.getEnabled(PersistentData.TAPS) && !isTapAdded )
 			tapsListener = new TapsListener( this );
 		if ( AccessibilityListener.service_handle != null ) {
 			accessibilityListener = AccessibilityListener.service_handle;
@@ -139,12 +139,12 @@ public class BackgroundService extends Service {
 		}
 
 		//Bluetooth, wifi, gps, calls, and texts need permissions
-		if(PersistentData.getEnabled(PersistentData.BLUETOOTH) && bluetoothListener==null) {
-			if (PermissionHandler.confirmBluetooth(appContext))
+		if( PersistentData.getEnabled(PersistentData.BLUETOOTH) && bluetoothListener==null ) {
+			if ( PermissionHandler.confirmBluetooth(appContext) )
 				startBluetooth();
 		}
 
-		if(PersistentData.getEnabled(PersistentData.TEXTS)){
+		if( PersistentData.getEnabled(PersistentData.TEXTS) ){
 			if (!PermissionHandler.confirmTexts(appContext))
 				sendBroadcast(Timer.checkForSMSEnabled);
 			else{
@@ -155,7 +155,7 @@ public class BackgroundService extends Service {
 			}
 		}
 
-		if(PersistentData.getEnabled(PersistentData.CALLS) && callLogger==null) {
+		if( PersistentData.getEnabled(PersistentData.CALLS) && callLogger==null ) {
 			if (PermissionHandler.confirmCalls(appContext))
 				callLogger = startCallLogger();
 			else

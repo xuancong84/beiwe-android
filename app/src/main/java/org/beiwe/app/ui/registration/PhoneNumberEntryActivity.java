@@ -32,10 +32,10 @@ public class PhoneNumberEntryActivity extends RunningBackgroundServiceActivity {
 		String primary = primaryCarePhone.getText().toString().replaceAll("[^0-9+]", "");
 		String reset = passwordResetPhone.getText().toString().replaceAll("[^0-9+]", "");
 		
-		if (primary == null || primary.length() == 0 || reset == null || reset.length() == 0 ){
-			AlertsManager.showAlert( getString(R.string.enter_phone_numbers), this );
-			return;
-		}
+//		if (primary == null || primary.length() == 0 || reset == null || reset.length() == 0 ){
+//			AlertsManager.showAlert( getString(R.string.enter_phone_numbers), this );
+//			return;
+//		}
 //		if (primary.length() != phoneNumberLength || reset.length() != phoneNumberLength){
 //			AlertsManager.showAlert( String.format( getString(R.string.phone_number_length_error), phoneNumberLength), this );
 //			return;
