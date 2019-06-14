@@ -186,6 +186,12 @@ public class PermissionHandler {
 		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) && AccessibilityListener.service_handle==null )
 			return ACCESSIBILITY_OVERLAY_PERMISSION;
 
+		// do final setup: certain features need to instantiate after granting permission
+		if ( !BackgroundService.finalSetupDone) {
+			BackgroundService.localHandle.doSetup();
+			BackgroundService.finalSetupDone = true;
+		}
+
 		return null;
 	}
 

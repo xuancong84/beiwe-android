@@ -64,8 +64,7 @@ public class BackgroundService extends Service {
 	//This is Really Hacky and terrible style, but it is okay because the scheduling code can only ever
 	//begin to run with an already fully instantiated background service.
 	public static BackgroundService localHandle;
-	public static boolean isTapAdded = false;
-
+	public static boolean isTapAdded = false, finalSetupDone = false;
 	public static Activity activity = null;
 	public static ActivityManager activityManager = null;
 	public static UsageStatsManager usageStatsManager = null;
