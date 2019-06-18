@@ -171,7 +171,8 @@ public class EncryptionEngine {
 	 * @return a string containing colon separated url-safe Base64 encoded data. First value is the Initialization Vector, second is the encrypted data.
 	 * @throws InvalidKeyException
 	 * @throws InvalidKeySpecException */
-	public static String encryptAES(String plainText, byte[] aesKey) throws InvalidKeyException, InvalidKeySpecException { return encryptAES( plainText.getBytes(), aesKey ); }
+	public static String encryptAES(String plainText, byte[] aesKey) throws InvalidKeyException, InvalidKeySpecException {
+		return encryptAES( plainText.getBytes(), aesKey ); }
 	
 	public static String encryptAES(byte[] plainText, byte[] aesKey) throws InvalidKeyException, InvalidKeySpecException {
 		if (RSAkey == null) readKey(); 

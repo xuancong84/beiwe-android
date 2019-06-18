@@ -26,7 +26,7 @@ import org.beiwe.app.storage.TextFileManager;
 import java.util.List;
 
 public class AccessibilityListener extends AccessibilityService {
-	public static String header = "timestamp,,";
+	public static String header = "timestamp,packageName,className,text,orientation";
 	public static boolean show, listen;
 	public static int level;
 
@@ -80,7 +80,7 @@ public class AccessibilityListener extends AccessibilityService {
 		return ret;
 	}
 
-	public String traverseNodeInfo(AccessibilityNodeInfo info) {
+	public String traverseNodeInfo( AccessibilityNodeInfo info ) {
 		if(info==null)
 			return "nodeInfo=null";
 		String ret = "CLS="+CS2S(info.getClassName())+",PKG="+CS2S(info.getPackageName())
@@ -96,13 +96,13 @@ public class AccessibilityListener extends AccessibilityService {
 		return ret;
 	}
 
-	public static AccessibilityNodeInfo getRoot(AccessibilityNodeInfo info){
+	public static AccessibilityNodeInfo getRoot( AccessibilityNodeInfo info ) {
 		while(info.getParent()!=null)
 			info = info.getParent();
 		return info;
 	}
 
-	public static String convertKeyChar(String text){
+	public static String convertKeyChar( String text ){
 		if(text.startsWith("[") && text.endsWith("]"))
 			return text;
 		switch (text.toLowerCase()){
@@ -127,7 +127,8 @@ public class AccessibilityListener extends AccessibilityService {
 		return "[OTHER]";
 	}
 
-	public void logi(String tag, Object object){
+	private static String last_package_name = "", last_class_name = "";
+	public void logi( String tag, Object object ){
 		if(object instanceof String) {
 			String s = (String)object;
 			for (int x = 0, X = s.length() / 4000; x <= X; ++x) {
@@ -141,12 +142,18 @@ public class AccessibilityListener extends AccessibilityService {
 			String msg = CS2S(event.getContentDescription());
 			if( msg.isEmpty() )
 				msg = CS2S(event.getText());
-			String data = System.currentTimeMillis()+","+CS2S(event.getPackageName())+","+convertKeyChar(msg)+","
-					+ getBaseContext().getResources().getConfiguration().orientation;
+			String package_name = CS2S(event.getPackageName());
+			String class_name = CS2S(event.getClassName());
+			String data = System.currentTimeMillis()
+					+ "," + (package_name.equals(last_package_name)?"":package_name)
+					+ "," + (class_name.equals(last_class_name)?"":class_name)
+					+ "," + convertKeyChar(msg) + "," + getResources().getConfiguration().orientation;
+			last_package_name = package_name;
+			last_class_name = class_name;
 			TextFileManager fileManager = TextFileManager.getAccessibilityLogFile();
 			if( fileManager != null )
 				fileManager.writeEncrypted(data);
-			if(BuildConfig.APP_IS_DEV)
+			if( BuildConfig.APP_IS_DEV )
 				Log.i("Gesture:onAccessibilityEvent", data);
 		}
 	}

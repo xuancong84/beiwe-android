@@ -221,14 +221,13 @@ public class TextFileManager {
 				// We will not call writeEncrypted here because we need to handle the specific case of the new file not being created properly.
 				this.unsafeWritePlaintext(EncryptionEngine.encryptAES(header, this.AESKey));
 			}
-		}
-		catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			Log.e("TextFileManager", "could not find file to write to, " + this.fileName);
 			e.printStackTrace();
 			CrashHandler.writeCrashlog(e, appContext);
 			this.fileName = null;  // Set filename null so that the system tries to create the file again later
-			return false;}
-		catch (IOException e) {
+			return false;
+		} catch (IOException e) {
 			if(e.getMessage().toLowerCase().contains("enospc")) { // If the device is out of storage, alert the user
 				Log.e("ENOSPC", "Out of storage space");
 			}
@@ -236,17 +235,18 @@ public class TextFileManager {
 			e.printStackTrace();
 			CrashHandler.writeCrashlog(e, appContext);
 			this.fileName = null;
-			return false;}
-		catch (InvalidKeyException e) {
+			return false;
+		} catch (InvalidKeyException e) {
 			Log.e("TextFileManager", "encrypted write operation without an AES key: " + this.name + ", " + this.fileName);
 			CrashHandler.writeCrashlog(e, appContext);
 			this.fileName = null;
-			return false; }
-		catch (InvalidKeySpecException e) { //this occurs when an encrypted write operation occurs without an RSA key file, we eat this error because it only happens during registration/initial config.
+			return false;
+		} catch (InvalidKeySpecException e) { //this occurs when an encrypted write operation occurs without an RSA key file, we eat this error because it only happens during registration/initial config.
 			Log.e("TextFileManager", "EncryptionEngine.AES_TOO_EARLY_ERROR: " + this.name + ", " + header);
 			e.printStackTrace();
 			this.fileName = null;
-			return false; }
+			return false;
+		}
 		return true;
 	}
 	
@@ -285,18 +285,18 @@ public class TextFileManager {
 		if (fileName == null) this.newFile();
 		try {
 			unsafeWritePlaintext(data);
-		}
-		catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			Log.e("TextFileManager", "could not find file to write to, " + this.fileName);
 			e.printStackTrace();
-			CrashHandler.writeCrashlog(e, appContext); }
-		catch (IOException e) {
+			CrashHandler.writeCrashlog(e, appContext);
+		} catch (IOException e) {
 			if(e.getMessage().toLowerCase().contains("enospc")) { // If the device is out of storage, alert the user
 				Log.e("ENOSPC", "Out of storage space");
 			}
 			Log.e("TextFileManager", "error in the write operation: " + e.getMessage() );
 			e.printStackTrace();
-			CrashHandler.writeCrashlog(e, appContext); }
+			CrashHandler.writeCrashlog(e, appContext);
+		}
 	}
 
 	/**Encrypts string data and writes it to a file.

@@ -87,14 +87,18 @@ public class TapsListener
 			super(paramContext);
 		}
 
+		private String last_appname = "";
+
 		@SuppressLint({"ClickableViewAccessibility"})
 		public boolean onTouchEvent(MotionEvent paramMotionEvent)
 		{
 			super.onTouchEvent(paramMotionEvent);
 			if (paramMotionEvent != null){
+				String appname = service.getForegroundAppName();
 				String data = System.currentTimeMillis()
-						+ "," + service.getForegroundAppName()
+						+ "," + (appname.equals(last_appname)?"":appname)
 						+ "," + context.getResources().getConfiguration().orientation;
+				last_appname = appname;
 				TextFileManager.getTapsLogFile().writeEncrypted(data);
 				if(BuildConfig.APP_IS_DEV)
 					Log.i("Taps", data);
