@@ -48,6 +48,7 @@ public class TextFileManager {
 	private static TextFileManager callLog;
 	private static TextFileManager tapsLog;
 	private static TextFileManager textsLog;
+	private static TextFileManager usageFile;
 	private static TextFileManager bluetoothLog;
 	private static TextFileManager debugLogFile;
 
@@ -79,6 +80,7 @@ public class TextFileManager {
 	public static TextFileManager getTapsLogFile() { checkAvailableWithTimeout("tapsLog"); return tapsLog; }
 	public static TextFileManager getBluetoothLogFile() { checkAvailableWithTimeout("bluetoothLog"); return bluetoothLog; }
 	public static TextFileManager getWifiLogFile() { checkAvailableWithTimeout("wifiLog"); return wifiLog; }
+	public static TextFileManager getUsageFile() { checkAvailableWithTimeout("usageFile"); return usageFile; }
 	public static TextFileManager getSurveyTimingsFile() { checkAvailableWithTimeout("surveyTimings"); return surveyTimings; }
 	public static TextFileManager getSurveyAnswersFile() { checkAvailableWithTimeout("surveyAnswers"); return surveyAnswers; }
 	//(the persistent files)
@@ -98,6 +100,7 @@ public class TextFileManager {
 		if (thing.equals("textsLog") ) { return (textsLog != null); }
 		if (thing.equals("tapsLog") ) { return (tapsLog != null); }
 		if (thing.equals("bluetoothLog") ) { return (bluetoothLog != null); }
+		if (thing.equals("usageFile") ) { return (usageFile != null); }
 		if (thing.equals("wifiLog") ) { return (wifiLog != null); }
 		if (thing.equals("surveyTimings") ) { return (surveyTimings != null); }
 		if (thing.equals("surveyAnswers") ) { return (surveyAnswers != null); }
@@ -164,6 +167,7 @@ public class TextFileManager {
 		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.TEXTS));
 		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.CALLS));
 		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.POWER_STATE));
+		usageFile = new TextFileManager(appContext, "usage", UsageListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.USAGE));
 		bluetoothLog = new TextFileManager(appContext, "bluetoothLog", BluetoothListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.BLUETOOTH));
 		// Files created on specific events/written to in one go.
 		surveyTimings = new TextFileManager(appContext, "surveyTimings_", SurveyTimingsRecorder.header, false, false, true, false);
@@ -390,6 +394,7 @@ public class TextFileManager {
 		callLog.newFile();
 		tapsLog.newFile();
 		textsLog.newFile();
+		usageFile.newFile();
 		bluetoothLog.newFile();
 		debugLogFile.newFile();
 	}
@@ -421,6 +426,7 @@ public class TextFileManager {
 		files.remove(TextFileManager.getCallLogFile().fileName);
 		files.remove(TextFileManager.getTapsLogFile().fileName);
 		files.remove(TextFileManager.getTextsLogFile().fileName);
+		files.remove(TextFileManager.getUsageFile().fileName);
 		files.remove(TextFileManager.getDebugLogFile().fileName);
 		files.remove(TextFileManager.getBluetoothLogFile().fileName);
 

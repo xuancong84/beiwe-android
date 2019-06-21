@@ -18,6 +18,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
+import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.usage.UsageStats;
@@ -26,6 +27,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -50,6 +52,7 @@ public class BackgroundService extends Service {
 	public GyroscopeListener gyroscopeListener;
 	public PowerStateListener powerStateListener;
 	public WifiListener wifiListener;
+	public UsageListener usageListener;
 	public SmsSentLogger smsSentLogger;
 	public MMSSentLogger mmsSentLogger;
 	public CallLogger callLogger;
@@ -68,6 +71,8 @@ public class BackgroundService extends Service {
 	public static Activity activity = null;
 	public static ActivityManager activityManager = null;
 	public static UsageStatsManager usageStatsManager = null;
+	public static ApplicationInfo appInfo = null;
+	public static AppOpsManager opsManager = null;
 
 	@Override
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
@@ -75,6 +80,13 @@ public class BackgroundService extends Service {
 		appContext = this.getApplicationContext();
 		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		usageStatsManager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
+		try {
+			appInfo = getPackageManager().getApplicationInfo(getPackageName(), 0);
+		} catch (Exception e) {
+			appInfo = null;
+		}
+		opsManager = (AppOpsManager) appContext.getSystemService( Context.APP_OPS_SERVICE );
+
 		try {
 			String sentryDsn = BuildConfig.SENTRY_DSN;
 			Sentry.init(sentryDsn, new AndroidSentryClientFactory(appContext));
@@ -91,12 +103,6 @@ public class BackgroundService extends Service {
 
 		doSetup();
 	}
-
-//	public String getForegroundAppName() {
-//		List<ActivityManager.RunningTaskInfo> runningTaskInfo = activityManager.getRunningTasks(1);
-//		ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
-//		return componentInfo.getPackageName();
-//	}
 
 	public String getForegroundAppName() {
 		String topPackageName = null;
@@ -132,6 +138,8 @@ public class BackgroundService extends Service {
 			gyroscopeListener = new GyroscopeListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.TAPS) && !isTapAdded )
 			tapsListener = new TapsListener( this );
+		if ( PersistentData.getEnabled(PersistentData.USAGE) && usageListener==null )
+			usageListener = new UsageListener( this );
 		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) ) {
 			if ( !AccessibilityListener.isEnabled(getApplicationContext()))
 				accessibilityListener = null;
@@ -260,6 +268,7 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.turn_gyroscope_on ) );
 		filter.addAction( appContext.getString( R.string.signout_intent ) );
 		filter.addAction( appContext.getString( R.string.voice_recording ) );
+		filter.addAction( appContext.getString( R.string.update_usage ) );
 		filter.addAction( appContext.getString( R.string.run_wifi_log ) );
 		filter.addAction( appContext.getString( R.string.upload_data_files_intent ) );
 		filter.addAction( appContext.getString( R.string.create_new_data_files_intent ) );
@@ -267,8 +276,8 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.check_for_sms_enabled ) );
 		filter.addAction( appContext.getString( R.string.check_for_calls_enabled ) );
 		filter.addAction( ConnectivityManager.CONNECTIVITY_ACTION );
-		filter.addAction("crashBeiwe");
-		filter.addAction("enterANR");
+		filter.addAction( "crashBeiwe" );
+		filter.addAction( "enterANR" );
 		List<String> surveyIds = PersistentData.getSurveyIds();
 		for (String surveyId : surveyIds) { filter.addAction(surveyId); }
 		appContext.registerReceiver(localHandle.timerReceiver, filter);
@@ -308,7 +317,15 @@ public class BackgroundService extends Service {
 			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_ambientlight_on )) < now || //the most recent accelerometer alarm time is in the past, or...
 					!timer.alarmIsSet(Timer.ambientLightIntent) ) { //there is no scheduled accelerometer-on timer.
 				sendBroadcast(Timer.ambientLightIntent); // start accelerometer timers (immediately runs accelerometer recording session).
-				//note: when there is no accelerometer-off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+				//note: when there is no off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+			}
+		}
+
+		if (PersistentData.getEnabled(PersistentData.USAGE)) {  //if usage recording is enabled and...
+			if(PersistentData.getMostRecentAlarmTime( getString(R.string.update_usage )) < now || //the most recent usage update time is in the past, or...
+					!timer.alarmIsSet(Timer.usageIntent) ) { //there is no scheduled usage update timer.
+				sendBroadcast(Timer.usageIntent); // start usage timers (immediately update usage).
+				//note: when there is no off timer that means we are in-between scans.  This state is fine, so we don't check for it.
 			}
 		}
 
@@ -450,7 +467,16 @@ public class BackgroundService extends Service {
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getWifiLogFrequencyMilliseconds(), Timer.wifiLogIntent);
 				PersistentData.setMostRecentAlarmTime( getString(R.string.run_wifi_log), alarmTime );
 				return; }
-			
+
+			//Usage update. We automatically have permissions required for usage.
+			if (broadcastAction.equals( appContext.getString(R.string.update_usage) ) ) {
+				if ( !PersistentData.getEnabled(PersistentData.USAGE) ) { Log.e("BackgroundService Listener", "invalid Update Usage on received"); return; }
+				usageListener.updateUsage();
+				//start the next sensor-on-timer.
+				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getUsageUpdateIntervalMilliseconds(), Timer.usageIntent);
+				PersistentData.setMostRecentAlarmTime(getString(R.string.update_usage), alarmTime );
+				return; }
+
 			/** Bluetooth timers are unlike GPS and Accelerometer because it uses an absolute-point-in-time as a trigger, and therefore we don't need to store most-recent-timer state.
 			 * The Bluetooth-on action sets the corresponding Bluetooth-off timer, the Bluetooth-off action sets the next Bluetooth-on timer.*/
 			if (broadcastAction.equals( appContext.getString(R.string.turn_bluetooth_on) ) ) {

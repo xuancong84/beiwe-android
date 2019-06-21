@@ -170,6 +170,7 @@
     <string name="turn_gps_on">GPS On</string>
     <string name="signout_intent">Signout</string>
     <string name="voice_recording">Voice Recording</string>
+    <string name="update_usage">Update Usage</string>
     <string name="upload_data_files_intent">Upload data files</string>
     <string name="create_new_data_files_intent">Create new data files</string>
     <string name="check_for_new_surveys_intent">Check for new surveys</string>

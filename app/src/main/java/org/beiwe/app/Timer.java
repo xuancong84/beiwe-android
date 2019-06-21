@@ -42,6 +42,7 @@ public class Timer {
 	public static Intent checkForSMSEnabled;
 	public static Intent checkForCallsEnabled;
 	public static Intent ambientLightIntent;
+	public static Intent usageIntent;
 
 	// Intent filters
 	//TODO: Eli. These are never used? investigate.
@@ -74,6 +75,7 @@ public class Timer {
 		gyroscopeOnIntent = setupIntent( appContext.getString(R.string.turn_gyroscope_on) );
 		gpsOffIntent = setupIntent( appContext.getString(R.string.turn_gps_off) );
 		gpsOnIntent = setupIntent( appContext.getString(R.string.turn_gps_on) );
+		usageIntent = setupIntent( appContext.getString(R.string.update_usage) );
 		
 		// Set up event triggering alarm intents
 		signoutIntent = setupIntent( appContext.getString(R.string.signout_intent) );

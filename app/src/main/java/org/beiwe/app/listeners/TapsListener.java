@@ -1,12 +1,10 @@
 package org.beiwe.app.listeners;
 
 import android.annotation.SuppressLint;
-import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,15 +19,11 @@ public class TapsListener
 	private final Context context;
 	private BackgroundService service;
 	private InvisibleTouchView layerView;
-	private DisplayMetrics displayMetrics;
-	private UsageStatsManager usageStatsManager;
 
 	public TapsListener(BackgroundService paramBackgroundService)
 	{
 		context = paramBackgroundService.getApplicationContext();
 		service = paramBackgroundService;
-		displayMetrics = service.getResources().getDisplayMetrics();
-		usageStatsManager = (UsageStatsManager)this.context.getSystemService("usagestats");
 		new Intent("android.intent.action.MAIN").addCategory("android.intent.category.HOME");
 		addView();
 	}
@@ -90,18 +84,18 @@ public class TapsListener
 		private String last_appname = "";
 
 		@SuppressLint({"ClickableViewAccessibility"})
-		public boolean onTouchEvent(MotionEvent paramMotionEvent)
+		public boolean onTouchEvent( MotionEvent paramMotionEvent )
 		{
-			super.onTouchEvent(paramMotionEvent);
-			if (paramMotionEvent != null){
+			super.onTouchEvent( paramMotionEvent );
+			if ( paramMotionEvent != null ){
 				String appname = service.getForegroundAppName();
 				String data = System.currentTimeMillis()
-						+ "," + (appname.equals(last_appname)?"":appname)
+						+ "," + ( appname.equals(last_appname)?"":appname )
 						+ "," + context.getResources().getConfiguration().orientation;
 				last_appname = appname;
-				TextFileManager.getTapsLogFile().writeEncrypted(data);
-				if(BuildConfig.APP_IS_DEV)
-					Log.i("Taps", data);
+				TextFileManager.getTapsLogFile().writeEncrypted( data );
+				if( BuildConfig.APP_IS_DEV )
+					Log.i("Taps", data );
 			}
 			return false;
 		}

@@ -113,7 +113,6 @@ public class PermissionHandler {
 	public static Boolean checkAccessReceiveMms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_MMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessReceiveSms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessRecordAudio(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED;} else { return true; } }
-	public static Boolean checkSystemAlertPermission(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PERMISSION_GRANTED;} else { return true; } }
 	public static Boolean checkBindAccessibility(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.BIND_ACCESSIBILITY_SERVICE) == PERMISSION_GRANTED;} else { return true; } }
 	public static Boolean checkGetTasks(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.GET_TASKS) == PERMISSION_GRANTED;} else { return true; } }
 
@@ -131,7 +130,22 @@ public class PermissionHandler {
 	public static boolean confirmTexts( Context context ) { return ( PersistentData.getEnabled(PersistentData.TEXTS) && checkTextsPermissions(context) ); }
 	public static boolean confirmWifi( Context context ) { return ( PersistentData.getEnabled(PersistentData.WIFI) && checkWifiPermissions(context) && checkAccessFineLocation(context) && checkAccessCoarseLocation(context) ) ; }
 	public static boolean confirmBluetooth( Context context ) { return ( PersistentData.getEnabled(PersistentData.BLUETOOTH) && checkBluetoothPermissions(context)); }
-	
+	public static Boolean checkDrawOverlayPermission(Context context) {
+		return android.os.Build.VERSION.SDK_INT>=23 ? Settings.canDrawOverlays(context) : true;
+	}
+	public static Boolean checkAccessUsagePermission(Context context) {
+		if (android.os.Build.VERSION.SDK_INT >= 21) {  // App usage
+			try {
+				if (BackgroundService.opsManager == null || BackgroundService.opsManager.checkOpNoThrow(
+						AppOpsManager.OPSTR_GET_USAGE_STATS, BackgroundService.appInfo.uid, BackgroundService.appInfo.packageName) != 0)
+					return false;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public static String getNextPermission(Context context, Boolean includeRecording) {
 		if (PersistentData.getEnabled(PersistentData.GPS)) {
 			if ( !checkAccessFineLocation(context) ) { return Manifest.permission.ACCESS_FINE_LOCATION; } }
@@ -167,21 +181,14 @@ public class PermissionHandler {
 				return POWER_EXCEPTION_PERMISSION;
 		}
 
-		if ( android.os.Build.VERSION.SDK_INT >= 21 ) {	// App usage
-			try {
-				ApplicationInfo localAppInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
-				AppOpsManager opsManager = (AppOpsManager) context.getSystemService("appops");
-				if (opsManager == null || opsManager.checkOpNoThrow("android:get_usage_stats", localAppInfo.uid, localAppInfo.packageName) != 0)
-					return USAGE_EXCEPTION_PERMISSION;
-			}catch (Exception e){}
+		if ( PersistentData.getEnabled(PersistentData.USAGE) || PersistentData.getEnabled(PersistentData.TAPS) ) {
+			if( !checkAccessUsagePermission(context) )
+				return USAGE_EXCEPTION_PERMISSION;
 		}
 
 		// Taps uses TYPE_APPLICATION_OVERLAY
-		if ( PersistentData.getEnabled(PersistentData.TAPS) ) {
-			if ( android.os.Build.VERSION.SDK_INT >= 23 )
-				if (!Settings.canDrawOverlays(context))
-					return APPLICATION_OVERLAY_PERMISSION;
-		}
+		if ( PersistentData.getEnabled(PersistentData.TAPS) && !checkDrawOverlayPermission(context) )
+			return APPLICATION_OVERLAY_PERMISSION;
 
 		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) && !AccessibilityListener.isEnabled(context) )
 			return ACCESSIBILITY_OVERLAY_PERMISSION;

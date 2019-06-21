@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.JSONUtils;
@@ -26,11 +25,11 @@ public class PersistentData {
 	private static int PRIVATE_MODE = 0;
 	private static boolean isInitialized = false;
 
-	// Private things that are encapsulated using functions in this class 
-	private static SharedPreferences pref; 
-	private static Editor editor;
+	// Private things that are encapsulated using functions in this class
 	private static Context appContext;
-	
+	public static SharedPreferences pref;
+	public static Editor editor;
+
 	/**  Editor key-strings */
 	private static final String PREF_NAME = "BeiwePref";
 	private static final String SERVER_URL_KEY = "serverUrl";
@@ -49,6 +48,7 @@ public class PersistentData {
 	public static final String CALLS = "calls";
 	public static final String TEXTS = "texts";
 	public static final String TAPS = "taps";
+	public static final String USAGE = "usage";
 	public static final String WIFI = "wifi";
 	public static final String BLUETOOTH = "bluetooth";
 	public static final String POWER_STATE = "power_state";
@@ -64,6 +64,7 @@ public class PersistentData {
 			TEXTS,
 			TAPS,
 			WIFI,
+			USAGE,
 			BLUETOOTH,
 			POWER_STATE,
 			ALLOW_UPLOAD_OVER_CELLULAR_DATA
@@ -82,9 +83,31 @@ public class PersistentData {
 	private static final String GYRO_OFF_DURATION_SECONDS = "gyro_off_duration_seconds";
 	private static final String GYRO_ON_DURATION_SECONDS = "gyro_on_duration_seconds";
 	private static final String SECONDS_BEFORE_AUTO_LOGOUT = "seconds_before_auto_logout";
+	private static final String USAGE_UPDATE_INTERVAL_SECONDS = "usage_update_interval_seconds";
 	private static final String UPLOAD_DATA_FILES_FREQUENCY_SECONDS = "upload_data_files_frequency_seconds";
 	private static final String VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS = "voice_recording_max_time_length_seconds";
 	private static final String WIFI_LOG_FREQUENCY_SECONDS = "wifi_log_frequency_seconds";
+
+	public static String [] time_param_list = {
+			ACCELEROMETER_OFF_DURATION_SECONDS,
+			ACCELEROMETER_ON_DURATION_SECONDS,
+			AMBIENTLIGHT_INTERVAL_SECONDS,
+			BLUETOOTH_ON_DURATION_SECONDS,
+			BLUETOOTH_TOTAL_DURATION_SECONDS,
+			BLUETOOTH_GLOBAL_OFFSET_SECONDS,
+			CHECK_FOR_NEW_SURVEYS_FREQUENCY_SECONDS,
+			CREATE_NEW_DATA_FILES_FREQUENCY_SECONDS,
+			GPS_OFF_DURATION_SECONDS,
+			GPS_ON_DURATION_SECONDS,
+			GYRO_OFF_DURATION_SECONDS,
+			GYRO_ON_DURATION_SECONDS,
+			SECONDS_BEFORE_AUTO_LOGOUT,
+			USAGE_UPDATE_INTERVAL_SECONDS,
+			UPLOAD_DATA_FILES_FREQUENCY_SECONDS,
+			VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS,
+			WIFI_LOG_FREQUENCY_SECONDS,
+	};
+
 	private static final String SURVEY_IDS = "survey_ids";
 //	private static final String SURVEY_QUESTION_IDS = "question_ids";
 
@@ -250,6 +273,7 @@ public class PersistentData {
 	private static final long DEFAULT_GPS_ON_DURATION = 5 * 60;
 	private static final long DEFAULT_GYRO_OFF_MINIMUM_DURATION = 10 * 60;
 	private static final long DEFAULT_GYRO_ON_DURATION = 10 * 60;
+	private static final long DEFAULT_USAGE_UPDATE_INTERVAL_SECONDS = 30 * 60;
 	private static final long DEFAULT_SECONDS_BEFORE_AUTO_LOGOUT = 5 * 60;
 	private static final long DEFAULT_UPLOAD_DATA_FILES_PERIOD = 60;
 	private static final long DEFAULT_VOICE_RECORDING_MAX_TIME_LENGTH = 4 * 60;
@@ -268,67 +292,22 @@ public class PersistentData {
 	public static long getGyroOffDurationMilliseconds() { return 1000L * pref.getLong(GYRO_OFF_DURATION_SECONDS, DEFAULT_GYRO_OFF_MINIMUM_DURATION); }
 	public static long getGyroOnDurationMilliseconds() { return 1000L * pref.getLong(GYRO_ON_DURATION_SECONDS, DEFAULT_GYRO_ON_DURATION); }
 	public static long getMillisecondsBeforeAutoLogout() { return 1000L * pref.getLong(SECONDS_BEFORE_AUTO_LOGOUT, DEFAULT_SECONDS_BEFORE_AUTO_LOGOUT); }
+	public static long getUsageUpdateIntervalMilliseconds() { return 1000L * pref.getLong(USAGE_UPDATE_INTERVAL_SECONDS, DEFAULT_USAGE_UPDATE_INTERVAL_SECONDS); }
 	public static long getUploadDataFilesFrequencyMilliseconds() { return 1000L * pref.getLong(UPLOAD_DATA_FILES_FREQUENCY_SECONDS, DEFAULT_UPLOAD_DATA_FILES_PERIOD); }
 	public static long getVoiceRecordingMaxTimeLengthMilliseconds() { return 1000L * pref.getLong(VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS, DEFAULT_VOICE_RECORDING_MAX_TIME_LENGTH); }
 	public static long getWifiLogFrequencyMilliseconds() { return 1000L * pref.getLong(WIFI_LOG_FREQUENCY_SECONDS, DEFAULT_WIFI_LOG_FREQUENCY); }
 
-	public static void setAccelerometerOffDurationSeconds(long seconds) {
-		editor.putLong(ACCELEROMETER_OFF_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setAccelerometerOnDurationSeconds(long seconds) {
-		editor.putLong(ACCELEROMETER_ON_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setAmbientLightIntervalSeconds(long seconds) {
-		editor.putLong(AMBIENTLIGHT_INTERVAL_SECONDS, seconds);
-		editor.commit(); }
-	public static void setBluetoothOnDurationSeconds(long seconds) {
-		editor.putLong(BLUETOOTH_ON_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setBluetoothTotalDurationSeconds(long seconds) {
-		editor.putLong(BLUETOOTH_TOTAL_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setBluetoothGlobalOffsetSeconds(long seconds) {
-		editor.putLong(BLUETOOTH_GLOBAL_OFFSET_SECONDS, seconds);
-		editor.commit(); }
-	public static void setCheckForNewSurveysFrequencySeconds(long seconds) {
-		editor.putLong(CHECK_FOR_NEW_SURVEYS_FREQUENCY_SECONDS, seconds);
-		editor.commit(); }
-	public static void setCreateNewDataFilesFrequencySeconds(long seconds) {
-		editor.putLong(CREATE_NEW_DATA_FILES_FREQUENCY_SECONDS, seconds);
-		editor.commit(); }
-	public static void setGyroOffDurationSeconds(long seconds) {
-		editor.putLong(GYRO_OFF_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setGyroOnDurationSeconds(long seconds) {
-		editor.putLong(GYRO_ON_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setGpsOffDurationSeconds(long seconds) {
-		editor.putLong(GPS_OFF_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setGpsOnDurationSeconds(long seconds) {
-		editor.putLong(GPS_ON_DURATION_SECONDS, seconds);
-		editor.commit(); }
-	public static void setSecondsBeforeAutoLogout(long seconds) {
-		editor.putLong(SECONDS_BEFORE_AUTO_LOGOUT, seconds);
-		editor.commit(); }
-	public static void setUploadDataFilesFrequencySeconds(long seconds) {
-		editor.putLong(UPLOAD_DATA_FILES_FREQUENCY_SECONDS, seconds);
-		editor.commit(); }
-	public static void setVoiceRecordingMaxTimeLengthSeconds(long seconds) {
-		editor.putLong(VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS, seconds);
-		editor.commit(); }
-	public static void setWifiLogFrequencySeconds(long seconds) {
-		editor.putLong(WIFI_LOG_FREQUENCY_SECONDS, seconds);
+	public static void setTimeInSeconds(String param_name, long seconds) {
+		editor.putLong(param_name, seconds);
 		editor.commit(); }
 
-	
 	//accelerometer, bluetooth, new surveys, create data files, gps, logout,upload, wifilog (not voice recording, that doesn't apply
 	public static void setMostRecentAlarmTime(String identifier, long time) {
 		editor.putLong(identifier + "-prior_alarm", time);
 		editor.commit(); }
 	public static long getMostRecentAlarmTime(String identifier) { return pref.getLong( identifier + "-prior_alarm", 0); }
 	//we want default to be 0 so that checks "is this value less than the current expected value" (eg "did this timer event pass already")
-	
+
 	/*###########################################################################################
 	################################### Text Strings ############################################
 	###########################################################################################*/

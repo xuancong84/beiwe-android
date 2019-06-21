@@ -35,3 +35,5 @@ DebugInterfaceActivity.java : class DebugInterfaceActivity, logDataToggles(), ge
 SetDeviceSettings.java : writeDeviceSettings()
 Timer.java : class Timer, Timer()
 activity_debug_interface.xml
+
+

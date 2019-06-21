@@ -137,7 +137,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 			protected Void doInBackground(Void... arg0) {
 				DeviceInfo.initialize(currentActivity.getApplicationContext());
 				// Always use anonymized hashing when first registering the phone.
-				parameters= PostRequest.makeParameter("bluetooth_id", DeviceInfo.getBluetoothMAC() ) +
+				parameters = PostRequest.makeParameter("bluetooth_id", DeviceInfo.getBluetoothMAC() ) +
 							PostRequest.makeParameter("new_password", newPassword) +
 							PostRequest.makeParameter("phone_number", ((RegisterActivity) activity).getPhoneInfo() ) +
 							PostRequest.makeParameter("device_id", DeviceInfo.getAndroidID() ) +

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.beiwe.app.BackgroundService;
-import org.beiwe.app.BuildConfig;
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.R;
@@ -18,7 +17,6 @@ import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.survey.JsonSkipLogic;
-import org.beiwe.app.ui.user.AboutActivityLoggedOut;
 import org.beiwe.app.ui.user.MainMenuActivity;
 import org.beiwe.app.ui.utils.SurveyNotifications;
 import org.json.JSONArray;
@@ -31,9 +29,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.support.v7.app.AlertDialog;
 
 
@@ -59,6 +55,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
 	public void scanWifi (View view) { appContext.sendBroadcast( Timer.wifiLogIntent ); }
+	public void usageUpdate (View view) { appContext.sendBroadcast( Timer.usageIntent ); }
 	public void bluetoothButtonStart (View view) { appContext.sendBroadcast(Timer.bluetoothOnIntent); }
 	public void bluetoothButtonStop (View view) { appContext.sendBroadcast(Timer.bluetoothOffIntent); }
 	
@@ -122,6 +119,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 		if (PermissionHandler.checkAccessReceiveMms(getApplicationContext())) { Log.i("permissions", "ReceiveMms enabled."); } else { Log.e("permissions", "ReceiveMms disabled."); }
 		if (PermissionHandler.checkAccessReceiveSms(getApplicationContext())) { Log.i("permissions", "ReceiveSms enabled."); } else { Log.e("permissions", "ReceiveSms disabled."); }
 		if (PermissionHandler.checkAccessRecordAudio(getApplicationContext())) { Log.i("permissions", "RecordAudio enabled."); } else { Log.e("permissions", "RecordAudio disabled."); }
+		if (PermissionHandler.checkAccessUsagePermission(getApplicationContext())) { Log.i("permissions", "Package Usage enabled."); } else { Log.e("permissions", "Package Usage disabled."); }
 	}
 	
 	public void clearInternalLog(View view) { TextFileManager.getDebugLogFile().deleteSafely(); }
