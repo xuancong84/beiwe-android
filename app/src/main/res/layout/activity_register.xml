@@ -36,7 +36,7 @@
             android:id="@+id/serverUrlInput"
             style="@style/RegistrationInputStyle"
             android:inputType="textUri"
-            android:text="ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com"
+            android:text="ec2-18-139-106-135.ap-southeast-1.compute.amazonaws.com"
             android:hint="@string/registration_server_url_hint" >
             <requestFocus />
         </EditText>

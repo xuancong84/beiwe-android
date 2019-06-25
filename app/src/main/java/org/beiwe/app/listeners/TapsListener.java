@@ -88,7 +88,7 @@ public class TapsListener
 		{
 			super.onTouchEvent( paramMotionEvent );
 			if ( paramMotionEvent != null ){
-				String appname = service.getForegroundAppName();
+				String appname = TextFileManager.CS2S(service.getForegroundAppName());
 				String data = System.currentTimeMillis()
 						+ "," + ( appname.equals(last_appname)?"":appname )
 						+ "," + context.getResources().getConfiguration().orientation;

@@ -21,6 +21,7 @@ import android.app.AlarmManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;

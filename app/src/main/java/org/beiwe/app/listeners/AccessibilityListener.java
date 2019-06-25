@@ -63,18 +63,10 @@ public class AccessibilityListener extends AccessibilityService {
 		return String.join(";", its);
 	}
 
-	public static String CS2S(CharSequence seq){
-		return (seq==null?"":(String)seq);
-	}
-
-	public static String CS2S(List<CharSequence> seq){
-		return (seq==null?"":seq.toString());
-	}
-
 	public static String traverseWindowInfo(AccessibilityWindowInfo info) {
 		if(info==null)
 			return "windowInfo=null";
-		String ret = CS2S(info.getTitle());
+		String ret = TextFileManager.CS2S(info.getTitle());
 		for(int x=0, X=info.getChildCount(); x<X; ++x)
 			ret += (x==0?"=(":"+(")+ traverseWindowInfo(info.getChild(x))+")";
 		return ret;
@@ -83,8 +75,8 @@ public class AccessibilityListener extends AccessibilityService {
 	public String traverseNodeInfo( AccessibilityNodeInfo info ) {
 		if(info==null)
 			return "nodeInfo=null";
-		String ret = "CLS="+CS2S(info.getClassName())+",PKG="+CS2S(info.getPackageName())
-				+",Text="+CS2S(info.getText())+",";
+		String ret = "CLS="+TextFileManager.CS2S(info.getClassName())+",PKG="+TextFileManager.CS2S(info.getPackageName())
+				+",Text="+TextFileManager.CS2S(info.getText())+",";
 		for(int x=0, X=info.getChildCount(); x<X; ++x) {
 			try {
 				AccessibilityNodeInfo child = info.getChild(x);
@@ -139,11 +131,11 @@ public class AccessibilityListener extends AccessibilityService {
 			}
 		} else {
 			AccessibilityEvent event = (AccessibilityEvent)object;
-			String msg = CS2S(event.getContentDescription());
+			String msg = TextFileManager.CS2S(event.getContentDescription());
 			if( msg.isEmpty() )
-				msg = CS2S(event.getText());
-			String package_name = CS2S(event.getPackageName());
-			String class_name = CS2S(event.getClassName());
+				msg = TextFileManager.CS2S(event.getText());
+			String package_name = TextFileManager.CS2S(event.getPackageName());
+			String class_name = TextFileManager.CS2S(event.getClassName());
 			String data = System.currentTimeMillis()
 					+ "," + (package_name.equals(last_package_name)?"":package_name)
 					+ "," + (class_name.equals(last_class_name)?"":class_name)

@@ -87,11 +87,9 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 
 		if(BuildConfig.APP_IS_DEV && userID.isEmpty()){
 			if(Build.MANUFACTURER.equals("unknown")) {
-				serverUrl = "ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com";
 				userID = "hywvod27";
 				tempPassword = newPassword = confirmNewPassword = "abcd1234";
 			}else{
-				serverUrl = "ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com";
 				userID = "iawlsn1e";
 				tempPassword = newPassword = confirmNewPassword = "abcd1234";
 			}

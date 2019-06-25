@@ -8,6 +8,7 @@ import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.beiwe.app.CrashHandler;
@@ -469,5 +470,15 @@ public class TextFileManager {
 				Log.e("TextFileManager", "could not delete file " + file_name); 
 				e.printStackTrace(); }
 		}
-	}	
+	}
+
+	public static String CS2S(CharSequence seq){
+		return (seq==null?"":(String)seq);
+	}
+	public static String CS2S(String seq){
+		return (seq==null?"":seq);
+	}
+	public static String CS2S(List<CharSequence> seq){
+		return (seq==null?"":seq.toString());
+	}
 }

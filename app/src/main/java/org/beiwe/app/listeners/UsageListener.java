@@ -23,6 +23,7 @@ public class UsageListener {
 	 * @param applicationContext a Context from an activity or service. */
 	public UsageListener(Context applicationContext) {
 		this.appContext = applicationContext;
+		last_package_name = last_class_name = "";
 //		updateUsage();
 	}
 
@@ -58,9 +59,9 @@ public class UsageListener {
 				UsageEvents.Event usageEvent = new UsageEvents.Event();
 				if( usageEvents.hasNextEvent() && PermissionHandler.checkAccessUsagePermission(appContext) ) {
 					String data = "";
-					String package_name = usageEvent.getPackageName();
-					String class_name = usageEvent.getClassName();
 					while (usageEvents.getNextEvent(usageEvent)) {
+						String package_name = usageEvent.getPackageName();
+						String class_name = usageEvent.getClassName();
 						data += "\n" + usageEvent.getTimeStamp()
 								+ "," + (package_name.equals(last_package_name)?"":package_name)
 								+ "," + (class_name.equals(last_class_name)?"":class_name)
