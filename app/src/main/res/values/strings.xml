@@ -210,4 +210,13 @@
     <string name="numberQuestions">number_of_random_questions</string>
     <string name="triggeredSurvey">trigger_on_first_download</string>
 
+    <!-- QR Camera Keys -->
+    <string name="low_storage_error">low storage error</string>
+    <string name="no_camera_permission">camera permission not given</string>
+    <string name="ok">Ok</string>
+    <string name="no_barcode_captured">no barcode captured</string>
+    <string name="scan_barcode_button">Scan QR</string>
+    <string name="barcode_error_format">Invalid barcode format</string>
+    <string name="title_activity_qrcode">Scan QR to Register</string>
+
 </resources>

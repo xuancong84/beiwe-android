@@ -41,6 +41,8 @@
     <uses-permission android:name="android.permission.REAL_GET_TASKS" />
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -118,6 +120,10 @@
             android:name="org.beiwe.app.ui.registration.ConsentFormActivity"
             android:label="@string/title_activity_consent_form"
             android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name="org.beiwe.app.ui.qrcode.BarcodeCaptureActivity"
+            android:label="@string/title_activity_qrcode" >
         </activity>
 
         <!-- SERVICE -->

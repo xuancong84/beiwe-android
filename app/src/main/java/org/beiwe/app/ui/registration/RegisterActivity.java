@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.DeviceInfo;
@@ -27,7 +28,9 @@ import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.survey.TextFieldKeyboard;
+import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
 import org.beiwe.app.ui.utils.AlertsManager;
+import org.json.JSONObject;
 
 import static org.beiwe.app.networking.PostRequest.addWebsitePrefix;
 
@@ -46,6 +49,8 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 
 	private final static int PERMISSION_CALLBACK = 0; //This callback value can be anything, we are not really using it
 	private final static int REQUEST_PERMISSIONS_IDENTIFIER = 1500;
+	private final static int BARCODE_READER_REQUEST_CODE = 2500;
+	private final static String DEFAULT_PASSWORD = "abcd1234";
 	
 	/** Users will go into this activity first to register information on the phone and on the server. */
 	@Override
@@ -74,6 +79,11 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 
 		newPasswordInput.setHint(String.format(getString(R.string.registration_replacement_password_hint), PersistentData.minPasswordLength()));
 		confirmNewPasswordInput.setHint(String.format(getString(R.string.registration_replacement_password_hint), PersistentData.minPasswordLength()));
+	}
+
+	public synchronized void scanQrButtonPressed(View view) {
+		Intent intent = new Intent( getApplicationContext(), BarcodeCaptureActivity.class );
+		startActivityForResult( intent, BARCODE_READER_REQUEST_CODE );
 	}
 
 
@@ -190,7 +200,6 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	/*####################################################################
 	###################### Permission Prompting ##########################
 	####################################################################*/
-	
 	private static Boolean prePromptActive = false;
 	private static Boolean postPromptActive = false;
 	private static Boolean thisResumeCausedByFalseActivityReturn = false;
@@ -198,7 +207,6 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	private static Boolean activityNotVisible = false;
 
 	private void goToSettings() {
-	// Log.i("reg", "goToSettings");
 		Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
 		myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
 		myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -207,8 +215,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 
 	
 	@Override
-	protected void onResume() {  
-		// Log.i("reg", "onResume");
+	protected void onResume() {
 		super.onResume();
 		activityNotVisible = false;
 		
@@ -232,25 +239,38 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	protected void onPause() {
 		super.onPause();
 		activityNotVisible = true;
-	};
+	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// Log.i("reg", "onActivityResult. requestCode: " + requestCode + ", resultCode: " + resultCode );
-		aboutToResetFalseActivityReturn = true;
+		switch ( requestCode ) {
+			case BARCODE_READER_REQUEST_CODE:
+				try {
+					String qrResult = data.getStringExtra(BarcodeCaptureActivity.BarcodeObject);
+					JSONObject jObject = new JSONObject(qrResult);
+					serverUrlInput.setText(jObject.getString("url"));
+					userIdInput.setText(jObject.getString("uid"));
+					tempPasswordInput.setText(jObject.getString("utp"));
+					newPasswordInput.setText(DEFAULT_PASSWORD);
+					confirmNewPasswordInput.setText(DEFAULT_PASSWORD);
+					aboutToResetFalseActivityReturn = true;
+					registerButtonPressed(null);
+				} catch (Exception e) { }
+				break;
+			case REQUEST_PERMISSIONS_IDENTIFIER:
+				aboutToResetFalseActivityReturn = true;
+		}
 	}
 
 	@Override
 	public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
-		// Log.i("reg", "onRequestPermissionResult");
-		if (activityNotVisible) return; //this is identical logical progression to the way it works in SessionActivity.
-		for (int i = 0; i < grantResults.length; i++) {
+		if ( activityNotVisible ) return; //this is identical logical progression to the way it works in SessionActivity.
+		for ( int i = 0; i < grantResults.length; ++i ) {
 			if ( permissions[i].equals( Manifest.permission.READ_SMS ) ) {
-//				Log.i("permiss", "permission return: " + permissions[i]);
 				if ( grantResults[i] == PermissionHandler.PERMISSION_GRANTED ) { break; }
-				if ( shouldShowRequestPermissionRationale(permissions[i]) ) { showPostPermissionAlert(this); } //(shouldShow... "This method returns true if the app has requested this permission previously and the user denied the request.")
+				if ( shouldShowRequestPermissionRationale(permissions[i]) )
+					showPostPermissionAlert(this ); //(shouldShow... "This method returns true if the app has requested this permission previously and the user denied the request.")
 			}
-//			else { Log.w("permiss", "permission return: " + permissions[i]); }
 		}
 	}
 	
