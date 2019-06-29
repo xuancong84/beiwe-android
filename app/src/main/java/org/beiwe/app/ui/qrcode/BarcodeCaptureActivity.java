@@ -27,6 +27,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,6 +39,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -70,6 +76,9 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 	private CameraSourcePreview mPreview;
 	private DisplayMetrics metrics;
 
+	public static SurfaceView mOverlayView;
+	public static SurfaceHolder mOverlayHolder;
+
 	/**
 	 * Initializes the UI and creates the detector pipeline.
 	 */
@@ -87,14 +96,15 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 		layoutParams.width = layoutParams.height = (int)(Math.min(metrics.widthPixels, metrics.heightPixels)*0.9);
 		mPreview.setLayoutParams(layoutParams);
 
-		boolean autoFocus = true;
-		boolean useFlash = false;
+//		mOverlayView = (SurfaceView)findViewById(R.id.camera_overlay);
+//		mOverlayHolder = mOverlayView.getHolder();
+//		mOverlayHolder.setFormat(PixelFormat.RGBA_8888);
 
-		// Check for the camera permission before accessing the camera.  If the
-		// permission is not granted yet, request permission.
+		// Check for the camera permission before accessing the camera.
+		// If the permission is not granted yet, request permission.
 		int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
 		if (rc == PackageManager.PERMISSION_GRANTED)
-			createCameraSource(autoFocus, useFlash);
+			createCameraSource(true, false);
 		else
 			requestCameraPermission();
 	}
@@ -256,7 +266,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 		};
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this );
-		builder.setTitle( "Multitracker sample" )
+		builder.setTitle( R.string.title_activity_qrcode )
 				.setMessage( R.string.no_camera_permission )
 				.setPositiveButton( R.string.ok, listener )
 				.show();
@@ -267,11 +277,9 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 	 * again when the camera source is created. */
 	private void startCameraSource() throws SecurityException {
 		// check that the device has play services available<uses-permission android:name="android.permission.CAMERA" />.
-		int code = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(
-				getApplicationContext());
-		if ( code != ConnectionResult.SUCCESS ) {
+		int code = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext());
+		if ( code != ConnectionResult.SUCCESS )
 			GoogleApiAvailability.getInstance().getErrorDialog(this, code, RC_HANDLE_GMS).show();
-		}
 
 		if (mCameraSource != null) {
 			try {

@@ -5,10 +5,10 @@ keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 android {
     signingConfigs {
         config {
-            keyAlias 'keyMyFirstAndroidApp'
-            keyPassword 'Password'
-            storeFile file('/Users/xuancong/projects/keystores/MyFirstAndroidApp.jks')
-            storePassword 'Password'
+            keyAlias 'upload'
+            keyPassword 'mohtabcd1234'
+            storeFile file('../keystores/beiwe-moht.jks')
+            storePassword 'moht1234abcd'
         }
     }
     compileSdkVersion 29

@@ -216,7 +216,7 @@
     <string name="ok">Ok</string>
     <string name="no_barcode_captured">no barcode captured</string>
     <string name="scan_barcode_button">Scan QR</string>
-    <string name="barcode_error_format">Invalid barcode format</string>
+    <string name="barcode_error_format">Invalid QR code format</string>
     <string name="title_activity_qrcode">Scan QR to Register</string>
 
 </resources>

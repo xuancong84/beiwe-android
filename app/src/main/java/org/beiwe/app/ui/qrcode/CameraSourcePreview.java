@@ -19,16 +19,25 @@ package org.beiwe.app.ui.qrcode;
 import android.Manifest;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.graphics.Rect;
+import android.os.Build;
 import android.support.annotation.RequiresPermission;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.common.images.Size;
 
 import java.io.IOException;
+import org.beiwe.app.R;
 
 public class CameraSourcePreview extends ViewGroup {
 	private static final String TAG = CameraSourcePreview.class.getSimpleName();
@@ -168,12 +177,10 @@ public class CameraSourcePreview extends ViewGroup {
 
 	private boolean isPortraitMode() {
 		int orientation = mContext.getResources().getConfiguration().orientation;
-		if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+		if (orientation == Configuration.ORIENTATION_LANDSCAPE)
 			return false;
-		}
-		if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+		if (orientation == Configuration.ORIENTATION_PORTRAIT)
 			return true;
-		}
 
 		Log.d(TAG, "isPortraitMode returning false by default");
 		return false;
