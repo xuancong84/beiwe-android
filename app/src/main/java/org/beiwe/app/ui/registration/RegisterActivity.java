@@ -70,12 +70,12 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		tempPasswordInput = (EditText) findViewById(R.id.registerTempPasswordInput);
 		newPasswordInput = (EditText) findViewById(R.id.registerNewPasswordInput);
 		confirmNewPasswordInput = (EditText) findViewById(R.id.registerConfirmNewPasswordInput);
-		TextFieldKeyboard textFieldKeyboard = new TextFieldKeyboard(getApplicationContext());
-		textFieldKeyboard.makeKeyboardBehave(serverUrlInput);
-		textFieldKeyboard.makeKeyboardBehave(userIdInput);
-		textFieldKeyboard.makeKeyboardBehave(tempPasswordInput);
-		textFieldKeyboard.makeKeyboardBehave(newPasswordInput);
-		textFieldKeyboard.makeKeyboardBehave(confirmNewPasswordInput);
+//		TextFieldKeyboard textFieldKeyboard = new TextFieldKeyboard(getApplicationContext());
+//		textFieldKeyboard.makeKeyboardBehave(serverUrlInput);
+//		textFieldKeyboard.makeKeyboardBehave(userIdInput);
+//		textFieldKeyboard.makeKeyboardBehave(tempPasswordInput);
+//		textFieldKeyboard.makeKeyboardBehave(newPasswordInput);
+//		textFieldKeyboard.makeKeyboardBehave(confirmNewPasswordInput);
 
 		newPasswordInput.setHint(String.format(getString(R.string.registration_replacement_password_hint), PersistentData.minPasswordLength()));
 		confirmNewPasswordInput.setHint(String.format(getString(R.string.registration_replacement_password_hint), PersistentData.minPasswordLength()));

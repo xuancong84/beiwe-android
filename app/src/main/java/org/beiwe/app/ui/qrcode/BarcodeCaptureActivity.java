@@ -74,10 +74,6 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 
 	private CameraSource mCameraSource;
 	private CameraSourcePreview mPreview;
-	private DisplayMetrics metrics;
-
-	public static SurfaceView mOverlayView;
-	public static SurfaceHolder mOverlayHolder;
 
 	/**
 	 * Initializes the UI and creates the detector pipeline.
@@ -86,19 +82,11 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 
-		metrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		setContentView(R.layout.layout_barcode_capture);
 
 		mPreview = findViewById(R.id.camera_preview);
-
-		ViewGroup.LayoutParams layoutParams = mPreview.getLayoutParams();
-		layoutParams.width = layoutParams.height = (int)(Math.min(metrics.widthPixels, metrics.heightPixels)*0.9);
-		mPreview.setLayoutParams(layoutParams);
-
-//		mOverlayView = (SurfaceView)findViewById(R.id.camera_overlay);
-//		mOverlayHolder = mOverlayView.getHolder();
-//		mOverlayHolder.setFormat(PixelFormat.RGBA_8888);
+		mPreview.mOverlayHolder = ((SurfaceView) findViewById(R.id.camera_overlay)).getHolder();
+		mPreview.mOverlayHolder.setFormat(PixelFormat.RGBA_8888);
 
 		// Check for the camera permission before accessing the camera.
 		// If the permission is not granted yet, request permission.
@@ -187,7 +175,6 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 
 		CameraSource.Builder builder = new CameraSource.Builder(getApplicationContext(), barcodeDetector)
 				.setFacing(CameraSource.CAMERA_FACING_BACK)
-				.setRequestedPreviewSize(metrics.widthPixels, metrics.heightPixels)
 				.setRequestedFps(24.0f);
 
 		// make sure that auto focus is an available option
@@ -240,9 +227,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 	 *                     or {@link PackageManager#PERMISSION_DENIED}. Never null.
 	 * @see #requestPermissions(String[], int) */
 	@Override
-	public void onRequestPermissionsResult(int requestCode,
-																				 @NonNull String[] permissions,
-																				 @NonNull int[] grantResults) {
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		if (requestCode != RC_HANDLE_CAMERA_PERM) {
 			Log.d(TAG, "Got unexpected permission result: " + requestCode);
 			super.onRequestPermissionsResult(requestCode, permissions, grantResults);

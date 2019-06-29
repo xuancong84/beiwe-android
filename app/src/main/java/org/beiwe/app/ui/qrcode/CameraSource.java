@@ -19,10 +19,12 @@ package org.beiwe.app.ui.qrcode;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.BlendMode;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
@@ -38,6 +40,9 @@ import android.view.WindowManager;
 import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
+
+import org.beiwe.app.BackgroundService;
+import org.beiwe.app.R;
 
 import java.io.IOException;
 import java.lang.Thread.State;
@@ -128,8 +133,8 @@ public class CameraSource {
 	// These values may be requested by the caller.  Due to hardware limitations, we may need to
 	// select close, but not exactly the same values for these.
 	private float mRequestedFps = 30.0f;
-	private int mRequestedPreviewWidth = 1024;
-	private int mRequestedPreviewHeight = 768;
+	public static int mRequestedPreviewWidth = 1024;
+	public static int mRequestedPreviewHeight = 768;
 
 
 	private String mFocusMode = null;
@@ -202,24 +207,6 @@ public class CameraSource {
 		}
 
 		/**
-		 * Sets the desired width and height of the camera frames in pixels.  If the exact desired
-		 * values are not available options, the best matching available options are selected.
-		 * Also, we try to select a preview size which corresponds to the aspect ratio of an
-		 * associated full picture size, if applicable.  Default: 1024x768.
-		 */
-		public Builder setRequestedPreviewSize(int width, int height) {
-			// Restrict the requested range to something within the realm of possibility.  The
-			// choice of 1000000 is a bit arbitrary -- intended to be well beyond resolutions that
-			// devices can support.  We bound this to avoid int overflow in the code later.
-			final int MAX = 1000000;
-			if ((width <= 0) || (width > MAX) || (height <= 0) || (height > MAX))
-				throw new IllegalArgumentException("Invalid preview size: " + width + "x" + height);
-			mCameraSource.mRequestedPreviewWidth = width;
-			mCameraSource.mRequestedPreviewHeight = height;
-			return this;
-		}
-
-		/**
 		 * Sets the camera to use (either {@link #CAMERA_FACING_BACK} or
 		 * {@link #CAMERA_FACING_FRONT}). Default: back facing.
 		 */
@@ -254,37 +241,6 @@ public class CameraSource {
 	}
 
 	/**
-	 * Opens the camera and starts sending preview frames to the underlying detector.  The preview
-	 * frames are not displayed.
-	 * @throws IOException if the camera's preview texture or display could not be initialized
-	 */
-	@RequiresPermission(Manifest.permission.CAMERA)
-	public CameraSource start() throws IOException {
-		synchronized (mCameraLock) {
-			if (mCamera != null)
-				return this;
-
-			mCamera = createCamera();
-
-			// SurfaceTexture was introduced in Honeycomb (11), so if we are running and
-			// old version of Android. fall back to use SurfaceView.
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				mDummySurfaceTexture = new SurfaceTexture(DUMMY_TEXTURE_NAME);
-				mCamera.setPreviewTexture(mDummySurfaceTexture);
-			} else {
-				mDummySurfaceView = new SurfaceView(mContext);
-				mCamera.setPreviewDisplay(mDummySurfaceView.getHolder());
-			}
-			mCamera.startPreview();
-
-			mProcessingThread = new Thread(mFrameProcessor);
-			mFrameProcessor.setActive(true);
-			mProcessingThread.start();
-		}
-		return this;
-	}
-
-	/**
 	 * Opens the camera and starts sending preview frames to the underlying detector.  The supplied
 	 * surface holder is used for the preview so frames can be displayed to the user.
 	 *
@@ -299,6 +255,9 @@ public class CameraSource {
 			mCamera = createCamera();
 			mCamera.setPreviewDisplay(surfaceHolder);
 			mCamera.startPreview();
+
+			if( CameraSourcePreview.mSelf != null )
+				CameraSourcePreview.mSelf.reLayout( mPreviewSize );
 
 			mProcessingThread = new Thread(mFrameProcessor);
 			mFrameProcessor.setActive(true);
@@ -340,26 +299,19 @@ public class CameraSource {
 					// developer wants to display a preview we must use a SurfaceHolder.  If the developer doesn't
 					// want to display a preview we use a SurfaceTexture if we are running at least Honeycomb.
 
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 						mCamera.setPreviewTexture(null);
-
-					} else {
+					else
 						mCamera.setPreviewDisplay(null);
-					}
+
 				} catch (Exception e) {
 					Log.e(TAG, "Failed to clear camera preview: " + e);
 				}
 				mCamera.release();
 				mCamera = null;
+				CameraSourcePreview.mSelf.bmp_beam = null;
 			}
 		}
-	}
-
-	/**
-	 * Returns the preview size that is currently in use by the underlying camera.
-	 */
-	public Size getPreviewSize() {
-		return mPreviewSize;
 	}
 
 	// Only allow creation via the builder class.
@@ -561,8 +513,7 @@ public class CameraSource {
 	 * @return the selected preview frames per second range
 	 */
 	private int[] selectPreviewFpsRange(Camera camera, float desiredPreviewFps) {
-		// The camera API uses integers scaled by a factor of 1000 instead of floating-point frame
-		// rates.
+		// The camera API uses integers scaled by a factor of 1000 instead of floating-point FPS.
 		int desiredPreviewFpsScaled = (int) (desiredPreviewFps * 1000.0f);
 
 		// The method for selecting the best range is to minimize the sum of the differences between
@@ -656,6 +607,8 @@ public class CameraSource {
 		@Override
 		public void onPreviewFrame(byte[] data, Camera camera) {
 			mFrameProcessor.setNextFrame(data, camera);
+			if( CameraSourcePreview.mSelf != null )
+				CameraSourcePreview.mSelf.drawOverlay();
 		}
 	}
 
@@ -763,7 +716,7 @@ public class CameraSource {
 						}
 					}
 
-					// Exit the loop once this camera source is stopped or released.  We check
+					// Exit the loop once this camera source is stopped or released. We check
 					// this here, immediately after the wait() above, to handle the case where
 					// setActive(false) had been called, triggering the termination of this loop.
 					if (!mActive)
@@ -782,16 +735,6 @@ public class CameraSource {
 					data = mPendingFrameData;
 					mPendingFrameData = null;
 				}
-
-//				if(BarcodeCaptureActivity.mOverlayHolder != null) {
-//					Canvas canvas = BarcodeCaptureActivity.mOverlayHolder.lockCanvas();
-////					canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-//					Paint paint = new Paint();
-//					paint.setARGB(128, 255, 0, 0);
-//					canvas.drawRect(0, 0, 200, 200, paint);
-//					BarcodeCaptureActivity.mOverlayHolder.unlockCanvasAndPost(canvas);
-//					BarcodeCaptureActivity.mOverlayHolder = null;
-//				}
 
 				// The code below needs to run outside of synchronization, because this will allow
 				// the camera to add pending frame(s) while we are running detection on the current frame.
