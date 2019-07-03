@@ -95,7 +95,7 @@ public class AccessibilityListener extends AccessibilityService {
 	}
 
 	public static String convertKeyChar( String text ){
-		if(text.startsWith("[") && text.endsWith("]"))
+		if(text.startsWith("[") && text.endsWith("]") && text.length()<=16)
 			return text;
 		switch (text.toLowerCase()){
 			case "back":
@@ -106,6 +106,7 @@ public class AccessibilityListener extends AccessibilityService {
 			case "overview":
 			case "home":
 			case "clear all":
+			case "navigate up":
 			case "close all recent apps":
 				return text;
 			default:

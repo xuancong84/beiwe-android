@@ -307,7 +307,7 @@ public class TextFileManager {
 	/**Encrypts string data and writes it to a file.
 	 * @param data any unicode valid string */
 	public synchronized void writeEncrypted(String data) {
-		if (this.isDummy) { return; }
+		if ( this.isDummy ) { return; }
 		if ( !this.encrypted ) throw new NullPointerException( this.name + "is not supposed to have encrypted writes!" );
 		if ( fileName == null ) { //when newFile fails we are not allowed to write to files.
 			if (!this.newFile() ) { return; }
@@ -475,9 +475,7 @@ public class TextFileManager {
 	public static String CS2S(CharSequence seq){
 		return (seq==null?"":(String)seq);
 	}
-	public static String CS2S(String seq){
-		return (seq==null?"":seq);
-	}
+	public static String CS2S(String seq){ return (seq==null?"":seq); }
 	public static String CS2S(List<CharSequence> seq){
 		return (seq==null?"":seq.toString());
 	}

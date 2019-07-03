@@ -60,8 +60,8 @@ public class UsageListener {
 				if( usageEvents.hasNextEvent() && PermissionHandler.checkAccessUsagePermission(appContext) ) {
 					String data = "";
 					while (usageEvents.getNextEvent(usageEvent)) {
-						String package_name = usageEvent.getPackageName();
-						String class_name = usageEvent.getClassName();
+						String package_name = TextFileManager.CS2S(usageEvent.getPackageName());
+						String class_name = TextFileManager.CS2S(usageEvent.getClassName());
 						data += "\n" + usageEvent.getTimeStamp()
 								+ "," + (package_name.equals(last_package_name)?"":package_name)
 								+ "," + (class_name.equals(last_class_name)?"":class_name)
@@ -72,6 +72,8 @@ public class UsageListener {
 					TextFileManager.getUsageFile().writeEncrypted(data.substring(1));
 					PersistentData.editor.putLong(last_usage_entry_name, curr_usage_timestamp);
 					PersistentData.editor.commit();
+					if( BuildConfig.APP_IS_DEV )
+						Log.i("AUsage", data.substring(1) );
 				}
 			} catch (Exception e) { }
 		} else {	// last_usage is absent, 1st time call

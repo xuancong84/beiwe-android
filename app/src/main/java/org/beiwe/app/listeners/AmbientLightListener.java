@@ -74,7 +74,7 @@ public class AmbientLightListener implements SensorEventListener{
 		String data = javaTimeCode.toString() + ',' + accuracy + ',' + value;
 		TextFileManager.getAmbientLightFile().writeEncrypted(data);
 		if(BuildConfig.APP_IS_DEV)
-			Log.i("AmbientLight:", data );
+			Log.i("AmbientLight", data );
 		turn_off();
 	}
 }
