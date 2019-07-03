@@ -21,29 +21,22 @@ package org.beiwe.app.ui.qrcode;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
 import android.hardware.Camera;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -54,9 +47,9 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import org.beiwe.app.R;
-import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 public final class BarcodeCaptureActivity extends AppCompatActivity
 		implements BarcodeTracker.BarcodeGraphicTrackerCallback {
@@ -72,8 +65,12 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 	// Constants used to pass extra data in the intent
 	public static final String BarcodeObject = "Barcode";
 
-	private CameraSource mCameraSource;
-	private CameraSourcePreview mPreview;
+	// Public variable to store scan output temporarily
+	public static String scan_result = "";
+
+	private org.beiwe.app.ui.qrcode.CameraSource mCameraSource;
+	private org.beiwe.app.ui.qrcode.CameraSourcePreview mPreview;
+	public static ImageButton mTorchButton = null;
 
 	/**
 	 * Initializes the UI and creates the detector pipeline.
@@ -84,6 +81,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 
 		setContentView(R.layout.layout_barcode_capture);
 
+		mTorchButton = findViewById(R.id.torchButton);
 		mPreview = findViewById(R.id.camera_preview);
 		mPreview.mOverlayHolder = ((SurfaceView) findViewById(R.id.camera_overlay)).getHolder();
 		mPreview.mOverlayHolder.setFormat(PixelFormat.RGBA_8888);
@@ -97,23 +95,34 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 			requestCameraPermission();
 	}
 
+	/** Implement and pass in this function to handle upon receiving a QR code:
+	 * - return true to accept result and go back to activity
+	 * - return false to reject a result and stay in scanning mode
+	 * - throw an Exception to post an invalid QR code toast message */
+	public static Callable <Boolean> checkQR = new Callable<Boolean>() {
+		public Boolean call() {
+			return true;
+		}
+	};
+
 	@Override
 	public void onDetectedQrCode(Barcode barcode) {
 		try {
-			JSONObject jObject = new JSONObject(barcode.rawValue);
-			if ( jObject.has("url") && jObject.has("uid") && jObject.has("utp") ) {
+			scan_result = barcode.rawValue;
+			if (checkQR.call()) {
 				Intent intent = new Intent();
 				intent.putExtra(BarcodeObject, barcode.rawValue);
 				setResult(CommonStatusCodes.SUCCESS, intent);
 				finish();
 				return;
 			}
-		} catch ( Exception e ){ }
-		runOnUiThread(new Runnable() {
-			public void run() {
-				Toast.makeText(CameraSourcePreview.mContext, R.string.barcode_error_format, Toast.LENGTH_SHORT).show();
-			}
-		});
+		} catch ( Exception e ) {
+			runOnUiThread(new Runnable() {
+				public void run() {
+					Toast.makeText(CameraSourcePreview.mContext, R.string.barcode_error_format, Toast.LENGTH_SHORT).show();
+				}
+			});
+		}
 	}
 
 	// Handles the requesting of the camera permission.
@@ -143,7 +152,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 		BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context)
 				.setBarcodeFormats(Barcode.ALL_FORMATS)
 				.build();
-		BarcodeTrackerFactory barcodeFactory = new BarcodeTrackerFactory(this);
+		BarcodeTrackerFactory barcodeFactory = new BarcodeTrackerFactory(this );
 		barcodeDetector.setProcessor(new MultiProcessor.Builder<>(barcodeFactory).build());
 
 		if (!barcodeDetector.isOperational()) {
@@ -177,15 +186,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 				.setFacing(CameraSource.CAMERA_FACING_BACK)
 				.setRequestedFps(24.0f);
 
-		// make sure that auto focus is an available option
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			builder = builder.setFocusMode(
-					autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null);
-		}
-
-		mCameraSource = builder
-				.setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
-				.build();
+		mCameraSource = builder.build();
 	}
 
 	// Restarts the camera
@@ -274,6 +275,21 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 				mCameraSource.release();
 				mCameraSource = null;
 			}
+		}
+	}
+
+	public static boolean torchStatus = false;
+
+	@TargetApi(23)
+	public synchronized void onToggleTorch( View view ) {
+		try {
+			Camera.Parameters parameters = mCameraSource.mCamera.getParameters();
+			parameters.setFlashMode( torchStatus? Camera.Parameters.FLASH_MODE_OFF : Camera.Parameters.FLASH_MODE_TORCH );
+			mCameraSource.mCamera.setParameters( parameters );
+			torchStatus = !torchStatus;
+			mTorchButton.setImageResource( torchStatus ? R.drawable.torch_on : R.drawable.torch_off );
+		} catch ( Exception e ) {
+			Log.e( TAG, "Unable to start torch light.", e );
 		}
 	}
 }

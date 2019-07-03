@@ -18,6 +18,8 @@ import android.widget.TextView;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.CommonStatusCodes;
+
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.DeviceInfo;
 import org.beiwe.app.PermissionHandler;
@@ -29,8 +31,11 @@ import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.survey.TextFieldKeyboard;
 import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
+import org.beiwe.app.ui.qrcode.CameraSourcePreview;
 import org.beiwe.app.ui.utils.AlertsManager;
 import org.json.JSONObject;
+
+import java.util.concurrent.Callable;
 
 import static org.beiwe.app.networking.PostRequest.addWebsitePrefix;
 
@@ -82,6 +87,14 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	}
 
 	public synchronized void scanQrButtonPressed(View view) {
+		BarcodeCaptureActivity.checkQR = new Callable<Boolean>() {
+			public Boolean call() throws Exception {
+				JSONObject jObject = new JSONObject(BarcodeCaptureActivity.scan_result);
+				if ( jObject.has("url") && jObject.has("uid") && jObject.has("utp") )
+					return true;
+				throw new Exception("Invalid QR code!");
+			}
+		};
 		Intent intent = new Intent( getApplicationContext(), BarcodeCaptureActivity.class );
 		startActivityForResult( intent, BARCODE_READER_REQUEST_CODE );
 	}

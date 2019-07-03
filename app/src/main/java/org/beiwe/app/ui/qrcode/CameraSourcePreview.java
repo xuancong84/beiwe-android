@@ -18,7 +18,6 @@ package org.beiwe.app.ui.qrcode;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -31,12 +30,9 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.gms.common.images.Size;
-
-import org.beiwe.app.R;
 
 import java.io.IOException;
 
@@ -108,13 +104,13 @@ public class CameraSourcePreview extends ViewGroup {
 		if ( bmp_beam == null ) {
 			W = getMeasuredWidth();
 			H = getMeasuredHeight();
-			S = Math.round((W < H ? W : H) * 0.8f);
-			L = Math.round(W * 0.1f);
-			T = Math.round((H - S) * 0.5f);
-			R = Math.round(W * 0.9f);
-			B = Math.round((H + S) * 0.5f);
-			D = (int)Math.ceil((W<H?W:H) / 200.0);
-			LEN = Math.round(S / 8.0f);
+			S = Math.round( (W < H ? W : H) * 0.8f );
+			L = Math.round( W * 0.1f );
+			T = Math.round( H * 0.4f - S * 0.5f );
+			R = Math.round( W * 0.9f );
+			B = Math.round( T + S );
+			D = (int)Math.ceil( (W<H?W:H) / 200.0 );
+			LEN = Math.round( S / 8.0f );
 			lines_frame = new float [] { L, T, R, T, R, T, R, B, L, B, R, B, L, B, L, T };
 			lines_corner = new float [] {
 					L - D, T - D, L - D + LEN, T - D, L - D, T - D, L - D, T - D + LEN,
@@ -122,6 +118,14 @@ public class CameraSourcePreview extends ViewGroup {
 					L - D, B + D, L - D + LEN, B + D, L - D, B + D, L - D, B + D - LEN,
 					R + D, B + D, R + D - LEN, B + D, R + D, B + D, R + D, B + D - LEN
 			};
+
+			// Shift down the torch button
+			int vCenter = Math.round( B + ( H - B ) * 0.5f );
+			BarcodeCaptureActivity.mTorchButton.layout(Math.round(W*0.4f),
+					Math.round(vCenter-W*0.1f),
+					Math.round(W*0.6f),
+					Math.round(vCenter+W*0.1f));
+			BarcodeCaptureActivity.mTorchButton.setVisibility( VISIBLE );
 
 			// Prepare scan beam bitmap
 			S -= 2;
@@ -210,8 +214,7 @@ public class CameraSourcePreview extends ViewGroup {
 		}
 
 		@Override
-		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		}
+		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
 	}
 
 	@Override
@@ -232,24 +235,15 @@ public class CameraSourcePreview extends ViewGroup {
 	}
 
 	void reLayout( Size size ){
-
-		int previewWidth = size.getWidth();
-		int previewHeight = size.getHeight();
-
 		// Swap width and height sizes when in portrait, since it will be rotated 90 degrees
-		if (isPortraitMode()) {
-			int tmp = previewWidth;
-			previewWidth = previewHeight;
-			previewHeight = tmp;
-		}
+		int previewHeight = size.getWidth();
+		int previewWidth = size.getHeight();
 
 		int viewWidth = getMeasuredWidth();
 		int viewHeight = getMeasuredHeight();
 
-		int childWidth;
-		int childHeight;
-		int childXOffset = 0;
-		int childYOffset = 0;
+		int childWidth, childHeight;
+		int childXOffset = 0, childYOffset = 0;
 		float widthRatio = (float) viewWidth / (float) previewWidth;
 		float heightRatio = (float) viewHeight / (float) previewHeight;
 
@@ -271,18 +265,7 @@ public class CameraSourcePreview extends ViewGroup {
 		// the size to maintain the proper aspect ratio.
 		for( int x=0, X=getChildCount(); x<X; ++x )
 			getChildAt( x ).layout(
-				-1 * childXOffset, -1 * childYOffset,
-				childWidth - childXOffset, childHeight - childYOffset);
-	}
-
-	private boolean isPortraitMode() {
-		int orientation = mContext.getResources().getConfiguration().orientation;
-		if (orientation == Configuration.ORIENTATION_LANDSCAPE)
-			return false;
-		if (orientation == Configuration.ORIENTATION_PORTRAIT)
-			return true;
-
-		Log.d(TAG, "isPortraitMode returning false by default");
-		return false;
+					-1 * childXOffset, -1 * childYOffset,
+					childWidth - childXOffset, childHeight - childYOffset);
 	}
 }
