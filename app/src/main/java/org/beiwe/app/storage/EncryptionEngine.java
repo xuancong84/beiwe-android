@@ -104,11 +104,11 @@ public class EncryptionEngine {
 		String lastN = DeviceInfo.last_substr(justDigits);
 
 		// Hash the last N digits
-		return PersistentData.getUseAnonymizedHashing() ? PBKDF2Hash(lastN) : safeHash(lastN);
+		return PersistentData.getEnabled(PersistentData.USE_ANONYMIZED_HASHING) ? PBKDF2Hash(lastN) : safeHash(lastN);
 	}
 
 	public static String hashMAC(String MAC) {
-		if (PersistentData.getUseAnonymizedHashing()) {
+		if (PersistentData.getEnabled(PersistentData.USE_ANONYMIZED_HASHING)) {
 			return PBKDF2Hash(MAC);
 		}
 		else {

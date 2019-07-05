@@ -2,52 +2,27 @@ package org.beiwe.app.storage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import static org.beiwe.app.storage.PersistentData.*;
 
 public class SetDeviceSettings {
 	public static void writeDeviceSettings(JSONObject deviceSettings) throws JSONException {
 		// Write data stream booleans
-		for(String feature : PersistentData.feature_list) {
-			boolean value;
-			try {
-				value = deviceSettings.getBoolean(feature);
-			}catch (Exception e){
-				value = false;
-			}
-			PersistentData.setEnabled(feature, value);
-		}
-		
+		for(String feature : PersistentData.feature_list)
+			PersistentData.setEnabled(feature, deviceSettings.optBoolean(feature,false));
+
 		// Write timer settings
-		for(String feature : PersistentData.time_param_list) {
-			int value;
-			try {
-				value = deviceSettings.getInt(feature);
-			}catch (Exception e){
-				value = 0;
-			}
-			PersistentData.setTimeInSeconds(feature, value);
-		}
+		for(String feature : PersistentData.time_param_list)
+			PersistentData.setTimeInSeconds(feature, deviceSettings.optInt(feature,0));
 
-
-		// Write text strings
-		String aboutPageText = deviceSettings.getString("about_page_text");
-		PersistentData.setAboutPageText(aboutPageText);
-		String callClinicianButtonText = deviceSettings.getString("call_clinician_button_text");
-		PersistentData.setCallClinicianButtonText(callClinicianButtonText);
-		String consentFormText = deviceSettings.getString("consent_form_text");
-		PersistentData.setConsentFormText(consentFormText);
-		String surveySubmitSuccessToastText = deviceSettings.getString("survey_submit_success_toast_text");
-		PersistentData.setSurveySubmitSuccessToastText(surveySubmitSuccessToastText);
-
-		// Anonymized hashing
-		boolean useAnonymizedHashing; // This key was added late, and if the server is old it may not be present
-		try { useAnonymizedHashing = deviceSettings.getBoolean("use_anonymized_hashing"); }
-		catch (JSONException e) { useAnonymizedHashing = false; }
-		PersistentData.setUseAnonymizedHashing(useAnonymizedHashing);
-
-		// Use GPS Fuzzing
-		boolean useGpsFuzzing; // This key was added late, and if the server is old it may not be present
-		try { useGpsFuzzing = deviceSettings.getBoolean("use_gps_fuzzing"); }
-		catch (JSONException e) { useGpsFuzzing = false; }
-		PersistentData.setUseGpsFuzzing(useGpsFuzzing);
+		// Other settings
+		PersistentData.setAboutPageText(deviceSettings.getString("about_page_text"));
+		PersistentData.setCallClinicianButtonText(deviceSettings.getString("call_clinician_button_text"));
+		PersistentData.setConsentFormText(deviceSettings.getString("consent_form_text"));
+		PersistentData.setSurveySubmitSuccessToastText(deviceSettings.getString("survey_submit_success_toast_text"));
+		PersistentData.setEnabled(SKIP_CONSENT, deviceSettings.optBoolean(SKIP_CONSENT, false));
+		PersistentData.setInteger(PHONE_NUMBER_LENGTH, deviceSettings.optInt(PHONE_NUMBER_LENGTH, 8));
+		PersistentData.setString(PCP_PHONE_NUMBER, deviceSettings.optString(PCP_PHONE_NUMBER, ""));
+		PersistentData.setEnabled(USE_GPS_FUZZING, deviceSettings.optBoolean(USE_GPS_FUZZING,false ));
+		PersistentData.setEnabled(USE_ANONYMIZED_HASHING, deviceSettings.optBoolean(USE_ANONYMIZED_HASHING,true));
 	}
 }

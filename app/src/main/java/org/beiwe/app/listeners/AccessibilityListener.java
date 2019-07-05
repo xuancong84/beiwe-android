@@ -24,17 +24,33 @@ import org.beiwe.app.R;
 import org.beiwe.app.storage.TextFileManager;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class AccessibilityListener extends AccessibilityService {
 	public static String header = "timestamp,packageName,className,text,orientation";
-	public static boolean show, listen;
-	public static int level;
+	public static boolean listen = false;
+
+	@Override
+	protected void onServiceConnected() {
+		super.onServiceConnected();
+		listen = true;
+		if ( BackgroundService.localHandle == null ) {
+			new Timer().schedule( new TimerTask() {
+				@Override
+				public void run() {
+					if( BackgroundService.localHandle == null )
+						BootListener.startBackgroundService( getApplicationContext() );
+				}
+			},30000 );
+		}
+	}
 
 	public static boolean isEnabled(Context context){
-		AccessibilityManager accessibilityManager = (AccessibilityManager)context.getSystemService(Context.ACCESSIBILITY_SERVICE);
-		if ( accessibilityManager == null )
+		if ( BackgroundService.accessibilityManager == null )
 			return false;
-		List<AccessibilityServiceInfo> runningServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityEvent.TYPES_ALL_MASK);
+		List<AccessibilityServiceInfo> runningServices =
+				BackgroundService.accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityEvent.TYPES_ALL_MASK);
 		for ( AccessibilityServiceInfo info : runningServices ){
 			if (info.getId().startsWith(context.getPackageName()))
 				return true;
@@ -153,7 +169,7 @@ public class AccessibilityListener extends AccessibilityService {
 
 	@Override
 	public void onAccessibilityEvent(AccessibilityEvent event) {
-		if(listen) {
+		if( listen && BackgroundService.localHandle != null) {
 			switch (event.getEventType()) {
 				case AccessibilityEvent.TYPE_VIEW_CLICKED:
 				case AccessibilityEvent.TYPE_VIEW_HOVER_ENTER:
@@ -177,12 +193,5 @@ public class AccessibilityListener extends AccessibilityService {
 	protected boolean onKeyEvent (KeyEvent event){
 		return super.onKeyEvent(event);
 //		Log.i("Gesture","location05");
-	}
-
-	protected void onServiceConnected() {
-		super.onServiceConnected();
-		level = 0;
-		listen = true;
-		BackgroundService.localHandle.accessibilityListener = this;
 	}
 }

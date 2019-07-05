@@ -7,18 +7,26 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import org.beiwe.app.BackgroundService;
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.networking.SurveyDownloader;
-import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.ui.LoadingActivity;
+import org.beiwe.app.storage.PersistentData;
+import static org.beiwe.app.storage.PersistentData.*;
 
 public class ConsentFormActivity extends RunningBackgroundServiceActivity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		if(PersistentData.getEnabled(SKIP_CONSENT)){
+			consentButton(null );
+			return;
+		}
+
 		setContentView(R.layout.activity_consent_form);
 		
 		TextView consentFormBody = (TextView) findViewById(R.id.consent_form_body);
@@ -56,7 +64,7 @@ public class ConsentFormActivity extends RunningBackgroundServiceActivity {
 		TextFileManager.makeNewFilesForEverything();
 		
 		//This is important.  we need to start timers...
-		backgroundService.doSetup();
+		BackgroundService.localHandle.doSetup();
 		
 		// Start the Main Screen Activity, destroy this activity
 		startActivity(new Intent(getApplicationContext(), LoadingActivity.class) );

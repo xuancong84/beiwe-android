@@ -21,6 +21,7 @@ import android.view.View;
 
 import org.beiwe.app.BackgroundService.BackgroundServiceBinder;
 import org.beiwe.app.storage.PersistentData;
+import static org.beiwe.app.storage.PersistentData.*;
 import org.beiwe.app.ui.user.AboutActivityLoggedOut;
 
 /**All Activities in the app extend this Activity.  It ensures that the app's key services (i.e.
@@ -136,14 +137,14 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	
 	/** sends user to phone, calls the user's clinician. */
 	@SuppressWarnings("MissingPermission")
-	public void callClinician(View v) {
-		startPhoneCall(PersistentData.getPrimaryCareNumber());
+	public void callClinician( View v ) {
+		startPhoneCall(PersistentData.getString(PCP_PHONE_NUMBER));
 	}
 	
 	/** sends user to phone, calls the study's research assistant. */
 	@SuppressWarnings("MissingPermission")
 	public void callResearchAssistant(View v) {
-		startPhoneCall(PersistentData.getPasswordResetNumber());
+		startPhoneCall(PersistentData.getString(PASSWORD_RESET_NUMBER_KEY));
 	}
 
 	private void startPhoneCall(String phoneNumber) {

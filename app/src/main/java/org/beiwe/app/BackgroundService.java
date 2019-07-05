@@ -39,6 +39,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.accessibility.AccessibilityManager;
 
 import io.sentry.Sentry;
 import io.sentry.android.AndroidSentryClientFactory;
@@ -58,7 +59,7 @@ public class BackgroundService extends Service {
 	public MMSSentLogger mmsSentLogger;
 	public CallLogger callLogger;
 	public TapsListener tapsListener;
-	public AccessibilityListener accessibilityListener;
+//	public AccessibilityListener accessibilityListener;
 
 	public static Timer timer;
 	
@@ -74,6 +75,7 @@ public class BackgroundService extends Service {
 	public static UsageStatsManager usageStatsManager = null;
 	public static ApplicationInfo appInfo = null;
 	public static AppOpsManager opsManager = null;
+	public static AccessibilityManager accessibilityManager = null;
 
 	@Override
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
@@ -81,6 +83,7 @@ public class BackgroundService extends Service {
 		appContext = this.getApplicationContext();
 		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		usageStatsManager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
+		accessibilityManager = (AccessibilityManager)getSystemService(Context.ACCESSIBILITY_SERVICE);
 		try {
 			appInfo = getPackageManager().getApplicationInfo(getPackageName(), 0);
 		} catch (Exception e) {
@@ -141,10 +144,10 @@ public class BackgroundService extends Service {
 			tapsListener = new TapsListener( this );
 		if ( PersistentData.getEnabled(PersistentData.USAGE) && usageListener==null )
 			usageListener = new UsageListener( this );
-		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) ) {
-			if ( !AccessibilityListener.isEnabled(getApplicationContext()))
-				accessibilityListener = null;
-		}
+//		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) ) {
+//			if ( !AccessibilityListener.isEnabled(getApplicationContext()))
+//				accessibilityListener = null;
+//		}
 
 		//Bluetooth, wifi, gps, calls, and texts need permissions
 		if( PersistentData.getEnabled(PersistentData.BLUETOOTH) && bluetoothListener==null ) {
@@ -396,7 +399,8 @@ public class BackgroundService extends Service {
 	 * action requires a fairly expensive dive into PersistantData JSON unpacking.*/
 	private BroadcastReceiver timerReceiver = new BroadcastReceiver() {
 		@Override public void onReceive(Context appContext, Intent intent) {
-			Log.d("BackgroundService - timers", "Received broadcast: " + intent.toString() );
+			if( BuildConfig.APP_IS_DEV )
+				Log.d("BackgroundService - timers","Received broadcast: " + intent.toString() );
 			TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " Received Broadcast: " + intent.toString() );
 			String broadcastAction = intent.getAction();
 

@@ -16,10 +16,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.google.android.gms.common.api.CommonStatusCodes;
-
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.DeviceInfo;
 import org.beiwe.app.PermissionHandler;
@@ -29,16 +25,11 @@ import org.beiwe.app.networking.HTTPUIAsync;
 import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
-import org.beiwe.app.survey.TextFieldKeyboard;
 import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
-import org.beiwe.app.ui.qrcode.CameraSourcePreview;
 import org.beiwe.app.ui.utils.AlertsManager;
 import org.json.JSONObject;
-
 import java.util.concurrent.Callable;
-
 import static org.beiwe.app.networking.PostRequest.addWebsitePrefix;
-
 
 /**Activity used to log a user in to the application for the first time. This activity should only be called on ONCE,
  * as once the user is logged in, data is saved on the phone.
@@ -56,7 +47,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	private final static int REQUEST_PERMISSIONS_IDENTIFIER = 1500;
 	private final static int BARCODE_READER_REQUEST_CODE = 2500;
 	private final static String DEFAULT_PASSWORD = "abcd1234";
-	
+
 	/** Users will go into this activity first to register information on the phone and on the server. */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +164,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 				responseCode = PostRequest.httpRegister(parameters, url);
 
 				// If we are not using anonymized hashing, resubmit the phone identifying information
-				if (responseCode == 200 && !PersistentData.getUseAnonymizedHashing()) { // This short circuits so if the initial register fails, it won't try here
+				if (responseCode == 200 && !PersistentData.getEnabled(PersistentData.USE_ANONYMIZED_HASHING)) { // This short circuits so if the initial register fails, it won't try here
 					try {
 						//Sleep for one second so the backend does not receive information with overlapping timestamps
 						Thread.sleep(1000);

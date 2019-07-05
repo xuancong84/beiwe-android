@@ -17,7 +17,7 @@ import java.util.Random;
 
 /**A class for managing patient login sessions.
  * Uses SharedPreferences in order to save username-password combinations.
- * @author Dor Samet, Eli Jones, Josh Zagorsky */
+ * @author Dor Samet, Eli Jones, Josh Zagorsky, Wang Xuancong */
 public class PersistentData {
 	public static String NULL_ID = "NULLID";
 	private static final long MAX_LONG = 9223372036854775807L;
@@ -37,8 +37,12 @@ public class PersistentData {
 	private static final String KEY_PASSWORD = "password";
 	private static final String IS_REGISTERED = "IsRegistered";
 	private static final String LOGIN_EXPIRATION = "loginExpirationTimestamp";
-	private static final String PCP_PHONE_KEY = "primary_care";
-	private static final String PASSWORD_RESET_NUMBER_KEY = "reset_number";
+	public static final String PCP_PHONE_NUMBER = "primary_care";
+	public static final String PASSWORD_RESET_NUMBER_KEY = "reset_number";
+	public static final String PHONE_NUMBER_LENGTH = "phone_number_length";
+	public static final String SKIP_CONSENT = "skip_consent";
+	public static final String USE_GPS_FUZZING = "use_gps_fuzzing";
+	public static final String USE_ANONYMIZED_HASHING = "use_anonymized_hashing";
 
 	public static final String ACCELEROMETER = "accelerometer";
 	public static final String ACCESSIBILITY = "accessibility";
@@ -196,60 +200,6 @@ public class PersistentData {
 	}
 
 	
-	/*#####################################################################################
-	################################# Listener Settings ###################################
-	#####################################################################################*/
-/*
-	public static boolean getAccelerometerEnabled(){ return pref.getBoolean(ACCELEROMETER, false); }
-	public static boolean getAccessibilityEnabled(){ return pref.getBoolean(ACCESSIBILITY, false); }
-	public static boolean getAmbientLightEnabled(){ return pref.getBoolean(AMBIENTLIGHT, false); }
-	public static boolean getGyroscopeEnabled(){ return pref.getBoolean(GYROSCOPE, false); }
-	public static boolean getGpsEnabled(){ return pref.getBoolean(GPS, false); }
-	public static boolean getCallsEnabled(){ return pref.getBoolean(CALLS, false); }
-	public static boolean getTapsEnabled(){ return pref.getBoolean(TAPS, false); }
-	public static boolean getTextsEnabled(){ return pref.getBoolean(TEXTS, false); }
-	public static boolean getWifiEnabled(){ return pref.getBoolean(WIFI, false); }
-	public static boolean getBluetoothEnabled(){ return pref.getBoolean(BLUETOOTH, false); }
-	public static boolean getPowerStateEnabled(){ return pref.getBoolean(POWER_STATE, false); }
-	public static boolean getAllowUploadOverCellularData(){ return pref.getBoolean(ALLOW_UPLOAD_OVER_CELLULAR_DATA, false); }
-
-	public static void setAccelerometerEnabled(boolean enabled) {
-		editor.putBoolean(ACCELEROMETER, enabled);
-		editor.commit(); }
-	public static void setAccessibilityEnabled(boolean enabled) {
-		editor.putBoolean(ACCESSIBILITY, enabled);
-		editor.commit(); }
-	public static void setAmbientLightEnabled(boolean enabled) {
-		editor.putBoolean(AMBIENTLIGHT, enabled);
-		editor.commit(); }
-	public static void setGyroscopeEnabled(boolean enabled) {
-		editor.putBoolean(GYROSCOPE, enabled);
-		editor.commit(); }
-	public static void setGpsEnabled(boolean enabled) {
-		editor.putBoolean(GPS, enabled);
-		editor.commit(); }
-	public static void setCallsEnabled(boolean enabled) {
-		editor.putBoolean(CALLS, enabled);
-		editor.commit(); }
-	public static void setTextsEnabled(boolean enabled) {
-		editor.putBoolean(TEXTS, enabled);
-		editor.commit(); }
-	public static void setTapsEnabled(boolean enabled) {
-		editor.putBoolean(TAPS, enabled);
-		editor.commit(); }
-	public static void setWifiEnabled(boolean enabled) {
-		editor.putBoolean(WIFI, enabled);
-		editor.commit(); }
-	public static void setBluetoothEnabled(boolean enabled) {
-		editor.putBoolean(BLUETOOTH, enabled);
-		editor.commit(); }
-	public static void setPowerStateEnabled(boolean enabled) {
-		editor.putBoolean(POWER_STATE, enabled);
-		editor.commit(); }
-	public static void setAllowUploadOverCellularData(boolean enabled) {
-		editor.putBoolean(ALLOW_UPLOAD_OVER_CELLULAR_DATA, enabled);
-		editor.commit(); }*/
-
 	public static boolean getEnabled(String feature){ return pref.getBoolean(feature, false); }
 	public static void setEnabled(String feature, boolean enabled){
 		editor.putBoolean(feature, enabled);
@@ -296,6 +246,19 @@ public class PersistentData {
 	public static long getUploadDataFilesFrequencyMilliseconds() { return 1000L * pref.getLong(UPLOAD_DATA_FILES_FREQUENCY_SECONDS, DEFAULT_UPLOAD_DATA_FILES_PERIOD); }
 	public static long getVoiceRecordingMaxTimeLengthMilliseconds() { return 1000L * pref.getLong(VOICE_RECORDING_MAX_TIME_LENGTH_SECONDS, DEFAULT_VOICE_RECORDING_MAX_TIME_LENGTH); }
 	public static long getWifiLogFrequencyMilliseconds() { return 1000L * pref.getLong(WIFI_LOG_FREQUENCY_SECONDS, DEFAULT_WIFI_LOG_FREQUENCY); }
+
+	public static String getString(String feature){ return pref.getString(feature,""); }
+	public static void setString(String feature, String value){
+		editor.putString(feature, value);
+		editor.commit();
+	}
+
+	public static int getInteger(String feature, int default_v){ return pref.getInt( feature,default_v ); }
+	public static void setInteger(String feature, int value){
+		editor.putInt(feature, value);
+		editor.commit();
+	}
+
 
 	public static void setTimeInSeconds(String param_name, long seconds) {
 		editor.putLong(param_name, seconds);
@@ -363,20 +326,6 @@ public class PersistentData {
 
 	public static String getPassword() { return pref.getString( KEY_PASSWORD, null ); }
 	public static String getPatientID() { return pref.getString(KEY_ID, NULL_ID); }
-
-	/*###########################################################################################
-	#################################### Contact Numbers ########################################
-	###########################################################################################*/
-
-	public static String getPrimaryCareNumber() { return pref.getString(PCP_PHONE_KEY, ""); }
-	public static void setPrimaryCareNumber( String phoneNumber) {
-		editor.putString(PCP_PHONE_KEY, phoneNumber );
-		editor.commit(); }
-
-	public static String getPasswordResetNumber() { return pref.getString(PASSWORD_RESET_NUMBER_KEY, ""); }
-	public static void setPasswordResetNumber( String phoneNumber ){
-		editor.putString(PASSWORD_RESET_NUMBER_KEY, phoneNumber );
-		editor.commit(); }
 
 	/*###########################################################################################
 	###################################### Survey Info ##########################################
@@ -523,14 +472,6 @@ public class PersistentData {
 		}
 	}
 
-	public static void setUseAnonymizedHashing(boolean useAnonymizedHashing) {
-		editor.putBoolean(USE_ANONYMIZED_HASHING_KEY, useAnonymizedHashing);
-		editor.commit();
-	}
-	public static boolean getUseAnonymizedHashing() {
-		return pref.getBoolean(USE_ANONYMIZED_HASHING_KEY, true); //If not present, default to safe hashing
-	}
-
 	/*###########################################################################################
 	###################################### FUZZY GPS ############################################
 	###########################################################################################*/
@@ -541,7 +482,7 @@ public class PersistentData {
 
 	public static double getLatitudeOffset() {
 		float latitudeOffset = pref.getFloat(LATITUDE_OFFSET_KEY, 0.0f);
-		if(latitudeOffset == 0.0f && getUseGpsFuzzing()) { //create latitude offset if it does not exist
+		if(latitudeOffset == 0.0f && getEnabled(USE_GPS_FUZZING)) { //create latitude offset if it does not exist
 			float newLatitudeOffset = (float)(.2 + Math.random()*1.6); // create random latitude offset between (-1, -.2) or (.2, 1)
 			if(newLatitudeOffset > 1) {
 				newLatitudeOffset = (newLatitudeOffset-.8f) * -1;
@@ -557,7 +498,7 @@ public class PersistentData {
 
 	public static float getLongitudeOffset() {
 		float longitudeOffset = pref.getFloat(LONGITUDE_OFFSET_KEY, 0.0f);
-		if(longitudeOffset == 0.0f && getUseGpsFuzzing()) { //create longitude offset if it does not exist
+		if(longitudeOffset == 0.0f && getEnabled(USE_GPS_FUZZING)) { //create longitude offset if it does not exist
 			float newLongitudeOffset = (float)(10 + Math.random()*340); // create random longitude offset between (-180, -10) or (10, 180)
 			if(newLongitudeOffset > 180) {
 				newLongitudeOffset = (newLongitudeOffset-170) * -1;
@@ -569,13 +510,5 @@ public class PersistentData {
 		else {
 			return longitudeOffset;
 		}
-	}
-
-	public static void setUseGpsFuzzing(boolean useFuzzyGps) {
-		editor.putBoolean(USE_GPS_FUZZING_KEY, useFuzzyGps);
-		editor.commit();
-	}
-	private static boolean getUseGpsFuzzing() {
-		return pref.getBoolean(USE_GPS_FUZZING_KEY, false);
 	}
 }
