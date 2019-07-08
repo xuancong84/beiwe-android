@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
+import org.beiwe.app.BuildConfig;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.TextFileManager;
 
@@ -50,14 +51,15 @@ public class SmsReceivedLogger extends BroadcastReceiver {
                  incomingNumber = incomingNumber.substring(newIndx, indx);
                  indx = incomingNumber.indexOf("+");
                  if(indx>0){
-                     incomingNumber = incomingNumber.substring(indx);
-//                     "timestamp,hashed phone number,sent vs received,message length,time sent";
-                     String data = "" + System.currentTimeMillis() + TextFileManager.DELIMITER;
-                     data += EncryptionEngine.hashPhoneNumber(incomingNumber) + TextFileManager.DELIMITER;
-                     data += "received MMS" + TextFileManager.DELIMITER;
-//                     TODO: Josh. Low priority. feature. determine if we can get the length of the text, if it has an attachment.
-                    Log.i("SMSReceivedLogger(SMS)", "data = " + data);
-                     TextFileManager.getTextsLogFile().writeEncrypted(data);
+									 incomingNumber = incomingNumber.substring(indx);
+									 // "timestamp,hashed phone number,sent vs received,message length,time sent";
+									 String data = System.currentTimeMillis() + TextFileManager.DELIMITER
+											 + EncryptionEngine.hashPhoneNumber(incomingNumber) + TextFileManager.DELIMITER
+											 + "received MMS" + TextFileManager.DELIMITER;
+//                 TODO: Josh. Low priority. feature. determine if we can get the length of the text, if it has an attachment.
+									 TextFileManager.getTextsLogFile().writeEncrypted(data);
+									 if(BuildConfig.APP_IS_DEV)
+										 Log.i("SMSReceivedLogger(SMS)", "data = " + data);
                  }
              }
          }
@@ -80,18 +82,19 @@ public class SmsReceivedLogger extends BroadcastReceiver {
 					messageFrom = messages[i].getOriginatingAddress();
 					String messageBody = messages[i].getMessageBody();
 					long timestamp = messages[i].getTimestampMillis();
-//                  "timestamp,hashed phone number,sent vs received,message length,time sent";
-					String data = "" + System.currentTimeMillis() + TextFileManager.DELIMITER;
-					data += EncryptionEngine.hashPhoneNumber(messageFrom) + TextFileManager.DELIMITER;
-					data += "received SMS" + TextFileManager.DELIMITER;
-					data += messageBody.length() + TextFileManager.DELIMITER;
-					data += timestamp;
-
-					Log.i("SMSReceivedLogger (MMS)", "data = " + data);
+					// "timestamp,hashed phone number,sent vs received,message length,time sent";
+					String data = System.currentTimeMillis() + TextFileManager.DELIMITER
+							+ EncryptionEngine.hashPhoneNumber(messageFrom) + TextFileManager.DELIMITER
+							+ "received SMS" + TextFileManager.DELIMITER
+							+ messageBody.length() + TextFileManager.DELIMITER + timestamp;
 					TextFileManager.getTextsLogFile().writeEncrypted(data);
+
+					if(BuildConfig.APP_IS_DEV)
+						Log.i("SMSReceivedLogger (MMS)", "data = " + data);
 				}
+			} catch (Exception e) {
+				Log.e("SMSReceivedLogger", "SMS_RECEIVED Caught exception: " + e.getCause() + ", " + e.getMessage());
 			}
-			catch (Exception e) { Log.e("SMSReceivedLogger", "SMS_RECEIVED Caught exception: " + e.getCause() + ", " + e.getMessage()); }
 			//TODO:Eli. Low priority. if we have implemented a message parameter add "did not crash" message here
 		}
 	}

@@ -88,7 +88,7 @@ public class SmsSentLogger extends ContentObserver {
 			}
 		}
 		catch (Exception e) {
-			smsLogFile.writeEncrypted("" + System.currentTimeMillis() + TextFileManager.DELIMITER + "SMS Sent Logger had an error and failed to record an SMS");
+			smsLogFile.writeEncrypted(System.currentTimeMillis() + TextFileManager.DELIMITER + "SMS Sent Logger had an error and failed to record an SMS");
 			CrashHandler.writeCrashlog(e, appContext);
 		}
 	}	

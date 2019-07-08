@@ -42,6 +42,7 @@ public class PersistentData {
 	public static final String PHONE_NUMBER_LENGTH = "phone_number_length";
 	public static final String USE_GPS_FUZZING = "use_gps_fuzzing";
 	public static final String USE_ANONYMIZED_HASHING = "use_anonymized_hashing";
+	public static final String WRITE_BUFFER_SIZE = "write_buffer_size";
 
 	public static final String ACCELEROMETER = "accelerometer";
 	public static final String ACCESSIBILITY = "accessibility";
@@ -274,10 +275,10 @@ public class PersistentData {
 	################################### Text Strings ############################################
 	###########################################################################################*/
 
-	private static final String ABOUT_PAGE_TEXT_KEY = "about_page_text";
-	private static final String CALL_CLINICIAN_BUTTON_TEXT_KEY = "call_clinician_button_text";
-	private static final String CONSENT_FORM_TEXT_KEY = "consent_form_text";
-	private static final String SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY = "survey_submit_success_toast_text";
+	public static final String ABOUT_PAGE_TEXT_KEY = "about_page_text";
+	public static final String CALL_CLINICIAN_BUTTON_TEXT_KEY = "call_clinician_button_text";
+	public static final String CONSENT_FORM_TEXT_KEY = "consent_form_text";
+	public static final String SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY = "survey_submit_success_toast_text";
 	
 	public static String getAboutPageText() {
 		String defaultText = appContext.getString(R.string.default_about_page_text);
@@ -291,19 +292,6 @@ public class PersistentData {
 	public static String getSurveySubmitSuccessToastText() {
 		String defaultText = appContext.getString(R.string.default_survey_submit_success_message);
 		return pref.getString(SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY, defaultText); }
-	
-	public static void setAboutPageText(String text) {
-		editor.putString(ABOUT_PAGE_TEXT_KEY, text);
-		editor.commit(); }
-	public static void setCallClinicianButtonText(String text) {
-		editor.putString(CALL_CLINICIAN_BUTTON_TEXT_KEY, text);
-		editor.commit(); }
-	public static void setConsentFormText(String text) {
-		editor.putString(CONSENT_FORM_TEXT_KEY, text);
-		editor.commit(); }
-	public static void setSurveySubmitSuccessToastText(String text) {
-		editor.putString(SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY, text);
-		editor.commit(); }
 
 	/*###########################################################################################
 	################################### User Credentials ########################################

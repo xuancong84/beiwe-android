@@ -2,6 +2,7 @@ package org.beiwe.app.listeners;
 
 import java.util.List;
 
+import org.beiwe.app.BuildConfig;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.TextFileManager;
 
@@ -39,17 +40,22 @@ public class WifiListener {
 				//we save some compute on the encryption here by dumping all the lines to print in one go.
 				StringBuilder data = new StringBuilder();
 				for (ScanResult result : scanResults){
-					data.append( EncryptionEngine.hashMAC( result.BSSID) + "," + result.frequency + "," + result.level );
+					data.append( EncryptionEngine.hashMAC( result.BSSID )
+							+ TextFileManager.DELIMITER + result.frequency
+							+ TextFileManager.DELIMITER + result.level );
 					data.append("\n"); }
 
 				// Create a new file, write the data to it, and close the file
 				TextFileManager.getWifiLogFile().newFile(); //note: the file name's timestamp is actually relevant, so we always make a new file.
 				TextFileManager.getWifiLogFile().writeEncrypted( data.toString() );
 				TextFileManager.getWifiLogFile().closeFile();
-//				Log.d("WIFI", "DONE GONE DID SCAN.");
+
+				if(BuildConfig.APP_IS_DEV)
+					Log.d("WIFI", "DONE GONE DID SCAN.");
 			} // and provide a debug log statement for data researchers if we cannot get scan data right now.
 		} else {
-//			Log.d("WIFI", "YAP SKIPPING DUE TO DISABLEMENT.");
+			if(BuildConfig.APP_IS_DEV)
+				Log.d("WIFI", "YAP SKIPPING DUE TO DISABLEMENT.");
 			TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " wifi is not available for scanning at this time."); }
 	}
 }

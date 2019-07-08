@@ -77,7 +77,7 @@ public class AccessibilityListener extends AccessibilityService {
 		if(info==null)
 			return "nodeInfo=null";
 		String ret = "CLS="+TextFileManager.CS2S(info.getClassName())+",PKG="+TextFileManager.CS2S(info.getPackageName())
-				+",Text="+TextFileManager.CS2S(info.getText())+",";
+				+",Text="+TextFileManager.CS2S(info.getText())+TextFileManager.DELIMITER;
 		for(int x=0, X=info.getChildCount(); x<X; ++x) {
 			try {
 				AccessibilityNodeInfo child = info.getChild(x);
@@ -139,14 +139,13 @@ public class AccessibilityListener extends AccessibilityService {
 			String package_name = TextFileManager.CS2S(event.getPackageName());
 			String class_name = TextFileManager.CS2S(event.getClassName());
 			String data = System.currentTimeMillis()
-					+ "," + (package_name.equals(last_package_name)?"":package_name)
-					+ "," + (class_name.equals(last_class_name)?"":class_name)
-					+ "," + convertKeyChar(msg) + "," + getResources().getConfiguration().orientation;
+					+ TextFileManager.DELIMITER + (package_name.equals(last_package_name)?"":package_name)
+					+ TextFileManager.DELIMITER + (class_name.equals(last_class_name)?"":class_name)
+					+ TextFileManager.DELIMITER + convertKeyChar(msg)
+					+ TextFileManager.DELIMITER + getResources().getConfiguration().orientation;
 			last_package_name = package_name;
 			last_class_name = class_name;
-			TextFileManager fileManager = TextFileManager.getAccessibilityLogFile();
-			if( fileManager != null )
-				fileManager.writeEncrypted(data);
+			TextFileManager.getAccessibilityLogFile().writeEncrypted(data);;
 			if( BuildConfig.APP_IS_DEV )
 				Log.i("Gesture:onAccessibilityEvent", data);
 		}

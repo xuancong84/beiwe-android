@@ -202,7 +202,7 @@ public class EncryptionEngine {
 		//encrypt the data
 		try { return toBase64String( ivSpec.getIV() ) + ":" +
 					 toBase64String( cipher.doFinal( plainText ) ); }
-		catch (IllegalBlockSizeException e) { //not possible, block size is coded to use the pkcs5 spec
+		catch (IllegalBlockSizeException e) { // not possible, block size is coded to use the pkcs5 spec
 			Log.e("Encryption Engine", "an impossible error ocurred" );
 			e.printStackTrace(); 
 			throw new NullPointerException("device is too stupid to live"); }

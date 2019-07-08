@@ -15,13 +15,16 @@ public class SetDeviceSettings {
 			PersistentData.setTimeInSeconds(feature, deviceSettings.optInt(feature,0));
 
 		// Other settings
-		PersistentData.setAboutPageText(deviceSettings.getString("about_page_text"));
-		PersistentData.setCallClinicianButtonText(deviceSettings.getString("call_clinician_button_text"));
-		PersistentData.setConsentFormText(deviceSettings.getString("consent_form_text"));
-		PersistentData.setSurveySubmitSuccessToastText(deviceSettings.getString("survey_submit_success_toast_text"));
-		PersistentData.setInteger(PHONE_NUMBER_LENGTH, deviceSettings.optInt(PHONE_NUMBER_LENGTH, 8));
-		PersistentData.setString(PCP_PHONE_NUMBER, deviceSettings.optString(PCP_PHONE_NUMBER, ""));
-		PersistentData.setEnabled(USE_GPS_FUZZING, deviceSettings.optBoolean(USE_GPS_FUZZING,false ));
-		PersistentData.setEnabled(USE_ANONYMIZED_HASHING, deviceSettings.optBoolean(USE_ANONYMIZED_HASHING,true));
+		setString(ABOUT_PAGE_TEXT_KEY, deviceSettings.getString(ABOUT_PAGE_TEXT_KEY));
+		setString(CALL_CLINICIAN_BUTTON_TEXT_KEY, deviceSettings.getString(CALL_CLINICIAN_BUTTON_TEXT_KEY));
+		setString(CONSENT_FORM_TEXT_KEY, deviceSettings.getString(CONSENT_FORM_TEXT_KEY));
+		setString(SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY, deviceSettings.getString(SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY));
+		setString(PCP_PHONE_NUMBER, deviceSettings.optString(PCP_PHONE_NUMBER, ""));
+		setInteger(PHONE_NUMBER_LENGTH, deviceSettings.optInt(PHONE_NUMBER_LENGTH, 8));
+		setEnabled(USE_GPS_FUZZING, deviceSettings.optBoolean(USE_GPS_FUZZING,false ));
+		setEnabled(USE_ANONYMIZED_HASHING, deviceSettings.optBoolean(USE_ANONYMIZED_HASHING,true));
+
+		TextFileManager.write_buffer_size = deviceSettings.optInt(WRITE_BUFFER_SIZE, 0);
+		setInteger(WRITE_BUFFER_SIZE, TextFileManager.write_buffer_size);
 	}
 }

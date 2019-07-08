@@ -90,8 +90,8 @@ public class TapsListener
 			if ( paramMotionEvent != null ){
 				String appname = TextFileManager.CS2S(service.getForegroundAppName());
 				String data = System.currentTimeMillis()
-						+ "," + ( appname.equals(last_appname)?"":appname )
-						+ "," + context.getResources().getConfiguration().orientation;
+						+ TextFileManager.DELIMITER + ( appname.equals(last_appname)?"":appname )
+						+ TextFileManager.DELIMITER + context.getResources().getConfiguration().orientation;
 				last_appname = appname;
 				TextFileManager.getTapsLogFile().writeEncrypted( data );
 				if( BuildConfig.APP_IS_DEV )

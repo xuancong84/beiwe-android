@@ -128,6 +128,8 @@ public class BackgroundService extends Service {
 	}
 
 	public void doSetup() {		// now support updating sensor settings
+		TextFileManager.write_buffer_size = PersistentData.getInteger(PersistentData.WRITE_BUFFER_SIZE, 0);
+
 		if ( PersistentData.getEnabled(PersistentData.POWER_STATE) && powerStateListener==null )
 			powerStateListener = newPowerStateListener();
 		if ( PersistentData.getEnabled(PersistentData.GPS) && gpsListener==null )
@@ -144,10 +146,6 @@ public class BackgroundService extends Service {
 			tapsListener = new TapsListener( this );
 		if ( PersistentData.getEnabled(PersistentData.USAGE) && usageListener==null )
 			usageListener = new UsageListener( this );
-//		if ( PersistentData.getEnabled(PersistentData.ACCESSIBILITY) ) {
-//			if ( !AccessibilityListener.isEnabled(getApplicationContext()))
-//				accessibilityListener = null;
-//		}
 
 		//Bluetooth, wifi, gps, calls, and texts need permissions
 		if( PersistentData.getEnabled(PersistentData.BLUETOOTH) && bluetoothListener==null ) {

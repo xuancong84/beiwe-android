@@ -60,6 +60,7 @@ public class TextFileManager {
 	private static TextFileManager keyFile;
 	
 	//"global" static variables
+	public static int write_buffer_size = 0;
 	private static Context appContext;
 	private static int GETTER_TIMEOUT = 50; //value is in milliseconds
 	private static String getter_error = "Tried to access %s before calling TextFileManager.start().";
@@ -137,6 +138,7 @@ public class TextFileManager {
 	public String name = null;
 	public String fileName = null;
 	private String header = null;
+	private String buffer = "";
 	private Boolean persistent = null;
 	private Boolean encrypted = null;
 	private Boolean isDummy = true;
@@ -207,21 +209,28 @@ public class TextFileManager {
 	 * Fails when files are not allowed to be written to. (the rule is no encrypted writes until registraction is complete.
 	 * @return A boolean value of whether a new file has been created.*/
 	public synchronized boolean newFile(){
-		if (this.isDummy) { return false; }
-		//handle the naming cases for persistent vs. non-persistent files
-		if ( this.persistent ) { this.fileName = this.name; } 
+		if ( this==null || this.isDummy ) { return false; }
+
+		// flush buffer if it is non-empty
+		if ( !buffer.isEmpty() ){
+			writeEncrypted(null );	 // force a flush
+			buffer = "";
+		}
+
+		// handle the naming cases for persistent vs. non-persistent files
+		if ( this.persistent ) { this.fileName = this.name; }
 		else { // if user has not registered, stop non-persistent file generation
 			if ( !PersistentData.isRegistered() ) { return false; }
 			this.fileName = PersistentData.getPatientID() + "_" + this.name + "_" + System.currentTimeMillis() + ".csv";
 		}
 
 		try {
-			//write the key to the file (if it has one)
+			// write the key to the file (if it has one)
 			if (this.encrypted) {
 				this.AESKey = EncryptionEngine.newAESKey();
 				this.unsafeWritePlaintext(EncryptionEngine.encryptRSA(this.AESKey));
 			}
-			//write the csv header, if the file has a header
+			// write the csv header, if the file has a header
 			if (header != null && header.length() > 0) {
 				// We will not call writeEncrypted here because we need to handle the specific case of the new file not being created properly.
 				this.unsafeWritePlaintext(EncryptionEngine.encryptAES(header, this.AESKey));
@@ -259,7 +268,7 @@ public class TextFileManager {
 	 * Survey ID so that the file name reads like this:
 	 * [USERID]_SurveyAnswers[SURVEYID]_[TIMESTAMP].csv
 	 * @param surveyId */
-	//does not require dummy check, just setting attributes on the in-memory variable
+	// does not require dummy check, just setting attributes on the in-memory variable
 	public synchronized void newFile(String surveyId) {
 		String nameHolder = this.name;
 		this.name += surveyId;
@@ -305,14 +314,28 @@ public class TextFileManager {
 	}
 
 	/**Encrypts string data and writes it to a file.
-	 * @param data any unicode valid string */
-	public synchronized void writeEncrypted(String data) {
-		if ( this.isDummy ) { return; }
+	 * @param data any unicode valid string (set to null to force flush) */
+	public synchronized void writeEncrypted( String data ) {
+		if ( this == null || this.isDummy ) { return; }
 		if ( !this.encrypted ) throw new NullPointerException( this.name + "is not supposed to have encrypted writes!" );
-		if ( fileName == null ) { //when newFile fails we are not allowed to write to files.
-			if (!this.newFile() ) { return; }
+
+		if ( data == null ){	// if data is null, force flush
+			data = buffer;
+			buffer = "";
+		} else if ( write_buffer_size > 0 ) {	// use buffered write to save phone CPU
+			if( buffer.isEmpty() )
+				buffer = data;
+			else
+				buffer += ("\n" + data);
+			if( buffer.length() >= write_buffer_size ){
+				data = buffer;
+				buffer = "";
+			} else return;
 		}
-		
+
+		if ( fileName == null && !this.newFile() ) //when newFile fails we are not allowed to write to files.
+			return;
+
 		try {
 			this.safeWritePlaintext( EncryptionEngine.encryptAES( data, this.AESKey ) );
 		} catch (InvalidKeyException e) {
@@ -329,7 +352,7 @@ public class TextFileManager {
 		BufferedInputStream bufferedInputStream;
 		StringBuffer stringBuffer = new StringBuffer();
 		int data;
-		try {  //Read through the (buffered) input stream, append to a stringbuffer.  Catch exceptions
+		try {  // Read through the (buffered) input stream, append to a stringbuffer.  Catch exceptions
 			bufferedInputStream = new BufferedInputStream( appContext.openFileInput(fileName) );
 			try { while( (data = bufferedInputStream.read()) != -1)
 				stringBuffer.append((char)data); }

@@ -63,9 +63,9 @@ public class UsageListener {
 						String package_name = TextFileManager.CS2S(usageEvent.getPackageName());
 						String class_name = TextFileManager.CS2S(usageEvent.getClassName());
 						data += "\n" + usageEvent.getTimeStamp()
-								+ "," + (package_name.equals(last_package_name)?"":package_name)
-								+ "," + (class_name.equals(last_class_name)?"":class_name)
-								+ "," + eventType2String(usageEvent.getEventType());
+								+ TextFileManager.DELIMITER + (package_name.equals(last_package_name)?"":package_name)
+								+ TextFileManager.DELIMITER + (class_name.equals(last_class_name)?"":class_name)
+								+ TextFileManager.DELIMITER + eventType2String(usageEvent.getEventType());
 						last_package_name = package_name;
 						last_class_name = class_name;
 					}

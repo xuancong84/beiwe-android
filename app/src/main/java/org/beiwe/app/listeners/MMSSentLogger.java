@@ -40,10 +40,11 @@ public class MMSSentLogger extends ContentObserver{
 			if ( !checkValidData(cursor) ) { return; }
 
 			long timestamp = cursor.getInt(cursor.getColumnIndexOrThrow("date")) * 1000L;
-			String write_to_file = timestamp + TextFileManager.DELIMITER + "" + TextFileManager.DELIMITER + "sent MMS" + TextFileManager.DELIMITER + "MMS";
+			String write_to_file = timestamp + TextFileManager.DELIMITER + "sent MMS" + TextFileManager.DELIMITER + "MMS";
 			TextFileManager.getTextsLogFile().writeEncrypted(write_to_file);
+		} catch (Exception e) {
+			CrashHandler.writeCrashlog(e, appContext);
 		}
-		catch (Exception e) { CrashHandler.writeCrashlog(e, appContext); }
 	}
 	
 	/**Checks for basic validity of our database cursors, moves database cursor to correct location. 

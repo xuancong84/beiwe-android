@@ -75,7 +75,10 @@ public class GyroscopeListener implements SensorEventListener{
 //		Log.e("Gyroscope", "Gyroscope update");
 		Long javaTimeCode = System.currentTimeMillis();
 		float[] values = arg0.values;
-		String data = javaTimeCode.toString() + ',' + accuracy + ',' + values[0] + ',' + values[1] + ',' + values[2];
+		String data = javaTimeCode.toString() + TextFileManager.DELIMITER
+				+ accuracy + TextFileManager.DELIMITER
+				+ values[0] + TextFileManager.DELIMITER
+				+ values[1] + TextFileManager.DELIMITER + values[2];
 		TextFileManager.getGyroFile().writeEncrypted(data);
 	}
 }
