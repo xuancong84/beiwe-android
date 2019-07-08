@@ -22,7 +22,8 @@ public class ConsentFormActivity extends RunningBackgroundServiceActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		if(PersistentData.getEnabled(SKIP_CONSENT)){
+		// skip consent page if consent form text is empty
+		if(PersistentData.getConsentFormText().isEmpty()){
 			consentButton(null );
 			return;
 		}

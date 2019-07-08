@@ -19,7 +19,6 @@ public class SetDeviceSettings {
 		PersistentData.setCallClinicianButtonText(deviceSettings.getString("call_clinician_button_text"));
 		PersistentData.setConsentFormText(deviceSettings.getString("consent_form_text"));
 		PersistentData.setSurveySubmitSuccessToastText(deviceSettings.getString("survey_submit_success_toast_text"));
-		PersistentData.setEnabled(SKIP_CONSENT, deviceSettings.optBoolean(SKIP_CONSENT, false));
 		PersistentData.setInteger(PHONE_NUMBER_LENGTH, deviceSettings.optInt(PHONE_NUMBER_LENGTH, 8));
 		PersistentData.setString(PCP_PHONE_NUMBER, deviceSettings.optString(PCP_PHONE_NUMBER, ""));
 		PersistentData.setEnabled(USE_GPS_FUZZING, deviceSettings.optBoolean(USE_GPS_FUZZING,false ));

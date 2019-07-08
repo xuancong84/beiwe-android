@@ -472,9 +472,7 @@ public class TextFileManager {
 		}
 	}
 
-	public static String CS2S(CharSequence seq){
-		return (seq==null?"":(String)seq);
-	}
+	public static String CS2S(CharSequence seq){ return (seq==null?"":(String)seq); }
 	public static String CS2S(String seq){ return (seq==null?"":seq); }
 	public static String CS2S(List<CharSequence> seq){
 		return (seq==null?"":seq.toString());

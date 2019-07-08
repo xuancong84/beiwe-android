@@ -3,29 +3,17 @@ package org.beiwe.app.listeners;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
-import android.graphics.PixelFormat;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.accessibility.AccessibilityRecord;
 import android.view.accessibility.AccessibilityWindowInfo;
-import android.widget.Button;
-import android.widget.FrameLayout;
 
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.BuildConfig;
-import org.beiwe.app.R;
 import org.beiwe.app.storage.TextFileManager;
 
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class AccessibilityListener extends AccessibilityService {
 	public static String header = "timestamp,packageName,className,text,orientation";
@@ -35,15 +23,12 @@ public class AccessibilityListener extends AccessibilityService {
 	protected void onServiceConnected() {
 		super.onServiceConnected();
 		listen = true;
-		if ( BackgroundService.localHandle == null ) {
-			new Timer().schedule( new TimerTask() {
-				@Override
-				public void run() {
-					if( BackgroundService.localHandle == null )
-						BootListener.startBackgroundService( getApplicationContext() );
-				}
-			},30000 );
-		}
+		/* After reboot/power-on, the Android OS will resume all accessibility services before background services.
+		 * Thus, many BackgroundService pointers (including BackgroundService.localHandle) will be null
+		 * for a few seconds before the main service gets resumed by the OS. Here, we bring up the main
+		 * service immediately to speed up service resumption after reboot. */
+		if ( BackgroundService.localHandle == null )
+			BootListener.startBackgroundService( getApplicationContext() );
 	}
 
 	public static boolean isEnabled(Context context){
@@ -172,6 +157,7 @@ public class AccessibilityListener extends AccessibilityService {
 		if( listen && BackgroundService.localHandle != null) {
 			switch (event.getEventType()) {
 				case AccessibilityEvent.TYPE_VIEW_CLICKED:
+				case AccessibilityEvent.TYPE_VIEW_LONG_CLICKED:
 				case AccessibilityEvent.TYPE_VIEW_HOVER_ENTER:
 					logi("Gesture:onAccessibilityEvent", event);
 			}

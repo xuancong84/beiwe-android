@@ -39,7 +39,8 @@ public class BootListener extends BroadcastReceiver {
 	
 	@Override
 	public void onReceive(Context externalContext, Intent intent) {
-		// Device turned on or other intents (see manifest)
-		startBackgroundService(externalContext);
+		// Start main service if not started by the accessibility service
+		if( BackgroundService.localHandle == null )
+			startBackgroundService(externalContext);
 	}
 }

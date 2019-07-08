@@ -40,7 +40,6 @@ public class PersistentData {
 	public static final String PCP_PHONE_NUMBER = "primary_care";
 	public static final String PASSWORD_RESET_NUMBER_KEY = "reset_number";
 	public static final String PHONE_NUMBER_LENGTH = "phone_number_length";
-	public static final String SKIP_CONSENT = "skip_consent";
 	public static final String USE_GPS_FUZZING = "use_gps_fuzzing";
 	public static final String USE_ANONYMIZED_HASHING = "use_anonymized_hashing";
 
