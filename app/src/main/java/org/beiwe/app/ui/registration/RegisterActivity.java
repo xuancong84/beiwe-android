@@ -25,6 +25,7 @@ import org.beiwe.app.networking.HTTPUIAsync;
 import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
+import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
 import org.beiwe.app.ui.utils.AlertsManager;
 import org.json.JSONObject;
@@ -196,7 +197,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	private String getPhoneInfo() {
 		TelephonyManager phoneManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
 		String phoneInfo = phoneManager.getLine1Number();
-		String hashedInfo = EncryptionEngine.hashPhoneNumber(phoneInfo);
+		String hashedInfo = EncryptionEngine.hashPhoneNumber(TextFileManager.CS2S(phoneInfo));
 		return hashedInfo;
 	}
 	

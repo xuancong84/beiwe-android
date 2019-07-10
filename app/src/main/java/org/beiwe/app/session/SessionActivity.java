@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
+import org.beiwe.app.Timer;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.ui.registration.ResetPasswordActivity;
 import org.beiwe.app.ui.user.AboutActivityLoggedIn;
@@ -39,10 +40,10 @@ public class SessionActivity extends RunningBackgroundServiceActivity {
 	protected void onPause() {
 		super.onPause();
 		if (backgroundService != null) {
-			//If an activity is active there is a countdown to bump a user to a login screen after
+			// If an activity is active there is a countdown to bump a user to a login screen after
 			// some amount of time (setting is pushed by study).  If we leave the session activity
 			// we need to cancel that action.
-			//This issue has occurred literally once ever (as of February 27 2016) but the prior
+			// This issue has occurred literally once ever (as of February 27 2016) but the prior
 			// behavior was broken and caused the app to crash.  Really, this state is incomprehensible
 			// (activity is open an mature enough that onPause can occur, yet the background service
 			// has not started?) so a crash does at least reboot Beiwe into a functional state,
@@ -61,19 +62,12 @@ public class SessionActivity extends RunningBackgroundServiceActivity {
 	
 	/** If the user is NOT logged in, take them to the login page */
 	protected void authenticateAndLoginIfNecessary() {
-		if ( PersistentData.isLoggedIn() ) {
-			BackgroundService.startAutomaticLogoutCountdownTimer(); }
-		else {
-			startActivity(new Intent(this, LoginActivity.class) ); }
+		if ( PersistentData.isLoggedIn() )
+			BackgroundService.startAutomaticLogoutCountdownTimer();
+		else
+			startActivity(new Intent(this, LoginActivity.class) );
 	}
 
-	/** Display the LoginActivity, and invalidate the login in SharedPreferences */
-	protected void logoutUser() {
-		PersistentData.logout();
-		startActivity(new Intent(this, LoginActivity.class));
-	}
-	
-	
 	/*####################################################################
 	########################## Common UI #################################
 	####################################################################*/
@@ -90,15 +84,15 @@ public class SessionActivity extends RunningBackgroundServiceActivity {
 	/** Sets up the behavior of the items in the menu. */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
+		// Handle action bar item clicks here. The action bar will automatically handle clicks on the
+		// Home/Up button, so long as you specify a parent activity in AndroidManifest.xml.
 		switch (item.getItemId()) {
 		case R.id.menu_change_password:
 			startActivity(new Intent(getApplicationContext(), ResetPasswordActivity.class));
 			return true;
 		case R.id.menu_signout:
-			logoutUser();
+			if ( PersistentData.getMillisecondsBeforeAutoLogout() > 0 )
+				sendBroadcast( Timer.signoutIntent );
 			return true;
 		case R.id.menu_about:
 			startActivity(new Intent(getApplicationContext(), AboutActivityLoggedIn.class));

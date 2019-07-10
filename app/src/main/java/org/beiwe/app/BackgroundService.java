@@ -375,11 +375,14 @@ public class BackgroundService extends Service {
 	 * version of the app we would occasionally see the error message, but we have never (august 10 2015) actually seen the app crash
 	 * inside this code. */
 	public static void startAutomaticLogoutCountdownTimer(){
-		if (timer == null) {
+		long tm = PersistentData.getMillisecondsBeforeAutoLogout();
+		if ( tm == 0 ) return;
+		if ( timer == null ) {
 			Log.e("bacgroundService", "timer is null, BackgroundService may be about to crash, the Timer was null when the BackgroundService was supposed to be fully instantiated.");
 			TextFileManager.getDebugLogFile().writeEncrypted("our not-quite-race-condition encountered, Timer was null when the BackgroundService was supposed to be fully instantiated");
+			return;
 		}
-		timer.setupExactSingleAlarm(PersistentData.getMillisecondsBeforeAutoLogout(), Timer.signoutIntent);
+		timer.setupExactSingleAlarm(tm, Timer.signoutIntent);
 		PersistentData.loginOrRefreshLogin();
 	}
 	
@@ -507,7 +510,6 @@ public class BackgroundService extends Service {
 			if (broadcastAction.equals( appContext.getString(R.string.create_new_data_files_intent) ) ) {
 				TextFileManager.makeNewFilesForEverything();
 				timer.setupExactSingleAlarm(PersistentData.getCreateNewDataFilesFrequencyMilliseconds(), Timer.createNewDataFilesIntent);
-                PostRequest.uploadAllFiles();
 				return;
 			}
 			//Downloads the most recent survey questions and schedules the surveys.

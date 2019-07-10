@@ -320,6 +320,8 @@ public class TextFileManager {
 		if ( !this.encrypted ) throw new NullPointerException( this.name + "is not supposed to have encrypted writes!" );
 
 		if ( data == null ){	// if data is null, force flush
+			if ( buffer.isEmpty() )
+				return;
 			data = buffer;
 			buffer = "";
 		} else if ( write_buffer_size > 0 ) {	// use buffered write to save phone CPU

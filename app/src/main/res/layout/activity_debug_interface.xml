@@ -114,14 +114,14 @@
 			android:id="@+id/buttonEnableAccessibility"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:onClick="accessibilityOnOn"
+			android:onClick="accessibilityOn"
 			android:text="Start Accessibility Tracking" />
 
 		<Button
 			android:id="@+id/buttonDisableAccessibility"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:onClick="accessibilityOffOff"
+			android:onClick="accessibilityOff"
 			android:text="Stop Accessibility Tracking" />
 
 		<Button

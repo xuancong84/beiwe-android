@@ -12,7 +12,7 @@ public class SetDeviceSettings {
 
 		// Write timer settings
 		for(String feature : PersistentData.time_param_list)
-			PersistentData.setTimeInSeconds(feature, deviceSettings.optInt(feature,0));
+			PersistentData.setLong(feature, deviceSettings.optLong(feature,0));
 
 		// Other settings
 		setString(ABOUT_PAGE_TEXT_KEY, deviceSettings.getString(ABOUT_PAGE_TEXT_KEY));

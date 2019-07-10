@@ -141,7 +141,8 @@ public class PersistentData {
 
 	/** Quick check for login. **/
 	public static boolean isLoggedIn(){
-		if (pref == null) Log.w("LoginManager", "FAILED AT ISLOGGEDIN");
+		if ( pref == null || getLong( SECONDS_BEFORE_AUTO_LOGOUT, 0 ) == 0 )
+			return true;
 		// If the current time is earlier than the expiration time, return TRUE; else FALSE
 		return (System.currentTimeMillis() < pref.getLong(LOGIN_EXPIRATION, 0)); }
 
@@ -253,16 +254,17 @@ public class PersistentData {
 		editor.commit();
 	}
 
-	public static int getInteger(String feature, int default_v){ return pref.getInt( feature,default_v ); }
+	public static int getInteger(String feature, int default_v){ return pref.getInt( feature, default_v ); }
 	public static void setInteger(String feature, int value){
 		editor.putInt(feature, value);
 		editor.commit();
 	}
 
-
-	public static void setTimeInSeconds(String param_name, long seconds) {
-		editor.putLong(param_name, seconds);
-		editor.commit(); }
+	public static long getLong(String feature, long default_v){ return pref.getLong( feature, default_v ); }
+	public static void setLong(String feature, long value){
+		editor.putLong(feature, value);
+		editor.commit();
+	}
 
 	//accelerometer, bluetooth, new surveys, create data files, gps, logout,upload, wifilog (not voice recording, that doesn't apply
 	public static void setMostRecentAlarmTime(String identifier, long time) {

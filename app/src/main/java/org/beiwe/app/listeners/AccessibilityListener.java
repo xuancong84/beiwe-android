@@ -18,11 +18,13 @@ import java.util.List;
 public class AccessibilityListener extends AccessibilityService {
 	public static String header = "timestamp,packageName,className,text,orientation";
 	public static boolean listen = false;
+	public static AccessibilityListener mSelf = null;
 
 	@Override
 	protected void onServiceConnected() {
 		super.onServiceConnected();
 		listen = true;
+		mSelf = this;
 		/* After reboot/power-on, the Android OS will resume all accessibility services before background services.
 		 * Thus, many BackgroundService pointers (including BackgroundService.localHandle) will be null
 		 * for a few seconds before the main service gets resumed by the OS. Here, we bring up the main

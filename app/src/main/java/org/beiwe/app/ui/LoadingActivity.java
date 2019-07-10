@@ -78,9 +78,7 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 		}
 
 		setContentView(R.layout.activity_loading);
-//		PermissionHandler.requestOverlayPermission(this);
-//		PermissionHandler.requestUsagePermission(this);
-				
+
 		if ( testHashing() ) {
 			Intent startingIntent = new Intent(this.getApplicationContext(), BackgroundService.class);
 			startingIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
