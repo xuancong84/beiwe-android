@@ -12,7 +12,8 @@ import android.hardware.SensorManager;
 import android.util.Log;
 
 public class AmbientLightListener implements SensorEventListener{
-	public static String header = "timestamp,accuracy,value";
+	public static final String name = "light";
+	public static final String header = "timestamp,accuracy,value";
 
 	private SensorManager sensorManager;
 	private Sensor sensor;
@@ -73,8 +74,6 @@ public class AmbientLightListener implements SensorEventListener{
 		float value = arg0.values[0];
 		String data = javaTimeCode.toString() + TextFileManager.DELIMITER + accuracy + TextFileManager.DELIMITER + value;
 		TextFileManager.getAmbientLightFile().writeEncrypted(data);
-		if(BuildConfig.APP_IS_DEV)
-			Log.i("AmbientLight", data );
 		turn_off();
 	}
 }

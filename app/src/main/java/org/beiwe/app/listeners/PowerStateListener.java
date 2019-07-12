@@ -12,7 +12,10 @@ import android.util.Log;
  *  Screen On/Off, Power Connect/Disconnect, Airplane Mode.
  *  @author Josh Zagorsky, Eli Jones, May/June 2014 */
 public class PowerStateListener extends BroadcastReceiver {
-	//The Power State Manager can receive broadcasts before the app is even running.
+	public static final String name = "powerState";
+	public static final String header = "timestamp, event";
+
+	// The Power State Manager can receive broadcasts before the app is even running.
 	// This would cause a a crash because we need the TextFileManager to be available.
 	// The started variable is set to true during the startup process for the app.
 	private static Boolean started = false;
@@ -22,8 +25,6 @@ public class PowerStateListener extends BroadcastReceiver {
 		started = true;
 		powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 	}
-	
-	public static String header = "timestamp, event";	
 	
 	/** Handles the logging, includes a new line for the CSV files.
 	 * This code is otherwise reused everywhere.*/

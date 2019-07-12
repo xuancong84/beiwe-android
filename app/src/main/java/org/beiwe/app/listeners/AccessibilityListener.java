@@ -10,13 +10,13 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import org.beiwe.app.BackgroundService;
-import org.beiwe.app.BuildConfig;
 import org.beiwe.app.storage.TextFileManager;
 
 import java.util.List;
 
 public class AccessibilityListener extends AccessibilityService {
-	public static String header = "timestamp,packageName,className,text,orientation";
+	public static final String name = "accessibilityLog";
+	public static final String header = "timestamp,packageName,className,text,orientation";
 	public static boolean listen = false;
 	public static AccessibilityListener mSelf = null;
 
@@ -148,8 +148,6 @@ public class AccessibilityListener extends AccessibilityService {
 			last_package_name = package_name;
 			last_class_name = class_name;
 			TextFileManager.getAccessibilityLogFile().writeEncrypted(data);;
-			if( BuildConfig.APP_IS_DEV )
-				Log.i("Gesture:onAccessibilityEvent", data);
 		}
 	}
 

@@ -43,6 +43,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	 * relies on the BackgroundService is always tied to UI elements, reducing the chance of
 	 * a null backgroundService variable to essentially zero. */
 	protected BackgroundService backgroundService;
+	protected static RunningBackgroundServiceActivity mSelf = null;
 
 	//an unused variable for tracking whether the background Service is connected, uncomment if we ever need that.
 //	protected boolean isBound = false;
@@ -69,12 +70,13 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle bundle){ 
 		super.onCreate(bundle);
+		mSelf = this;
 		Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(getApplicationContext()));
 		PersistentData.initialize(getApplicationContext());
 	}
 	
 	/** Override this function to do tasks on creation, but only after the background Service has been initialized. */
-	protected void doBackgroundDependentTasks() { /*Log.d("RunningBackgroundServiceActivity", "doBackgroundDependentTasks ran as default (do nothing)");*/ }
+	protected void doBackgroundDependentTasks() { }
 	
 	@Override
 	/**On creation of RunningBackgroundServiceActivity we guarantee that the BackgroundService is
@@ -82,7 +84,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	protected void onResume() {
 		super.onResume();
 		
-		Intent startingIntent = new Intent(this.getApplicationContext(), BackgroundService.class);
+		Intent startingIntent = new Intent(getApplicationContext(), BackgroundService.class);
 		startingIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
 		startService(startingIntent);
 		bindService( startingIntent, backgroundServiceConnection, Context.BIND_AUTO_CREATE);
@@ -263,11 +265,12 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 					return;
 				}
 				if (shouldShowRequestPermissionRationale( permission ) ) {
-					if (!prePromptActive && !postPromptActive ) { showAlertThatForcesUserToGrantPermission(this, PermissionHandler.getBumpingPermissionMessage(permission),
-							PermissionHandler.permissionMap.get(permission) ); }
-				}
-				else if (!prePromptActive && !postPromptActive ) { showRegularPermissionAlert(this, PermissionHandler.getNormalPermissionMessage(permission),
-						permission, PermissionHandler.permissionMap.get(permission)); }
+					if (!prePromptActive && !postPromptActive ) showAlertThatForcesUserToGrantPermission(
+							this, PermissionHandler.getBumpingPermissionMessage(permission),
+								PermissionHandler.permissionMap.get(permission) );
+				} else if (!prePromptActive && !postPromptActive ) showRegularPermissionAlert(
+						this, PermissionHandler.getNormalPermissionMessage(permission),
+						permission, PermissionHandler.permissionMap.get(permission));
 			}
 		}
 	}

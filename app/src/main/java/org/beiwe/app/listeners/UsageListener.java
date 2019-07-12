@@ -1,18 +1,16 @@
 package org.beiwe.app.listeners;
 
 import org.beiwe.app.BackgroundService;
-import org.beiwe.app.BuildConfig;
 import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 
 import android.app.usage.UsageEvents;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.util.Log;
 
 public class UsageListener {
-	public static String header = "timestamp,packageName,className,eventType";
+	public static final String name = "usage";
+	public static final String header = "timestamp,packageName,className,eventType";
 	private static String last_usage_entry_name = "last_usage_timestamp";
 
 	private Context appContext;
@@ -72,8 +70,6 @@ public class UsageListener {
 					TextFileManager.getUsageFile().writeEncrypted(data.substring(1));
 					PersistentData.editor.putLong(last_usage_entry_name, curr_usage_timestamp);
 					PersistentData.editor.commit();
-					if( BuildConfig.APP_IS_DEV )
-						Log.i("AUsage", data.substring(1) );
 				}
 			} catch (Exception e) { }
 		} else {	// last_usage is absent, 1st time call

@@ -97,15 +97,11 @@ public class LoadingActivity extends RunningBackgroundServiceActivity {
 
 	/**CHecks whether device is registered, sends user to the correct screen. */
 	private void loadingSequence() {
-		if ( !PersistentData.isRegistered() ){ //if the device is not registered, push the user to the register activity
+		if ( !PersistentData.isRegistered() ) //if the device is not registered, push the user to the register activity
 			startActivity(new Intent(this, RegisterActivity.class) );
-		} else {		//if device is registered push user to the main menu.
-			if (BuildConfig.APP_IS_BETA) {
-				startActivity(new Intent(this, DebugInterfaceActivity.class));
-			} else {
-				startActivity(new Intent(this, MainMenuActivity.class));
-			}
-		}
+		else		//if device is registered push user to the main menu.
+			startActivity(new Intent(this, BuildConfig.APP_IS_DEV?DebugInterfaceActivity.class:MainMenuActivity.class));
+
 		unbindService(backgroundServiceConnection);
 		finish(); //destroy the loading screen
 	}

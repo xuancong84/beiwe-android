@@ -22,13 +22,12 @@ public class PersistentData {
 	public static String NULL_ID = "NULLID";
 	private static final long MAX_LONG = 9223372036854775807L;
 
-	private static int PRIVATE_MODE = 0;
 	private static boolean isInitialized = false;
-
-	// Private things that are encapsulated using functions in this class
 	private static Context appContext;
+
 	public static SharedPreferences pref;
 	public static Editor editor;
+	public static boolean isUnregisterDebugMode = false;
 
 	/**  Editor key-strings */
 	private static final String PREF_NAME = "BeiwePref";
@@ -124,13 +123,14 @@ public class PersistentData {
 	public static void initialize( Context context ) {
 		if ( isInitialized ) { return; }
 		appContext = context;
-		pref = appContext.getSharedPreferences(PREF_NAME, PRIVATE_MODE); //sets Shared Preferences private mode
+		pref = appContext.getSharedPreferences( PREF_NAME, Context.MODE_PRIVATE ); //sets Shared Preferences private mode
 		editor = pref.edit();
 		editor.commit();
 		isInitialized = true;
 	}
 
 	public static void resetAPP(View view){
+		TextFileManager.deleteEverything();
 		appContext.deleteSharedPreferences(PREF_NAME);
 		isInitialized = false;
 	}
@@ -141,8 +141,8 @@ public class PersistentData {
 
 	/** Quick check for login. **/
 	public static boolean isLoggedIn(){
-		if ( pref == null || getLong( SECONDS_BEFORE_AUTO_LOGOUT, 0 ) == 0 )
-			return true;
+		if ( pref == null ) return false;
+		if ( getLong( SECONDS_BEFORE_AUTO_LOGOUT, 0 ) == 0 ) return true;
 		// If the current time is earlier than the expiration time, return TRUE; else FALSE
 		return (System.currentTimeMillis() < pref.getLong(LOGIN_EXPIRATION, 0)); }
 
@@ -157,8 +157,8 @@ public class PersistentData {
 		editor.commit(); }
 
 	/**Getter for the IS_REGISTERED value. */
-	public static boolean isRegistered() { 
-		if (pref == null) Log.w("LoginManager", "FAILED AT ISREGISTERED");
+	public static boolean isRegistered() {
+		if (pref == null) return false;
 		return pref.getBoolean(IS_REGISTERED, false); }
 
 	/**Setter for the IS_REGISTERED value.
@@ -201,8 +201,18 @@ public class PersistentData {
 	}
 
 	
-	public static boolean getEnabled(String feature){ return pref.getBoolean(feature, false); }
+	public static boolean getEnabled(String feature){
+		return isUnregisterDebugMode ? true : pref.getBoolean(feature, false);
+	}
 	public static void setEnabled(String feature, boolean enabled){
+		if( !isUnregisterDebugMode ) {
+			editor.putBoolean(feature, enabled);
+			editor.commit();
+		}
+	}
+
+	public static boolean getBoolean(String feature){ return pref.getBoolean(feature, false); }
+	public static void setBoolean(String feature, boolean enabled){
 		editor.putBoolean(feature, enabled);
 		editor.commit();
 	}
@@ -471,7 +481,7 @@ public class PersistentData {
 
 	public static double getLatitudeOffset() {
 		float latitudeOffset = pref.getFloat(LATITUDE_OFFSET_KEY, 0.0f);
-		if(latitudeOffset == 0.0f && getEnabled(USE_GPS_FUZZING)) { //create latitude offset if it does not exist
+		if(latitudeOffset == 0.0f && getBoolean(USE_GPS_FUZZING)) { //create latitude offset if it does not exist
 			float newLatitudeOffset = (float)(.2 + Math.random()*1.6); // create random latitude offset between (-1, -.2) or (.2, 1)
 			if(newLatitudeOffset > 1) {
 				newLatitudeOffset = (newLatitudeOffset-.8f) * -1;
@@ -487,7 +497,7 @@ public class PersistentData {
 
 	public static float getLongitudeOffset() {
 		float longitudeOffset = pref.getFloat(LONGITUDE_OFFSET_KEY, 0.0f);
-		if(longitudeOffset == 0.0f && getEnabled(USE_GPS_FUZZING)) { //create longitude offset if it does not exist
+		if(longitudeOffset == 0.0f && getBoolean(USE_GPS_FUZZING)) { //create longitude offset if it does not exist
 			float newLongitudeOffset = (float)(10 + Math.random()*340); // create random longitude offset between (-180, -10) or (10, 180)
 			if(newLongitudeOffset > 180) {
 				newLongitudeOffset = (newLongitudeOffset-170) * -1;

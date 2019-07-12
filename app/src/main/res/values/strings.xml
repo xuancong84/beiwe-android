@@ -7,9 +7,8 @@
     <string name="action_settings">Settings</string>
 	
     <!-- Permissions Strings -->
-    <string name="permission_registration_read_sms_alert"> In order to register for a study, Beiwe requires access to some this device\'s telephone services. Please press \"Allow\" when you see a menu requesting permissions to access SMS. Depending on the details of the study, you are allowed to disable this permission in the Beiwe app\'s preferences after registration is complete.</string>
-
-    <string name="permission_registration_actually_need_sms_alert"> Beiwe requires SMS permissions in order to register for a study, but you appear to have denied it permission. We are going to bump you to the Beiwe app\'s settings so that you can manually enable SMS access. </string>
+    <string name="permission_registration_read_sms_alert"> In order to register for a study, Beiwe requires access to some this device\'s telephone services. Please press \"Allow\" when you see a menu requesting permissions to access phone call.</string>
+    <string name="permission_registration_actually_need_sms_alert"> Beiwe requires READ_PHONE_STATE permissions in order to register for a study, but you appear to have denied it permission. We are going to bump you to the Beiwe app\'s settings so that you can manually enable the access. </string>
 
     <string name="power_management_exception_alert"> This permission prompt you are about to see is required to allow Beiwe to execute in the background. </string>
     <string name="accessibility_permission_alert"> This permission prompt you are about to see is required to allow Beiwe to bind accessibility service. </string>
@@ -20,8 +19,7 @@
 
 
     <!-- API URLs -->
-    <string name="staging_website">https://ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com </string>
-    <string name="production_website">https://ec2-18-136-106-129.ap-southeast-1.compute.amazonaws.com </string>
+    <string name="default_website">https://ec2-18-139-106-135.ap-southeast-1.compute.amazonaws.com </string>
 
     <string name="data_upload_url">/upload</string>
     <string name="download_surveys_url">/download_surveys</string>
@@ -36,7 +34,7 @@
     <string name="button_record">Record</string>
 
     <!-- Debug Menu Strings -->
-    <string name="title_activity_debug_interface">Beiwe debug interface</string>
+    <string name="title_activity_debug_interface">Beiwe Debug Interface</string>
     <string name="title_activity_survey">Survey</string>
 
     <!-- Error Messages -->
@@ -184,6 +182,7 @@
     <string name="menu_about">About This App</string>
     <string name="call_research_assistant">Call Research Assistant</string>
     <string name="view_survey_answers">View Survey Answers</string>
+    <string name="enter_debug_interface">Enter Debug Interface</string>
 
     <!-- About Page -->
     <string name="title_activity_about">About Beiwe</string>

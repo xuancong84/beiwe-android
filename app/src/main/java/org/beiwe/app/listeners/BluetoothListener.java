@@ -41,7 +41,8 @@ If you want to declare that your app is available to BLE-capable devices only, i
  * 
  * @author Eli Jones */
 public class BluetoothListener extends BroadcastReceiver {
-	public static String header = "timestamp, hashed MAC, RSSI";
+	public static final String name = "bluetoothLog";
+	public static final String header = "timestamp, hashed MAC, RSSI";
 	
 	private BluetoothAdapter bluetoothAdapter;
 	//bluetoothExists can be set to false if the device does not meet our needs.

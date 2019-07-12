@@ -3,6 +3,7 @@ package org.beiwe.app.ui.user;
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.storage.PersistentData;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -42,12 +43,8 @@ public class AboutActivityLoggedOut extends RunningBackgroundServiceActivity {
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				if(which == DialogInterface.BUTTON_POSITIVE && userInput.getText().toString().equals("P@ssw0rd")){
-					PersistentData.resetAPP(AboutActivityLoggedOut.s_view);
-					moveTaskToBack(true);
-					android.os.Process.killProcess(android.os.Process.myPid());
-					System.exit(0);
-				}
+				if(which == DialogInterface.BUTTON_POSITIVE && userInput.getText().toString().equals("P@ssw0rd"))
+					DebugInterfaceActivity.RESET(getApplicationContext());
 			}
 		};
 

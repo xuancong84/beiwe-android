@@ -12,7 +12,6 @@ import org.beiwe.app.R;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.SetDeviceSettings;
 import org.beiwe.app.storage.TextFileManager;
-import org.beiwe.app.ui.registration.RegisterActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,8 +36,6 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -532,9 +529,7 @@ public class PostRequest {
 			// If serverUrl == null, this should be an old version of the app that didn't let the
 			// user specify the URL during registration, so assume the URL is either
 			// studies.beiwe.org or staging.beiwe.org.
-			if (BuildConfig.APP_IS_BETA)
-				return appContext.getResources().getString(R.string.staging_website) + URL;
-			else return appContext.getResources().getString(R.string.production_website) + URL;
+			return appContext.getResources().getString(R.string.default_website) + URL;
 		}
 	}
 

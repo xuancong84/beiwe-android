@@ -24,8 +24,8 @@ import android.util.Log;
  * are available on a given device. */
 
 public class GPSListener implements LocationListener {
-	
-	public static String header = "timestamp, latitude, longitude, altitude, accuracy";
+	public static final String name = "gps";
+	public static final String header = "timestamp,latitude,longitude,altitude,accuracy";
 	
 	private Context appContext;
 	private PackageManager pkgManager;

@@ -1,15 +1,26 @@
 package org.beiwe.app.ui;
 
+import java.io.File;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.beiwe.app.BackgroundService;
+import org.beiwe.app.BuildConfig;
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.R;
+import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.Timer;
+import org.beiwe.app.listeners.AccelerometerListener;
 import org.beiwe.app.listeners.AccessibilityListener;
+import org.beiwe.app.listeners.AmbientLightListener;
+import org.beiwe.app.listeners.BluetoothListener;
+import org.beiwe.app.listeners.GPSListener;
+import org.beiwe.app.listeners.GyroscopeListener;
+import org.beiwe.app.listeners.TapsListener;
+import org.beiwe.app.listeners.UsageListener;
+import org.beiwe.app.listeners.WifiListener;
 import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.networking.SurveyDownloader;
 import org.beiwe.app.session.SessionActivity;
@@ -29,21 +40,118 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.support.v7.app.AlertDialog;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class DebugInterfaceActivity extends SessionActivity {
 	//extends a session activity.
 	Context appContext;
-	
+	private static TextView logcat_view;
+	private static ScrollView logcat_scroll;
+	private static String logcat_text = "";
+
+	public class LogFile {
+		public static final String name = "logFile";
+		public static final String header = "DEBUG LOG FILE";
+	}
+
+	public class ListFile {
+		public static final String name = "listFile";
+		public static final String header = "LIST ALL FILES";
+	}
+
+	public class ListFeature {
+		public static final String name = "listFeature";
+		public static final String header = "LIST ALL FEATURES";
+	}
+
+	public class ListPermission {
+		public static final String name = "permissions";
+		public static final String header = "LIST ALL PERMISSIONS";
+	}
+
+	private static boolean atBottom = true;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_debug_interface);
-		appContext = this.getApplicationContext();
+		appContext = getApplicationContext();
+		logcat_view = findViewById(R.id.logcat_view);
+		logcat_scroll = findViewById(R.id.logcat_scroll);
+		logcat_scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+			@Override
+			public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+				int diff = (logcat_view.getBottom() - (logcat_scroll.getHeight() + logcat_scroll.getScrollY()));
+				atBottom = (diff == 0);	// if diff is zero, then the bottom has been reached
+			}
+		});
+
+		// activity has restarted, restore the original display content
+		if (!logcat_text.isEmpty())
+			logcat_view.setText( logcat_text );
+
+		// set long click listener
+		Object longClickButtons[][] = {
+				{ BluetoothListener.class, R.id.buttonStartBluetooth, R.id.buttonStopBluetooth },
+				{ GPSListener.class, R.id.buttonEnableGPS, R.id.buttonDisableGPS },
+				{ AccelerometerListener.class, R.id.buttonEnableAccelerometer, R.id.buttonDisableAccelerometer },
+				{ AccessibilityListener.class, R.id.buttonEnableAccessibility, R.id.buttonDisableAccessibility },
+				{ AmbientLightListener.class, R.id.buttonEnableAmbientLight },
+				{ GyroscopeListener.class, R.id.buttonEnableGyroscope, R.id.buttonDisableGyroscope },
+				{ TapsListener.class, R.id.buttonEnableTaps, R.id.buttonDisableTaps },
+				{ UsageListener.class, R.id.buttonUpdateUsage },
+				{ WifiListener.class, R.id.buttonWifiScan },
+				{ LogFile.class, R.id.buttonPrintInternalLog, R.id.buttonClearInternalLog },
+				{ ListFile.class, R.id.buttonListFiles },
+				{ ListFeature.class, R.id.buttonFeaturesEnabled },
+				{ ListPermission.class, R.id.buttonFeaturesPermissable },
+		};
+		for( Object longClickButton[] : longClickButtons )
+			for( int x=1; x<longClickButton.length; ++x ) try {
+				Class cls = (Class)longClickButton[0];
+				final String name, header;
+				name = (String) (cls.getField("name").get(null));
+				header = (String) (cls.getField("header").get(null));
+				Button button = findViewById((int)longClickButton[x]);
+				button.setText("*"+button.getText());
+				button.setOnLongClickListener(new View.OnLongClickListener() {
+					@Override
+					public boolean onLongClick(View view) {
+						try {
+							show_feature = name;
+							logcat_text = name+": "+header;
+							logcat_view.setText(logcat_text);
+							Toast.makeText(appContext,"Output console shows "+name, Toast.LENGTH_SHORT).show();
+						} catch (Exception e) {}
+						return true;
+					}
+				});
+			} catch ( Exception e ) { }
 	}
-	
+
+	public static boolean unlocked = BuildConfig.APP_IS_DEV;
+	public static String show_feature = "";
+	public static void smartLog( String tag, String data ){
+		if( BuildConfig.APP_IS_DEV )
+			Log.i( tag, data );
+		if( unlocked && tag.equals(show_feature) ){
+			logcat_text += "\n"+data;
+			while ( logcat_text.length() > 1000000 ) {	// limit text view buffer
+				int p = logcat_text.indexOf('\n');
+				logcat_text = (p<0?"":logcat_text.substring(p+1));
+			}
+			logcat_view.setText( logcat_text );
+			if( atBottom )
+				logcat_scroll.scrollTo(0, logcat_view.getBottom() );
+		}
+	}
+
 	//Intent triggers caught in BackgroundService
 	public void accelerometerOn (View view) { appContext.sendBroadcast( Timer.accelerometerOnIntent ); }
 	public void accelerometerOff (View view) { appContext.sendBroadcast( Timer.accelerometerOffIntent ); }
@@ -54,18 +162,17 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
+	public void tapsOn (View view) { backgroundService.tapsListener.addView(); }
+	public void tapsOff (View view) { backgroundService.tapsListener.removeView(); }
 	public void scanWifi (View view) { appContext.sendBroadcast( Timer.wifiLogIntent ); }
 	public void usageUpdate (View view) { appContext.sendBroadcast( Timer.usageIntent ); }
 	public void bluetoothButtonStart (View view) { appContext.sendBroadcast(Timer.bluetoothOnIntent); }
 	public void bluetoothButtonStop (View view) { appContext.sendBroadcast(Timer.bluetoothOffIntent); }
-	
+	public void stopConsole (View view) { logcat_text = show_feature = ""; logcat_view.setText("debugger console"); }
+
 	//raw debugging info
 	public void printInternalLog(View view) {
-		// Log.i("print log button pressed", "press.");
-		String log = TextFileManager.getDebugLogFile().read();
-		for( String line : log.split("\n") ) {
-			Log.i( "log file...", line ); }
-//		Log.i("log file encrypted", EncryptionEngine.encryptAES(log) );
+		smartLog( LogFile.name, TextFileManager.getDebugLogFile().read() );
 	}
 	public void testEncrypt (View view) {
 		Log.i("Debug..", TextFileManager.getKeyFile().read());
@@ -89,10 +196,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 		Log.i("test hash:", EncryptionEngine.safeHash( encrypted ) );
 		Log.i("test hash:", EncryptionEngine.hashMAC( encrypted ) );
 	}
-	public void logDataToggles(View view) {
-		for(String feature : PersistentData.feature_list)
-			Log.i("DebugInterfaceActivity.logDataToggles()", feature + ": " + Boolean.toString(PersistentData.getEnabled(feature)));
-	}
+
 	public void getAlarmStates(View view) {
 		List<String> ids = PersistentData.getSurveyIds();
 		for (String surveyId : ids){
@@ -102,24 +206,25 @@ public class DebugInterfaceActivity extends SessionActivity {
 	
 	public void getEnabledFeatures(View view) {
 		for(String feature : PersistentData.feature_list)
-				Log.i("features", "Accelerometer Enabled."+(PersistentData.getEnabled(feature)?"Enabled":"Disabled") );
+				smartLog( ListFeature.name,feature+" is "+(PersistentData.getEnabled(feature)?"Enabled":"Disabled") );
 	}
 	
 	public void getPermissableFeatures(View view) {
-		if (PermissionHandler.checkAccessFineLocation(getApplicationContext())) { Log.i("permissions", "AccessFineLocation enabled."); } else { Log.e("permissions", "AccessFineLocation disabled."); }
-		if (PermissionHandler.checkAccessNetworkState(getApplicationContext())) { Log.i("permissions", "AccessNetworkState enabled."); } else { Log.e("permissions", "AccessNetworkState disabled."); }
-		if (PermissionHandler.checkAccessWifiState(getApplicationContext())) { Log.i("permissions", "AccessWifiState enabled."); } else { Log.e("permissions", "AccessWifiState disabled."); }
-		if (PermissionHandler.checkAccessBluetooth(getApplicationContext())) { Log.i("permissions", "Bluetooth enabled."); } else { Log.e("permissions", "Bluetooth disabled."); }
-		if (PermissionHandler.checkAccessBluetoothAdmin(getApplicationContext())) { Log.i("permissions", "BluetoothAdmin enabled."); } else { Log.e("permissions", "BluetoothAdmin disabled."); }
-		if (PermissionHandler.checkAccessCallPhone(getApplicationContext())) { Log.i("permissions", "CallPhone enabled."); } else { Log.e("permissions", "CallPhone disabled."); }
-		if (PermissionHandler.checkAccessReadCallLog(getApplicationContext())) { Log.i("permissions", "ReadCallLog enabled."); } else { Log.e("permissions", "ReadCallLog disabled."); }
-		if (PermissionHandler.checkAccessReadContacts(getApplicationContext())) { Log.i("permissions", "ReadContacts enabled."); } else { Log.e("permissions", "ReadContacts disabled."); }
-		if (PermissionHandler.checkAccessReadPhoneState(getApplicationContext())) { Log.i("permissions", "ReadPhoneState enabled."); } else { Log.e("permissions", "ReadPhoneState disabled."); }
-		if (PermissionHandler.checkAccessReadSms(getApplicationContext())) { Log.i("permissions", "ReadSms enabled."); } else { Log.e("permissions", "ReadSms disabled."); }
-		if (PermissionHandler.checkAccessReceiveMms(getApplicationContext())) { Log.i("permissions", "ReceiveMms enabled."); } else { Log.e("permissions", "ReceiveMms disabled."); }
-		if (PermissionHandler.checkAccessReceiveSms(getApplicationContext())) { Log.i("permissions", "ReceiveSms enabled."); } else { Log.e("permissions", "ReceiveSms disabled."); }
-		if (PermissionHandler.checkAccessRecordAudio(getApplicationContext())) { Log.i("permissions", "RecordAudio enabled."); } else { Log.e("permissions", "RecordAudio disabled."); }
-		if (PermissionHandler.checkAccessUsagePermission(getApplicationContext())) { Log.i("permissions", "Package Usage enabled."); } else { Log.e("permissions", "Package Usage disabled."); }
+		smartLog(ListPermission.name, PermissionHandler.checkAccessFineLocation(appContext)?"AccessFineLocation enabled.":"AccessFineLocation disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessNetworkState(appContext)?"AccessNetworkState enabled.":"AccessNetworkState disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessWifiState(appContext)?"AccessWifiState enabled.":"AccessWifiState disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessBluetooth(appContext)?"Bluetooth enabled.":"Bluetooth disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessBluetoothAdmin(appContext)?"BluetoothAdmin enabled.":"BluetoothAdmin disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessCallPhone(appContext)?"CallPhone enabled.":"CallPhone disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessReadCallLog(appContext)?"ReadCallLog enabled.":"ReadCallLog disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessReadContacts(appContext)?"ReadContacts enabled.":"ReadContacts disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessReadPhoneState(appContext)?"ReadPhoneState enabled.":"ReadPhoneState disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessReadSms(appContext)?"ReadSms enabled.":"ReadSms disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessReceiveMms(appContext)?"ReceiveMms enabled.":"ReceiveMms disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessReceiveSms(appContext)?"ReceiveSms enabled.":"ReceiveSms disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessRecordAudio(appContext)?"RecordAudio enabled.":"RecordAudio disabled.");
+		smartLog(ListPermission.name, PermissionHandler.checkAccessUsagePermission(appContext)?"Package Usage enabled.":"Package Usage disabled.");
+		smartLog(ListPermission.name, AccessibilityListener.isEnabled(appContext)?"AccessibilityService enabled.":"AccessibilityService disabled.");
 	}
 	
 	public void clearInternalLog(View view) { TextFileManager.getDebugLogFile().deleteSafely(); }
@@ -128,7 +233,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	
 	//network operations
 	public void uploadDataFiles(View view) { PostRequest.uploadAllFiles(); }
-	public void runSurveyDownload(View view) { SurveyDownloader.downloadSurveys(getApplicationContext()); }
+	public void runSurveyDownload(View view) { SurveyDownloader.downloadSurveys(appContext); }
 	public void buttonTimer(View view) { backgroundService.startTimers(); }	
 	
 	
@@ -141,22 +246,21 @@ public class DebugInterfaceActivity extends SessionActivity {
 		for( String file : files ) { Log.i( "files...", file); }
 		TextFileManager.deleteEverything(); }
 	public void listFiles(View view){
-		Log.w( "files...", "UPLOADABLE FILES");
+		smartLog( ListFile.name,"UPLOADABLE FILES" );
 		String[] files = TextFileManager.getAllUploadableFiles();
 		Arrays.sort(files);
-		for( String file : files ) { Log.i( "files...", file); }
-		Log.w( "files...", "ALL FILES");
+		for( String file : files ) { smartLog( ListFile.name, file ); }
+		smartLog( ListFile.name,"ALL FILES" );
 		files = TextFileManager.getAllFiles();
 		Arrays.sort(files);
-		for( String file : files ) { Log.i( "files...", file); }
+		for( String file : files ) { smartLog( ListFile.name, file ); }
 	}
 
 	//ui operations
 	public void loadMainMenu(View view) { startActivity(new Intent(appContext, MainMenuActivity.class) ); }
 	public void popSurveyNotifications(View view) {
-		for (String surveyId : PersistentData.getSurveyIds()){
+		for ( String surveyId : PersistentData.getSurveyIds() )
 			SurveyNotifications.displaySurveyNotification(appContext, surveyId);
-		}
 	}
 	
 	//crash operations (No, really, we actually need this.)
@@ -173,7 +277,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 
 	//runs tests on the json logic parser
 	public void testJsonLogicParser(View view) {
-        String JsonQuestionsListString = "[{\"question_text\": \"In the last 7 days, how OFTEN did you EAT BROCCOLI?\", \"question_type\": \"radio_button\", \"answers\": [{\"text\": \"Never\"}, {\"text\": \"Rarely\"}, {\"text\": \"Occasionally\"}, {\"text\": \"Frequently\"}, {\"text\": \"Almost Constantly\"}], \"question_id\": \"6695d6c4-916b-4225-8688-89b6089a24d1\"}, {\"display_if\": {\">\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 0]}, \"question_text\": \"In the last 7 days, what was the SEVERITY of your CRAVING FOR BROCCOLI?\", \"question_type\": \"radio_button\", \"answers\": [{\"text\": \"None\"}, {\"text\": \"Mild\"}, {\"text\": \"Moderate\"}, {\"text\": \"Severe\"}, {\"text\": \"Very Severe\"}], \"question_id\": \"41d54793-dc4d-48d9-f370-4329a7bc6960\"}, {\"display_if\": {\"and\": [{\">\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 0]}, {\">\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 0]}]}, \"question_text\": \"In the last 7 days, how much did your CRAVING FOR BROCCOLI INTERFERE with your usual or daily activities, (e.g. eating cauliflower)?\", \"question_type\": \"radio_button\", \"answers\": [{\"text\": \"Not at all\"}, {\"text\": \"A little bit\"}, {\"text\": \"Somewhat\"}, {\"text\": \"Quite a bit\"}, {\"text\": \"Very much\"}], \"question_id\": \"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\"}, {\"display_if\": {\"or\": [{\"and\": [{\"<=\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 3]}, {\"==\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 2]}, {\"<\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 3]}]}, {\"and\": [{\"<=\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 3]}, {\"<\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 3]}, {\"==\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 2]}]}, {\"and\": [{\"==\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 4]}, {\"<=\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 1]}, {\"<=\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 1]}]}]}, \"question_text\": \"While broccoli is a nutritious and healthful food, it's important to recognize that craving too much broccoli can have adverse consequences on your health.  If in a single day you find yourself eating broccoli steamed, stir-fried, and raw with a 'vegetable dip', you may be a broccoli addict.  This is an additional paragraph (following a double newline) warning you about the dangers of broccoli consumption.\", \"question_type\": \"info_text_box\", \"question_id\": \"9d7f737d-ef55-4231-e901-b3b68ca74190\"}, {\"display_if\": {\"or\": [{\"and\": [{\"==\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 4]}, {\"or\": [{\">=\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 2]}, {\">=\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 2]}]}]}, {\"or\": [{\">=\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 3]}, {\">=\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 3]}]}]}, \"question_text\": \"OK, it sounds like your broccoli habit is getting out of hand.  Please call your clinician immediately.\", \"question_type\": \"info_text_box\", \"question_id\": \"59f05c45-df67-40ed-a299-8796118ad173\"}, {\"question_text\": \"How many pounds of broccoli per day could a woodchuck chuck if a woodchuck could chuck broccoli?\", \"text_field_type\": \"NUMERIC\", \"question_type\": \"free_response\", \"question_id\": \"9745551b-a0f8-4eec-9205-9e0154637513\"}, {\"display_if\": {\"<\": [\"9745551b-a0f8-4eec-9205-9e0154637513\", 10]}, \"question_text\": \"That seems a little low.\", \"question_type\": \"info_text_box\", \"question_id\": \"cedef218-e1ec-46d3-d8be-e30cb0b2d3aa\"}, {\"display_if\": {\"==\": [\"9745551b-a0f8-4eec-9205-9e0154637513\", 10]}, \"question_text\": \"That sounds about right.\", \"question_type\": \"info_text_box\", \"question_id\": \"64a2a19b-c3d0-4d6e-9c0d-06089fd00424\"}, {\"display_if\": {\">\": [\"9745551b-a0f8-4eec-9205-9e0154637513\", 10]}, \"question_text\": \"What?! No way- that's way too high!\", \"question_type\": \"info_text_box\", \"question_id\": \"166d74ea-af32-487c-96d6-da8d63cfd368\"}, {\"max\": \"5\", \"question_id\": \"059e2f4a-562a-498e-d5f3-f59a2b2a5a5b\", \"question_text\": \"On a scale of 1 (awful) to 5 (delicious) stars, how would you rate your dinner at Chez Broccoli Restaurant?\", \"question_type\": \"slider\", \"min\": \"1\"}, {\"display_if\": {\">=\": [\"059e2f4a-562a-498e-d5f3-f59a2b2a5a5b\", 4]}, \"question_text\": \"Wow, you are a true broccoli fan.\", \"question_type\": \"info_text_box\", \"question_id\": \"6dd9b20b-9dfc-4ec9-cd29-1b82b330b463\"}, {\"question_text\": \"THE END. This survey is over.\", \"question_type\": \"info_text_box\", \"question_id\": \"ec0173c9-ac8d-449d-d11d-1d8e596b4ec9\"}]";
+		String JsonQuestionsListString = "[{\"question_text\": \"In the last 7 days, how OFTEN did you EAT BROCCOLI?\", \"question_type\": \"radio_button\", \"answers\": [{\"text\": \"Never\"}, {\"text\": \"Rarely\"}, {\"text\": \"Occasionally\"}, {\"text\": \"Frequently\"}, {\"text\": \"Almost Constantly\"}], \"question_id\": \"6695d6c4-916b-4225-8688-89b6089a24d1\"}, {\"display_if\": {\">\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 0]}, \"question_text\": \"In the last 7 days, what was the SEVERITY of your CRAVING FOR BROCCOLI?\", \"question_type\": \"radio_button\", \"answers\": [{\"text\": \"None\"}, {\"text\": \"Mild\"}, {\"text\": \"Moderate\"}, {\"text\": \"Severe\"}, {\"text\": \"Very Severe\"}], \"question_id\": \"41d54793-dc4d-48d9-f370-4329a7bc6960\"}, {\"display_if\": {\"and\": [{\">\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 0]}, {\">\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 0]}]}, \"question_text\": \"In the last 7 days, how much did your CRAVING FOR BROCCOLI INTERFERE with your usual or daily activities, (e.g. eating cauliflower)?\", \"question_type\": \"radio_button\", \"answers\": [{\"text\": \"Not at all\"}, {\"text\": \"A little bit\"}, {\"text\": \"Somewhat\"}, {\"text\": \"Quite a bit\"}, {\"text\": \"Very much\"}], \"question_id\": \"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\"}, {\"display_if\": {\"or\": [{\"and\": [{\"<=\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 3]}, {\"==\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 2]}, {\"<\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 3]}]}, {\"and\": [{\"<=\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 3]}, {\"<\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 3]}, {\"==\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 2]}]}, {\"and\": [{\"==\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 4]}, {\"<=\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 1]}, {\"<=\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 1]}]}]}, \"question_text\": \"While broccoli is a nutritious and healthful food, it's important to recognize that craving too much broccoli can have adverse consequences on your health.  If in a single day you find yourself eating broccoli steamed, stir-fried, and raw with a 'vegetable dip', you may be a broccoli addict.  This is an additional paragraph (following a double newline) warning you about the dangers of broccoli consumption.\", \"question_type\": \"info_text_box\", \"question_id\": \"9d7f737d-ef55-4231-e901-b3b68ca74190\"}, {\"display_if\": {\"or\": [{\"and\": [{\"==\": [\"6695d6c4-916b-4225-8688-89b6089a24d1\", 4]}, {\"or\": [{\">=\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 2]}, {\">=\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 2]}]}]}, {\"or\": [{\">=\": [\"41d54793-dc4d-48d9-f370-4329a7bc6960\", 3]}, {\">=\": [\"5cfa06ad-d907-4ba7-a66a-d68ea3c89fba\", 3]}]}]}, \"question_text\": \"OK, it sounds like your broccoli habit is getting out of hand.  Please call your clinician immediately.\", \"question_type\": \"info_text_box\", \"question_id\": \"59f05c45-df67-40ed-a299-8796118ad173\"}, {\"question_text\": \"How many pounds of broccoli per day could a woodchuck chuck if a woodchuck could chuck broccoli?\", \"text_field_type\": \"NUMERIC\", \"question_type\": \"free_response\", \"question_id\": \"9745551b-a0f8-4eec-9205-9e0154637513\"}, {\"display_if\": {\"<\": [\"9745551b-a0f8-4eec-9205-9e0154637513\", 10]}, \"question_text\": \"That seems a little low.\", \"question_type\": \"info_text_box\", \"question_id\": \"cedef218-e1ec-46d3-d8be-e30cb0b2d3aa\"}, {\"display_if\": {\"==\": [\"9745551b-a0f8-4eec-9205-9e0154637513\", 10]}, \"question_text\": \"That sounds about right.\", \"question_type\": \"info_text_box\", \"question_id\": \"64a2a19b-c3d0-4d6e-9c0d-06089fd00424\"}, {\"display_if\": {\">\": [\"9745551b-a0f8-4eec-9205-9e0154637513\", 10]}, \"question_text\": \"What?! No way- that's way too high!\", \"question_type\": \"info_text_box\", \"question_id\": \"166d74ea-af32-487c-96d6-da8d63cfd368\"}, {\"max\": \"5\", \"question_id\": \"059e2f4a-562a-498e-d5f3-f59a2b2a5a5b\", \"question_text\": \"On a scale of 1 (awful) to 5 (delicious) stars, how would you rate your dinner at Chez Broccoli Restaurant?\", \"question_type\": \"slider\", \"min\": \"1\"}, {\"display_if\": {\">=\": [\"059e2f4a-562a-498e-d5f3-f59a2b2a5a5b\", 4]}, \"question_text\": \"Wow, you are a true broccoli fan.\", \"question_type\": \"info_text_box\", \"question_id\": \"6dd9b20b-9dfc-4ec9-cd29-1b82b330b463\"}, {\"question_text\": \"THE END. This survey is over.\", \"question_type\": \"info_text_box\", \"question_id\": \"ec0173c9-ac8d-449d-d11d-1d8e596b4ec9\"}]";
 		JsonSkipLogic steve;
 		JSONArray questions;
 		Boolean runDisplayLogic = true;
@@ -239,27 +343,26 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void resetAPP(View view){
 		s_view = view;
 
-		LayoutInflater li = LayoutInflater.from(this);
-		View promptsView = li.inflate(R.layout.password_prompt, null);
-		final EditText userInput = promptsView.findViewById(R.id.editTextDialogUserInput);
-
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				if(which == DialogInterface.BUTTON_POSITIVE && userInput.getText().toString().equals("P@ssw0rd")){
-					PersistentData.resetAPP(DebugInterfaceActivity.s_view);
-					moveTaskToBack(true);
-					android.os.Process.killProcess(android.os.Process.myPid());
-					System.exit(0);
-				}
+				if( which == DialogInterface.BUTTON_POSITIVE ) RESET(getApplicationContext());
 			}
 		};
 
-		new AlertDialog.Builder(this)
-				.setView(promptsView)
+		new AlertDialog.Builder(RunningBackgroundServiceActivity.mSelf)
 				.setTitle("Warning")
-				.setMessage("This will unregister any study and reset the APP. Are you sure?")
+				.setMessage("This will delete all files, unregister any study, reset and quit the APP. Are you sure?")
 				.setPositiveButton("OK", dialogClickListener)
 				.setNegativeButton("Cancel", dialogClickListener).show();
+	}
+
+	public static void RESET(Context context){
+		if(AccessibilityListener.isEnabled(context))
+			AccessibilityListener.mSelf.disableSelf();
+		PersistentData.resetAPP(DebugInterfaceActivity.s_view);
+		RunningBackgroundServiceActivity.mSelf.moveTaskToBack(true);
+		android.os.Process.killProcess(android.os.Process.myPid());
+		System.exit(0);
 	}
 }

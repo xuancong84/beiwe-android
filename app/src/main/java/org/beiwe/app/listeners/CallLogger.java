@@ -15,8 +15,8 @@ import android.util.Log;
  *  @author Dor Samet */
 
 public class CallLogger extends ContentObserver {
-
-	public static String header = "hashed phone number,call type,timestamp,duration in seconds";
+	public static final String name = "callLog";
+	public static final String header = "hashed phone number,call type,timestamp,duration in seconds";
 
 	// URI for the database
 	private Uri allCalls = Uri.parse("content://call_log/calls");

@@ -290,6 +290,8 @@ public class BackgroundService extends Service {
 	#############################################################################*/
 	
 	public void startTimers() {
+		if( PersistentData.isUnregisterDebugMode ) return;
+
 		Long now = System.currentTimeMillis();
 		Log.i("BackgroundService", "running startTimer logic.");
 		if (PersistentData.getEnabled(PersistentData.ACCELEROMETER)) {  //if accelerometer data recording is enabled and...

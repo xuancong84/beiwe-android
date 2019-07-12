@@ -6,8 +6,8 @@ import android.util.Log;
 import org.beiwe.app.storage.TextFileManager;
 
 public class SurveyTimingsRecorder {
-	
-	public static String header = "timestamp,question id,question type,question text,question answer options,answer";
+	public static final String name = "surveyTimings_";
+	public static final String header = "timestamp,question id,question type,question text,question answer options,answer";
 		
 	
 	/**Create a new Survey Response file, and record the timestamp of when

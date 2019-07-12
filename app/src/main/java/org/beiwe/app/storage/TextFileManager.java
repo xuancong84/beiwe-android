@@ -11,12 +11,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.beiwe.app.BuildConfig;
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.listeners.*;
 import org.beiwe.app.survey.AudioRecorderActivity;
 import org.beiwe.app.survey.AudioRecorderEnhancedActivity;
 import org.beiwe.app.survey.SurveyAnswersRecorder;
 import org.beiwe.app.survey.SurveyTimingsRecorder;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 
 import android.content.Context;
 import android.util.Log;
@@ -159,23 +161,23 @@ public class TextFileManager {
 //		currentDailyQuestions = new TextFileManager(appContext, "currentDailyQuestionsFile.json", EMPTY_HEADER, true, true, false);
 //		currentWeeklyQuestions = new TextFileManager(appContext, "currentWeeklyQuestionsFile.json", EMPTY_HEADER, true, true, false);
 		// The debug file is no longer persistent, so that we can upload it to the server associated with a user, otherwise it has the name "logfile.txt" and fails to upload.
-		debugLogFile = new TextFileManager(appContext, "logFile", "THIS LINE IS A LOG FILE HEADER", false, false, true, false);
+		debugLogFile = new TextFileManager(appContext, DebugInterfaceActivity.LogFile.name, DebugInterfaceActivity.LogFile.header, false, false, true, false);
 		// Regularly/periodically-created files
-		GPSFile = new TextFileManager(appContext, "gps", GPSListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GPS));
-		accelFile = new TextFileManager(appContext, "accel", AccelerometerListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCELEROMETER));
-		accessibilityLog = new TextFileManager(appContext, "accessibilityLog", AccessibilityListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCESSIBILITY));
-		ambientLightFile = new TextFileManager(appContext, "light", AmbientLightListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT));
-		gyroFile = new TextFileManager(appContext, "gyro", GyroscopeListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GYROSCOPE));
-		tapsLog = new TextFileManager(appContext, "tapsLog", TapsListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.TAPS));
-		textsLog = new TextFileManager(appContext, "textsLog", SmsSentLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.TEXTS));
-		callLog = new TextFileManager(appContext, "callLog", CallLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.CALLS));
-		powerStateLog = new TextFileManager(appContext, "powerState", PowerStateListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.POWER_STATE));
-		usageFile = new TextFileManager(appContext, "usage", UsageListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.USAGE));
-		bluetoothLog = new TextFileManager(appContext, "bluetoothLog", BluetoothListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.BLUETOOTH));
+		GPSFile = new TextFileManager(appContext, GPSListener.name, GPSListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GPS));
+		accelFile = new TextFileManager(appContext, AccelerometerListener.name, AccelerometerListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCELEROMETER));
+		accessibilityLog = new TextFileManager(appContext, AccessibilityListener.name, AccessibilityListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCESSIBILITY));
+		ambientLightFile = new TextFileManager(appContext, AmbientLightListener.name, AmbientLightListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT));
+		gyroFile = new TextFileManager(appContext, GyroscopeListener.name, GyroscopeListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GYROSCOPE));
+		tapsLog = new TextFileManager(appContext, TapsListener.name, TapsListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.TAPS));
+		textsLog = new TextFileManager(appContext, SmsSentLogger.name, SmsSentLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.TEXTS));
+		callLog = new TextFileManager(appContext, CallLogger.name, CallLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.CALLS));
+		powerStateLog = new TextFileManager(appContext, PowerStateListener.name, PowerStateListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.POWER_STATE));
+		usageFile = new TextFileManager(appContext, UsageListener.name, UsageListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.USAGE));
+		bluetoothLog = new TextFileManager(appContext, BluetoothListener.name, BluetoothListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.BLUETOOTH));
 		// Files created on specific events/written to in one go.
-		surveyTimings = new TextFileManager(appContext, "surveyTimings_", SurveyTimingsRecorder.header, false, false, true, false);
-		surveyAnswers = new TextFileManager(appContext, "surveyAnswers_", SurveyAnswersRecorder.header, false, false, true, false);
-		wifiLog = new TextFileManager(appContext, "wifiLog", WifiListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.WIFI));
+		surveyTimings = new TextFileManager(appContext, SurveyTimingsRecorder.name, SurveyTimingsRecorder.header, false, false, true, false);
+		surveyAnswers = new TextFileManager(appContext, SurveyAnswersRecorder.name, SurveyAnswersRecorder.header, false, false, true, false);
+		wifiLog = new TextFileManager(appContext, WifiListener.name, WifiListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.WIFI));
 	}
 	
 	/*###############################################################################
@@ -316,7 +318,9 @@ public class TextFileManager {
 	/**Encrypts string data and writes it to a file.
 	 * @param data any unicode valid string (set to null to force flush) */
 	public synchronized void writeEncrypted( String data ) {
-		if ( this == null || this.isDummy ) { return; }
+		if ( this == null ) return;
+		if ( data != null ) DebugInterfaceActivity.smartLog( name, data );
+		if ( this.isDummy ) return;
 		if ( !this.encrypted ) throw new NullPointerException( this.name + "is not supposed to have encrypted writes!" );
 
 		if ( data == null ){	// if data is null, force flush

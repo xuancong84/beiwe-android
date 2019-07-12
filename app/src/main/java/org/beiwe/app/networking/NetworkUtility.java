@@ -23,7 +23,7 @@ public class NetworkUtility {
 	public static boolean canUpload(Context appContext) {
 		// If you're allowed to upload over cellular data, simply check whether the phone's
 		// connected to the internet at all.
-		if (PersistentData.getEnabled(PersistentData.ALLOW_UPLOAD_OVER_CELLULAR_DATA)) {
+		if (PersistentData.getBoolean(PersistentData.ALLOW_UPLOAD_OVER_CELLULAR_DATA)) {
 			Log.i("WIFICHECK", "ALLOW OVER CELLULAR!!!!");
 			if (networkIsAvailable(appContext)) return true; }
 

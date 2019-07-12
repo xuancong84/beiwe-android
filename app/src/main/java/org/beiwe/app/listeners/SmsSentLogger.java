@@ -27,8 +27,8 @@ import android.provider.Telephony.TextBasedSmsColumns;
  * @author Josh Zagorsky June 2014
  */
 public class SmsSentLogger extends ContentObserver {	
-
-	public static String header = "timestamp,hashed phone number,sent vs received,message length,time sent";
+	public static final String name = "textsLog";
+	public static final String header = "timestamp,hashed phone number,sent vs received,message length,time sent";
 
 	private TextFileManager smsLogFile = null;
 	private Handler handler = null;

@@ -13,65 +13,54 @@ import android.view.WindowManager;
 import org.beiwe.app.*;
 import org.beiwe.app.storage.TextFileManager;
 
-public class TapsListener
-{
-	public static String header = "timestamp,in_app_name,orientation";
+public class TapsListener {
+	public static final String name = "tapsLog";
+	public static final String header = "timestamp,in_app_name,orientation";
 	private final Context context;
 	private BackgroundService service;
 	private InvisibleTouchView layerView;
+	private WindowManager localWindowManager;
 
 	public TapsListener(BackgroundService paramBackgroundService)
 	{
 		context = paramBackgroundService.getApplicationContext();
 		service = paramBackgroundService;
+		localWindowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
+		layerView = new InvisibleTouchView(context);
 		new Intent("android.intent.action.MAIN").addCategory("android.intent.category.HOME");
 		addView();
 	}
 
-	void addView()
+	public void addView()
 	{
-		WindowManager.LayoutParams localLayoutParams;
+		if ( this == null || service.isTapAdded ) return;
 //		int flags = FLAG_WATCH_OUTSIDE_TOUCH|SOFT_INPUT_ADJUST_PAN|FLAG_NOT_FOCUSABLE|FLAG_NOT_TOUCHABLE;
-		if (Build.VERSION.SDK_INT >= 26)
-			localLayoutParams = new WindowManager.LayoutParams(1, 1, 2038, 262184, -3);
-		else
-			localLayoutParams = new WindowManager.LayoutParams(1, 1, 2002, 262184, -3);
+		WindowManager.LayoutParams localLayoutParams = new WindowManager.LayoutParams(
+				1, 1, Build.VERSION.SDK_INT>=26?2038:2002, 262184, -3);
 
-		WindowManager localWindowManager = (WindowManager)this.context.getSystemService(Context.WINDOW_SERVICE);
-		this.layerView = new InvisibleTouchView(this.context);
-		if (Build.VERSION.SDK_INT >= 23)
+		if ( Build.VERSION.SDK_INT >= 23 )
 		{
-			if (Settings.canDrawOverlays(this.context))
+			if (Settings.canDrawOverlays(context))
 			{
-				if (localWindowManager != null)
+				if ( localWindowManager != null )
 				{
-					localWindowManager.addView(this.layerView, localLayoutParams);
-					this.service.isTapAdded = true;
+					localWindowManager.addView(layerView, localLayoutParams);
+					service.isTapAdded = true;
 				}
 			}
 			else
-				this.service.isTapAdded = false;
+				service.isTapAdded = false;
 		} else if (localWindowManager != null) {
-			localWindowManager.addView(this.layerView, localLayoutParams);
-			this.service.isTapAdded = true;
+			localWindowManager.addView(layerView, localLayoutParams);
+			service.isTapAdded = true;
 		}
 	}
 
-	void removeView()
+	public void removeView()
 	{
-		try {
-			if (this.layerView == null)
-				throw new Exception("layerView is null");
-			WindowManager localWindowManager = (WindowManager)this.context.getSystemService(Context.WINDOW_SERVICE);
-			if (localWindowManager == null)
-				throw new Exception("localWindowManager is null");
-			localWindowManager.removeView(this.layerView);
-			this.service.isTapAdded = false;
-			Log.d("Reading Service", "removing view");
-			return;
-		} catch (Exception localException) {
-			Log.e("Reading", "Exception during removal");
-		}
+		if ( this == null || layerView == null || localWindowManager == null ) return;
+		localWindowManager.removeView(layerView);
+		service.isTapAdded = false;
 	}
 
 	private class InvisibleTouchView extends View
@@ -94,8 +83,6 @@ public class TapsListener
 						+ TextFileManager.DELIMITER + context.getResources().getConfiguration().orientation;
 				last_appname = appname;
 				TextFileManager.getTapsLogFile().writeEncrypted( data );
-				if( BuildConfig.APP_IS_DEV )
-					Log.i("Taps", data );
 			}
 			return false;
 		}

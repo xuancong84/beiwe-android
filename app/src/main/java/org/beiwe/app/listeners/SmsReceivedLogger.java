@@ -58,8 +58,6 @@ public class SmsReceivedLogger extends BroadcastReceiver {
 											 + "received MMS" + TextFileManager.DELIMITER;
 //                 TODO: Josh. Low priority. feature. determine if we can get the length of the text, if it has an attachment.
 									 TextFileManager.getTextsLogFile().writeEncrypted(data);
-									 if(BuildConfig.APP_IS_DEV)
-										 Log.i("SMSReceivedLogger(SMS)", "data = " + data);
                  }
              }
          }

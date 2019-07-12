@@ -2,14 +2,12 @@ package org.beiwe.app.listeners;
 
 import java.util.List;
 
-import org.beiwe.app.BuildConfig;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.TextFileManager;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
-import android.util.Log;
 
 /**WifiListener
  * WifiListener houses a single public function, scanWifi.  This function grabs the mac
@@ -17,9 +15,10 @@ import android.util.Log;
  * if wifi is enabled.
  * @author Eli */
 public class WifiListener {
+	public static final String name = "wifiLog";
+	public static final String header = "hashed MAC, frequency, RSSI";
 	private static WifiManager wifiManager;
-	public static String header = "hashed MAC, frequency, RSSI";
-	
+
 	/** WifiListener requires an application context in order to access 
 	 * the devices wifi info.  
 	 * @param appContext requires a Context */
@@ -49,13 +48,8 @@ public class WifiListener {
 				TextFileManager.getWifiLogFile().newFile(); //note: the file name's timestamp is actually relevant, so we always make a new file.
 				TextFileManager.getWifiLogFile().writeEncrypted( data.toString() );
 				TextFileManager.getWifiLogFile().closeFile();
-
-				if(BuildConfig.APP_IS_DEV)
-					Log.d("WIFI", "DONE GONE DID SCAN.");
-			} // and provide a debug log statement for data researchers if we cannot get scan data right now.
-		} else {
-			if(BuildConfig.APP_IS_DEV)
-				Log.d("WIFI", "YAP SKIPPING DUE TO DISABLEMENT.");
-			TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " wifi is not available for scanning at this time."); }
+			}
+		} else TextFileManager.getDebugLogFile().writeEncrypted(
+				System.currentTimeMillis() + " wifi is not available for scanning at this time.");
 	}
 }

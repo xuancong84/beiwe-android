@@ -11,7 +11,8 @@ import android.hardware.SensorManager;
 import android.util.Log;
 
 public class AccelerometerListener implements SensorEventListener{
-	public static String header = "timestamp,accuracy,x,y,z";
+	public static final String name = "accel";
+	public static final String header = "timestamp,accuracy,x,y,z";
 	
 	private SensorManager accelSensorManager;
 	private Sensor accelSensor;
@@ -35,24 +36,27 @@ public class AccelerometerListener implements SensorEventListener{
 	public AccelerometerListener(Context applicationContext){
 		this.appContext = applicationContext;
 		this.pkgManager = appContext.getPackageManager();
-		this.accuracy = "unknown";
+		this.accuracy = "";
 		this.exists = pkgManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER);
 		
 		if (this.exists) {
 			enabled = false;
 			this.accelSensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
-			if (this.accelSensorManager ==  null ) { 
-				Log.e("Accelerometer Problems", "accelSensorManager does not exist? (1)" );
+			if (this.accelSensorManager == null) {
+				Log.e("Accelerometer Problems", "accelSensorManager does not exist? (1)");
 				TextFileManager.getDebugLogFile().writeEncrypted("accelSensorManager does not exist? (1)");
-				exists = false;	}
-			
+				exists = false;
+			}
+
 			this.accelSensor = accelSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-			if (this.accelSensor == null ) { 
-				Log.e("Accelerometer Problems", "accelSensor does not exist? (2)" );
+			if (this.accelSensor == null) {
+				Log.e("Accelerometer Problems", "accelSensor does not exist? (2)");
 				TextFileManager.getDebugLogFile().writeEncrypted("accelSensor does not exist? (2)");
-				exists = false;	}
-	} }
-	 
+				exists = false;
+			}
+		}
+	}
+
 	public synchronized void turn_on() {
 		if ( !accelSensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL) ) {
 			Log.e("Accelerometer", "Accelerometer is broken");

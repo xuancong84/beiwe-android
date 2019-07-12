@@ -12,6 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,7 +28,9 @@ import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
+import org.beiwe.app.ui.user.AboutActivityLoggedOut;
 import org.beiwe.app.ui.utils.AlertsManager;
 import org.json.JSONObject;
 import java.util.concurrent.Callable;
@@ -48,6 +52,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	private final static int REQUEST_PERMISSIONS_IDENTIFIER = 1500;
 	private final static int BARCODE_READER_REQUEST_CODE = 2500;
 	private final static String DEFAULT_PASSWORD = "abcd1234";
+	private final static String phone_number_permission = Manifest.permission.READ_PHONE_STATE;
 
 	/** Users will go into this activity first to register information on the phone and on the server. */
 	@Override
@@ -77,6 +82,30 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		newPasswordInput.setHint(String.format(getString(R.string.registration_replacement_password_hint), PersistentData.minPasswordLength()));
 		confirmNewPasswordInput.setHint(String.format(getString(R.string.registration_replacement_password_hint), PersistentData.minPasswordLength()));
 	}
+
+	@Override
+	/** Common UI element, the menu button.*/
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.register, menu);
+		return true;
+	}
+
+	@Override
+	/** Common UI element, items in menu.*/
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will automatically handle clicks on the
+		// Home/Up button, so long as you specify a parent activity in AndroidManifest.xml.
+		switch (item.getItemId()) {
+			case R.id.action_enter_debug_interface:
+				PersistentData.isUnregisterDebugMode = true;
+				startActivity(new Intent(getApplicationContext(), DebugInterfaceActivity.class));
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
 
 	public synchronized void scanQrButtonPressed(View view) {
 		BarcodeCaptureActivity.checkQR = new Callable<Boolean>() {
@@ -165,7 +194,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 				responseCode = PostRequest.httpRegister(parameters, url);
 
 				// If we are not using anonymized hashing, resubmit the phone identifying information
-				if (responseCode == 200 && !PersistentData.getEnabled(PersistentData.USE_ANONYMIZED_HASHING)) { // This short circuits so if the initial register fails, it won't try here
+				if (responseCode == 200 && !PersistentData.getBoolean(PersistentData.USE_ANONYMIZED_HASHING)) { // This short circuits so if the initial register fails, it won't try here
 					try {
 						//Sleep for one second so the backend does not receive information with overlapping timestamps
 						Thread.sleep(1000);
@@ -223,6 +252,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	protected void onResume() {
 		super.onResume();
 		activityNotVisible = false;
+		PersistentData.isUnregisterDebugMode = false;
 		
 		// This used to be in an else block, its idempotent and we appear to have been having problems with it not having been run.
 		DeviceInfo.initialize(getApplicationContext());
@@ -232,11 +262,12 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 			thisResumeCausedByFalseActivityReturn = false;
 			return;
 		}
-		if ( !PermissionHandler.checkAccessReadSms(getApplicationContext()) && !thisResumeCausedByFalseActivityReturn) {
-			if (shouldShowRequestPermissionRationale(Manifest.permission.READ_SMS) ) {
-				if (!prePromptActive && !postPromptActive ) { showPostPermissionAlert(this); } 
-			}
-			else if (!prePromptActive && !postPromptActive ) { showPrePermissionAlert(this); }
+		if ( !PermissionHandler.checkAccessReadPhoneState(getApplicationContext()) && !thisResumeCausedByFalseActivityReturn) {
+			if ( !prePromptActive && !postPromptActive )
+				if ( shouldShowRequestPermissionRationale(phone_number_permission) )
+					showPostPermissionAlert(this);
+				else
+					showPrePermissionAlert(this);
 		}
 	}
 	
@@ -271,7 +302,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 	public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
 		if ( activityNotVisible ) return; //this is identical logical progression to the way it works in SessionActivity.
 		for ( int i = 0; i < grantResults.length; ++i ) {
-			if ( permissions[i].equals( Manifest.permission.READ_SMS ) ) {
+			if ( permissions[i].equals( phone_number_permission ) ) {
 				if ( grantResults[i] == PermissionHandler.PERMISSION_GRANTED ) { break; }
 				if ( shouldShowRequestPermissionRationale(permissions[i]) )
 					showPostPermissionAlert(this ); //(shouldShow... "This method returns true if the app has requested this permission previously and the user denied the request.")
@@ -289,7 +320,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		builder.setTitle("Permissions Requirement:");
 		builder.setMessage(R.string.permission_registration_read_sms_alert);
 		builder.setOnDismissListener( new DialogInterface.OnDismissListener() { @Override public void onDismiss(DialogInterface dialog) {
-			activity.requestPermissions(new String[]{ Manifest.permission.READ_SMS }, PERMISSION_CALLBACK );
+			activity.requestPermissions(new String[]{ phone_number_permission }, PERMISSION_CALLBACK );
 			prePromptActive = false;
 		} } );
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) { } } ); //Okay button

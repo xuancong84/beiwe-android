@@ -113,7 +113,6 @@ public class PermissionHandler {
 	public static Boolean checkAccessReceiveMms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_MMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessReceiveSms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessRecordAudio(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED;} else { return true; } }
-	public static Boolean checkBindAccessibility(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.BIND_ACCESSIBILITY_SERVICE) == PERMISSION_GRANTED;} else { return true; } }
 	public static Boolean checkGetTasks(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.GET_TASKS) == PERMISSION_GRANTED;} else { return true; } }
 
 	public static boolean checkGpsPermissions( Context context ) { return ( checkAccessFineLocation(context) ); }

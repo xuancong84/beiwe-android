@@ -11,7 +11,8 @@ import android.hardware.SensorManager;
 import android.util.Log;
 
 public class GyroscopeListener implements SensorEventListener{
-	public static String header = "timestamp,accuracy,x,y,z";
+	public static final String name = "gyro";
+	public static final String header = "timestamp,accuracy,x,y,z";
 
 	private SensorManager gyroSensorManager;
 	private Sensor gyroSensor;
