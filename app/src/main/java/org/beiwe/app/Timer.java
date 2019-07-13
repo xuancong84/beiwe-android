@@ -42,6 +42,7 @@ public class Timer {
 	public static Intent checkForSMSEnabled;
 	public static Intent checkForCallsEnabled;
 	public static Intent ambientLightIntent;
+	public static Intent ambientTemperatureIntent;
 	public static Intent usageIntent;
 
 	// Constructor
@@ -53,6 +54,7 @@ public class Timer {
 		accelerometerOffIntent = setupIntent( appContext.getString(R.string.turn_accelerometer_off) );
 		accelerometerOnIntent = setupIntent( appContext.getString(R.string.turn_accelerometer_on) );
 		ambientLightIntent = setupIntent( appContext.getString(R.string.turn_ambientlight_on) );
+		ambientTemperatureIntent = setupIntent( appContext.getString(R.string.turn_ambienttemperature_on) );
 		bluetoothOffIntent = setupIntent( appContext.getString(R.string.turn_bluetooth_off) );
 		bluetoothOnIntent = setupIntent( appContext.getString(R.string.turn_bluetooth_on) );
 		gyroscopeOffIntent = setupIntent( appContext.getString(R.string.turn_gyroscope_off) );

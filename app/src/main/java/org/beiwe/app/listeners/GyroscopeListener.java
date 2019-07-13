@@ -1,5 +1,6 @@
 package org.beiwe.app.listeners;
 
+import org.beiwe.app.BackgroundService;
 import org.beiwe.app.storage.TextFileManager;
 
 import android.content.Context;
@@ -14,15 +15,9 @@ public class GyroscopeListener implements SensorEventListener{
 	public static final String name = "gyro";
 	public static final String header = "timestamp,accuracy,x,y,z";
 
-	private SensorManager gyroSensorManager;
 	private Sensor gyroSensor;
-
-	private Context appContext;
-	private PackageManager pkgManager;
-
 	private Boolean exists = null;
 	private Boolean enabled = null;
-
 	private String accuracy;
 
 	public Boolean check_status(){
@@ -34,20 +29,12 @@ public class GyroscopeListener implements SensorEventListener{
 	 * Gyroscope log.
 	 * @param applicationContext a Context from an activity or service. */
 	public GyroscopeListener(Context applicationContext){
-		this.appContext = applicationContext;
-		this.pkgManager = appContext.getPackageManager();
 		this.accuracy = "unknown";
-		this.exists = pkgManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
+		this.exists = BackgroundService.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
 
 		if (this.exists) {
 			enabled = false;
-			this.gyroSensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
-			if (this.gyroSensorManager ==  null ) {
-				Log.e("Gyroscope Problems", "gyroSensorManager does not exist? (1)" );
-				TextFileManager.getDebugLogFile().writeEncrypted("gyroSensorManager does not exist? (1)");
-				exists = false;	}
-
-			this.gyroSensor = gyroSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+			this.gyroSensor = BackgroundService.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 			if (this.gyroSensor == null ) {
 				Log.e("Gyroscope Problems", "gyroSensor does not exist? (2)" );
 				TextFileManager.getDebugLogFile().writeEncrypted("gyroSensor does not exist? (2)");
@@ -55,13 +42,14 @@ public class GyroscopeListener implements SensorEventListener{
 		} }
 
 	public synchronized void turn_on() {
-		if ( !gyroSensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL) ) {
+		if ( !this.exists ) return;
+		if ( !BackgroundService.sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL) ) {
 			Log.e("Gyroscope", "Gyroscope is broken");
 			TextFileManager.getDebugLogFile().writeEncrypted("Trying to start Gyroscope session, device cannot find Gyroscope."); }
 		enabled = true;	}
 
 	public synchronized void turn_off(){
-		gyroSensorManager.unregisterListener(this);
+		BackgroundService.sensorManager.unregisterListener(this);
 		enabled = false; }
 
 	/** Update the accuracy, synchronized so very closely timed trigger events do not overlap.

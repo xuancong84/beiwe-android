@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -49,6 +50,7 @@ public class BackgroundService extends Service {
 	private Context appContext;
 	public AccelerometerListener accelerometerListener;
 	public AmbientLightListener ambientLightListener;
+	public AmbientTemperatureListener ambientTemperatureListener;
 	public BluetoothListener bluetoothListener;
 	public GPSListener gpsListener;
 	public GyroscopeListener gyroscopeListener;
@@ -76,6 +78,8 @@ public class BackgroundService extends Service {
 	public static ApplicationInfo appInfo = null;
 	public static AppOpsManager opsManager = null;
 	public static AccessibilityManager accessibilityManager = null;
+	public static SensorManager sensorManager = null;
+	public static PackageManager packageManager = null;
 
 	@Override
 	/** onCreate is essentially the constructor for the service, initialize variables here. */
@@ -84,6 +88,8 @@ public class BackgroundService extends Service {
 		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		usageStatsManager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
 		accessibilityManager = (AccessibilityManager)getSystemService(Context.ACCESSIBILITY_SERVICE);
+		packageManager = appContext.getPackageManager();
+		sensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
 		try {
 			appInfo = getPackageManager().getApplicationInfo(getPackageName(), 0);
 		} catch (Exception e) {
@@ -140,6 +146,8 @@ public class BackgroundService extends Service {
 			accelerometerListener = new AccelerometerListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.AMBIENTLIGHT) && ambientLightListener==null )
 			ambientLightListener = new AmbientLightListener( appContext );
+		if ( PersistentData.getEnabled(PersistentData.AMBIENTTEMPERATURE) && ambientTemperatureListener==null )
+			ambientTemperatureListener = new AmbientTemperatureListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.GYROSCOPE) && gyroscopeListener==null )
 			gyroscopeListener = new GyroscopeListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.TAPS) && !isTapAdded )
@@ -262,6 +270,7 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.turn_accelerometer_off ) );
 		filter.addAction( appContext.getString( R.string.turn_accelerometer_on ) );
 		filter.addAction( appContext.getString( R.string.turn_ambientlight_on ) );
+		filter.addAction( appContext.getString( R.string.turn_ambienttemperature_on ) );
 		filter.addAction( appContext.getString( R.string.turn_bluetooth_off ) );
 		filter.addAction( appContext.getString( R.string.turn_bluetooth_on ) );
 		filter.addAction( appContext.getString( R.string.turn_gps_off ) );
@@ -321,6 +330,14 @@ public class BackgroundService extends Service {
 			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_ambientlight_on )) < now || //the most recent accelerometer alarm time is in the past, or...
 					!timer.alarmIsSet(Timer.ambientLightIntent) ) { //there is no scheduled accelerometer-on timer.
 				sendBroadcast(Timer.ambientLightIntent); // start accelerometer timers (immediately runs accelerometer recording session).
+				//note: when there is no off timer that means we are in-between scans.  This state is fine, so we don't check for it.
+			}
+		}
+
+		if (PersistentData.getEnabled(PersistentData.AMBIENTTEMPERATURE)) {  //if ambient light data recording is enabled and...
+			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_ambienttemperature_on )) < now || //the most recent accelerometer alarm time is in the past, or...
+					!timer.alarmIsSet(Timer.ambientTemperatureIntent) ) { //there is no scheduled accelerometer-on timer.
+				sendBroadcast(Timer.ambientTemperatureIntent); // start accelerometer timers (immediately runs accelerometer recording session).
 				//note: when there is no off timer that means we are in-between scans.  This state is fine, so we don't check for it.
 			}
 		}
@@ -425,7 +442,7 @@ public class BackgroundService extends Service {
 			/** Enable active sensors, reset timers. */
 			//Accelerometer. We automatically have permissions required for accelerometer.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_accelerometer_on) ) ) {
-				if ( !PersistentData.getEnabled(PersistentData.ACCELEROMETER) ) { Log.e("BackgroundService Listener", "invalid Accelerometer on received"); return; }
+				if ( accelerometerListener == null ) accelerometerListener = new AccelerometerListener( appContext );
 				accelerometerListener.turn_on();
 				//start both the sensor-off-action timer, and the next sensor-on-timer.
 				long off_duration = PersistentData.getAccelerometerOffDurationMilliseconds();
@@ -438,16 +455,25 @@ public class BackgroundService extends Service {
 
 			//AmbientLight. We automatically have permissions required for ambient light sensor.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_ambientlight_on) ) ) {
-				if ( !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT) ) { Log.e("BackgroundService Listener", "invalid AmbientLight on received"); return; }
+				if ( ambientLightListener == null ) ambientLightListener = new AmbientLightListener( appContext );
 				ambientLightListener.turn_on();
 				//start the next sensor-on-timer.
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getAmbientLightIntervalMilliseconds(), Timer.ambientLightIntent);
 				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_ambientlight_on), alarmTime );
 				return; }
 
+			//AmbientTemperature. We automatically have permissions required for ambient temperature sensor.
+			if (broadcastAction.equals( appContext.getString(R.string.turn_ambienttemperature_on) ) ) {
+				if ( ambientTemperatureListener == null ) ambientTemperatureListener = new AmbientTemperatureListener( appContext );
+				ambientTemperatureListener.turn_on();
+				//start the next sensor-on-timer.
+				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getAmbientTemperatureIntervalMilliseconds(), Timer.ambientTemperatureIntent);
+				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_ambienttemperature_on), alarmTime );
+				return; }
+
 			//Gyroscope. Almost identical logic to accelerometer above.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gyroscope_on) ) ) {
-				if ( !PersistentData.getEnabled(PersistentData.GYROSCOPE) ) { Log.e("BackgroundService Listener", "invalid Gyroscope on received"); return; }
+				if ( gyroscopeListener == null ) gyroscopeListener = new GyroscopeListener( appContext );
 				gyroscopeListener.turn_on();
 				long off_duration = PersistentData.getGyroOffDurationMilliseconds();
 				if(off_duration>0)
@@ -458,7 +484,7 @@ public class BackgroundService extends Service {
 
 			//GPS. Almost identical logic to accelerometer above.
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gps_on) ) ) {
-				if ( !PersistentData.getEnabled(PersistentData.GPS) ) { Log.e("BackgroundService Listener", "invalid GPS on received"); return; }
+				if ( gpsListener == null ) gpsListener = new GPSListener( appContext );
 				gpsListener.turn_on();
 				long off_duration = PersistentData.getGpsOffDurationMilliseconds();
 				if(off_duration>0)
@@ -469,7 +495,7 @@ public class BackgroundService extends Service {
 
 			//run a wifi scan.  Most similar to GPS, but without an off-timer.
 			if (broadcastAction.equals( appContext.getString(R.string.run_wifi_log) ) ) {
-				if ( !PersistentData.getEnabled(PersistentData.WIFI) ) { Log.e("BackgroundService Listener", "invalid WiFi scan received"); return; }
+				if ( wifiListener == null ) wifiListener = WifiListener.initialize( appContext );
 				if ( PermissionHandler.checkWifiPermissions(appContext) ) { WifiListener.scanWifi(); }
 				else { TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " user has not provided permission for Wifi."); }
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getWifiLogFrequencyMilliseconds(), Timer.wifiLogIntent);
@@ -478,7 +504,7 @@ public class BackgroundService extends Service {
 
 			//Usage update. We automatically have permissions required for usage.
 			if (broadcastAction.equals( appContext.getString(R.string.update_usage) ) ) {
-				if ( !PersistentData.getEnabled(PersistentData.USAGE) ) { Log.e("BackgroundService Listener", "invalid Update Usage on received"); return; }
+				if ( usageListener == null ) usageListener = new UsageListener( appContext );
 				usageListener.updateUsage();
 				//start the next sensor-on-timer.
 				long alarmTime = timer.setupExactSingleAlarm(PersistentData.getUsageUpdateIntervalMilliseconds(), Timer.usageIntent);

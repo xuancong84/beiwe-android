@@ -1,5 +1,6 @@
 package org.beiwe.app.listeners;
 
+import org.beiwe.app.BackgroundService;
 import org.beiwe.app.storage.TextFileManager;
 
 import android.content.Context;
@@ -14,15 +15,9 @@ public class AccelerometerListener implements SensorEventListener{
 	public static final String name = "accel";
 	public static final String header = "timestamp,accuracy,x,y,z";
 	
-	private SensorManager accelSensorManager;
 	private Sensor accelSensor;
-	
-	private Context appContext;
-	private PackageManager pkgManager;
-	
 	private Boolean exists = null;
 	private Boolean enabled = null;
-	
 	private String accuracy;
 	
 	public Boolean check_status(){ 
@@ -34,22 +29,13 @@ public class AccelerometerListener implements SensorEventListener{
 	 * accelerometer log.
 	 * @param applicationContext a Context from an activity or service. */
 	public AccelerometerListener(Context applicationContext){
-		this.appContext = applicationContext;
-		this.pkgManager = appContext.getPackageManager();
 		this.accuracy = "";
-		this.exists = pkgManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER);
+		this.exists = BackgroundService.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER);
 		
 		if (this.exists) {
 			enabled = false;
-			this.accelSensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
-			if (this.accelSensorManager == null) {
-				Log.e("Accelerometer Problems", "accelSensorManager does not exist? (1)");
-				TextFileManager.getDebugLogFile().writeEncrypted("accelSensorManager does not exist? (1)");
-				exists = false;
-			}
-
-			this.accelSensor = accelSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-			if (this.accelSensor == null) {
+			accelSensor = BackgroundService.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+			if (accelSensor == null) {
 				Log.e("Accelerometer Problems", "accelSensor does not exist? (2)");
 				TextFileManager.getDebugLogFile().writeEncrypted("accelSensor does not exist? (2)");
 				exists = false;
@@ -58,13 +44,14 @@ public class AccelerometerListener implements SensorEventListener{
 	}
 
 	public synchronized void turn_on() {
-		if ( !accelSensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL) ) {
+		if ( !this.exists ) return;
+		if ( !BackgroundService.sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL) ) {
 			Log.e("Accelerometer", "Accelerometer is broken");
 			TextFileManager.getDebugLogFile().writeEncrypted("Trying to start Accelerometer session, device cannot find accelerometer."); }
 		enabled = true;	}
 	
 	public synchronized void turn_off(){
-		accelSensorManager.unregisterListener(this);
+		BackgroundService.sensorManager.unregisterListener(this);
 		enabled = false; }
 	
 	/** Update the accuracy, synchronized so very closely timed trigger events do not overlap.

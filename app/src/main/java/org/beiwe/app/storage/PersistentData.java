@@ -46,6 +46,7 @@ public class PersistentData {
 	public static final String ACCELEROMETER = "accelerometer";
 	public static final String ACCESSIBILITY = "accessibility";
 	public static final String AMBIENTLIGHT = "ambientlight";
+	public static final String AMBIENTTEMPERATURE = "ambienttemperature";
 	public static final String GYROSCOPE = "gyro";
 	public static final String GPS = "gps";
 	public static final String CALLS = "calls";
@@ -61,6 +62,7 @@ public class PersistentData {
 			ACCELEROMETER,
 			ACCESSIBILITY,
 			AMBIENTLIGHT,
+			AMBIENTTEMPERATURE,
 			GYROSCOPE,
 			GPS,
 			CALLS,
@@ -76,6 +78,7 @@ public class PersistentData {
 	private static final String ACCELEROMETER_OFF_DURATION_SECONDS = "accelerometer_off_duration_seconds";
 	private static final String ACCELEROMETER_ON_DURATION_SECONDS = "accelerometer_on_duration_seconds";
 	private static final String AMBIENTLIGHT_INTERVAL_SECONDS = "ambientlight_interval_seconds";
+	private static final String AMBIENTTEMPERATURE_INTERVAL_SECONDS = "ambienttemperature_interval_seconds";
 	private static final String BLUETOOTH_ON_DURATION_SECONDS = "bluetooth_on_duration_seconds";
 	private static final String BLUETOOTH_TOTAL_DURATION_SECONDS = "bluetooth_total_duration_seconds";
 	private static final String BLUETOOTH_GLOBAL_OFFSET_SECONDS = "bluetooth_global_offset_seconds";
@@ -95,6 +98,7 @@ public class PersistentData {
 			ACCELEROMETER_OFF_DURATION_SECONDS,
 			ACCELEROMETER_ON_DURATION_SECONDS,
 			AMBIENTLIGHT_INTERVAL_SECONDS,
+			AMBIENTTEMPERATURE_INTERVAL_SECONDS,
 			BLUETOOTH_ON_DURATION_SECONDS,
 			BLUETOOTH_TOTAL_DURATION_SECONDS,
 			BLUETOOTH_GLOBAL_OFFSET_SECONDS,
@@ -225,6 +229,7 @@ public class PersistentData {
 	private static final long DEFAULT_ACCELEROMETER_OFF_MINIMUM_DURATION = 10 * 60;
 	private static final long DEFAULT_ACCELEROMETER_ON_DURATION = 10 * 60;
 	private static final long DEFAULT_AMBIENTLIGHT_MINIMUM_INTERVAL = 60;
+	private static final long DEFAULT_AMBIENTTEMPERATURE_MINIMUM_INTERVAL = 60;
 	private static final long DEFAULT_BLUETOOTH_ON_DURATION = 1 * 60;
 	private static final long DEFAULT_BLUETOOTH_TOTAL_DURATION = 5 * 60;
 	private static final long DEFAULT_BLUETOOTH_GLOBAL_OFFSET = 0 * 60;
@@ -243,6 +248,7 @@ public class PersistentData {
 	public static long getAccelerometerOffDurationMilliseconds() { return 1000L * pref.getLong(ACCELEROMETER_OFF_DURATION_SECONDS, DEFAULT_ACCELEROMETER_OFF_MINIMUM_DURATION); }
 	public static long getAccelerometerOnDurationMilliseconds() { return 1000L * pref.getLong(ACCELEROMETER_ON_DURATION_SECONDS, DEFAULT_ACCELEROMETER_ON_DURATION); }
 	public static long getAmbientLightIntervalMilliseconds() { return 1000L * pref.getLong(AMBIENTLIGHT_INTERVAL_SECONDS, DEFAULT_AMBIENTLIGHT_MINIMUM_INTERVAL); }
+	public static long getAmbientTemperatureIntervalMilliseconds() { return 1000L * pref.getLong(AMBIENTTEMPERATURE_INTERVAL_SECONDS, DEFAULT_AMBIENTTEMPERATURE_MINIMUM_INTERVAL); }
 	public static long getBluetoothOnDurationMilliseconds() { return 1000L * pref.getLong(BLUETOOTH_ON_DURATION_SECONDS, DEFAULT_BLUETOOTH_ON_DURATION); }
 	public static long getBluetoothTotalDurationMilliseconds() { return 1000L * pref.getLong(BLUETOOTH_TOTAL_DURATION_SECONDS, DEFAULT_BLUETOOTH_TOTAL_DURATION); }
 	public static long getBluetoothGlobalOffsetMilliseconds() { return 1000L * pref.getLong(BLUETOOTH_GLOBAL_OFFSET_SECONDS, DEFAULT_BLUETOOTH_GLOBAL_OFFSET); }

@@ -57,8 +57,8 @@
 				android:id="@+id/debugtext1"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:textColor="#ffff0000"
-				android:text="(You cannot trigger recording sessions for data streams that are disabled in the study configuration on studies.beiwe.org)" />
+                android:textStyle="bold"
+				android:text="@string/debug_activity_trigger_warn" />
 
 			<Button
 				android:id="@+id/buttonStopConsole"
@@ -209,6 +209,13 @@
 				android:layout_height="wrap_content"
 				android:onClick="ambientLightOn"
 				android:text="Trigger Ambient Light Recording" />
+
+			<Button
+				android:id="@+id/buttonEnableAmbientTemperature"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="ambientTemperatureOn"
+				android:text="Trigger Ambient Temperature Recording" />
 
 			<Button
 				android:id="@+id/buttonUpdateUsage"

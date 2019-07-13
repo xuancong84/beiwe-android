@@ -1,6 +1,5 @@
 package org.beiwe.app.ui;
 
-import java.io.File;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.beiwe.app.Timer;
 import org.beiwe.app.listeners.AccelerometerListener;
 import org.beiwe.app.listeners.AccessibilityListener;
 import org.beiwe.app.listeners.AmbientLightListener;
+import org.beiwe.app.listeners.AmbientTemperatureListener;
 import org.beiwe.app.listeners.BluetoothListener;
 import org.beiwe.app.listeners.GPSListener;
 import org.beiwe.app.listeners.GyroscopeListener;
@@ -38,10 +38,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.support.v7.app.AlertDialog;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -52,6 +50,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	//extends a session activity.
 	Context appContext;
 	private static TextView logcat_view;
+	private static TextView debug_warn_text;
+	private static Button debug_stop_button;
 	private static ScrollView logcat_scroll;
 	private static String logcat_text = "";
 
@@ -82,6 +82,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_debug_interface);
 		appContext = getApplicationContext();
+		debug_warn_text = findViewById(R.id.debugtext1);
+		debug_stop_button = findViewById(R.id.buttonStopConsole);
 		logcat_view = findViewById(R.id.logcat_view);
 		logcat_scroll = findViewById(R.id.logcat_scroll);
 		logcat_scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -93,8 +95,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 		});
 
 		// activity has restarted, restore the original display content
-		if (!logcat_text.isEmpty())
-			logcat_view.setText( logcat_text );
+		if (!show_feature.isEmpty())
+			toggleConsole(show_feature);
 
 		// set long click listener
 		Object longClickButtons[][] = {
@@ -103,6 +105,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ AccelerometerListener.class, R.id.buttonEnableAccelerometer, R.id.buttonDisableAccelerometer },
 				{ AccessibilityListener.class, R.id.buttonEnableAccessibility, R.id.buttonDisableAccessibility },
 				{ AmbientLightListener.class, R.id.buttonEnableAmbientLight },
+				{ AmbientTemperatureListener.class, R.id.buttonEnableAmbientTemperature },
 				{ GyroscopeListener.class, R.id.buttonEnableGyroscope, R.id.buttonDisableGyroscope },
 				{ TapsListener.class, R.id.buttonEnableTaps, R.id.buttonDisableTaps },
 				{ UsageListener.class, R.id.buttonUpdateUsage },
@@ -124,9 +127,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 					@Override
 					public boolean onLongClick(View view) {
 						try {
-							show_feature = name;
 							logcat_text = name+": "+header;
-							logcat_view.setText(logcat_text);
+							toggleConsole(name);
 							Toast.makeText(appContext,"Output console shows "+name, Toast.LENGTH_SHORT).show();
 						} catch (Exception e) {}
 						return true;
@@ -146,9 +148,11 @@ public class DebugInterfaceActivity extends SessionActivity {
 				int p = logcat_text.indexOf('\n');
 				logcat_text = (p<0?"":logcat_text.substring(p+1));
 			}
-			logcat_view.setText( logcat_text );
-			if( atBottom )
-				logcat_scroll.scrollTo(0, logcat_view.getBottom() );
+			try {
+				logcat_view.setText(logcat_text);
+				if (atBottom)
+					logcat_scroll.scrollTo(0, logcat_view.getBottom());
+			} catch (Exception e) { }
 		}
 	}
 
@@ -160,6 +164,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void gyroscopeOn (View view) { appContext.sendBroadcast( Timer.gyroscopeOnIntent ); }
 	public void gyroscopeOff (View view) { appContext.sendBroadcast( Timer.gyroscopeOffIntent ); }
 	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
+	public void ambientTemperatureOn (View view) { appContext.sendBroadcast( Timer.ambientTemperatureIntent); }
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
 	public void tapsOn (View view) { backgroundService.tapsListener.addView(); }
@@ -168,7 +173,16 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void usageUpdate (View view) { appContext.sendBroadcast( Timer.usageIntent ); }
 	public void bluetoothButtonStart (View view) { appContext.sendBroadcast(Timer.bluetoothOnIntent); }
 	public void bluetoothButtonStop (View view) { appContext.sendBroadcast(Timer.bluetoothOffIntent); }
-	public void stopConsole (View view) { logcat_text = show_feature = ""; logcat_view.setText("debugger console"); }
+	public void stopConsole (View view) { logcat_text = ""; toggleConsole(""); }
+
+	public void toggleConsole(String new_feature){
+		show_feature = new_feature;
+		boolean active = !new_feature.isEmpty();
+		logcat_view.setText(active?logcat_text:"Beiwe debug console");
+		debug_stop_button.setTextColor(active?0xffff0000:0xff000000);
+		debug_warn_text.setTextColor(active?0xffff0000:0xff000000);
+		debug_warn_text.setText(active?R.string.debug_activity_logging_warn:R.string.debug_activity_trigger_warn);
+	}
 
 	//raw debugging info
 	public void printInternalLog(View view) {

@@ -1,5 +1,6 @@
 package org.beiwe.app.listeners;
 
+import org.beiwe.app.BackgroundService;
 import org.beiwe.app.CrashHandler;
 import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.storage.PersistentData;
@@ -28,7 +29,6 @@ public class GPSListener implements LocationListener {
 	public static final String header = "timestamp,latitude,longitude,altitude,accuracy";
 	
 	private Context appContext;
-	private PackageManager pkgManager;
 	private LocationManager locationManager;
 
 	private Boolean enabled = null;
@@ -46,7 +46,6 @@ public class GPSListener implements LocationListener {
 	 * @param appContext A Context provided an Activity or Service. */
 	public GPSListener (Context appContext) {
 		this.appContext = appContext;
-		pkgManager = this.appContext.getPackageManager();
 		enabled = false;
 		Log.d("initializing GPS...", "initializing GPS...");
 		//There is a possibility (mostly in development) that this will not be instantiated all the time, so we instantiate an extra one here.
@@ -62,8 +61,8 @@ public class GPSListener implements LocationListener {
 		if ( !coarsePermissible ) { makeDebugLogStatement("Beiwe has not been granted permissions for coarse location updates."); }
 		if ( !finePermissible ) { makeDebugLogStatement("Beiwe has not been granted permissions for fine location updates."); }
 
-		Boolean fineExists = pkgManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
-		Boolean coarseExists = pkgManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_NETWORK);
+		Boolean fineExists = BackgroundService.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+		Boolean coarseExists = BackgroundService.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_NETWORK);
 
 		if ( !fineExists ){ makeDebugLogStatement("Fine location updates are unsupported on this device."); }
 		if ( !coarseExists ){ makeDebugLogStatement("Coarse location updates are unsupported on this device."); }

@@ -46,6 +46,7 @@ public class TextFileManager {
 	private static TextFileManager accelFile;
 	private static TextFileManager accessibilityLog;
 	private static TextFileManager ambientLightFile;
+	private static TextFileManager ambientTemperatureFile;
 	private static TextFileManager gyroFile;
 	private static TextFileManager powerStateLog;
 	private static TextFileManager callLog;
@@ -76,6 +77,7 @@ public class TextFileManager {
 	public static TextFileManager getAccelFile() { checkAvailableWithTimeout("accelFile"); return accelFile; }
 	public static TextFileManager getAccessibilityLogFile() { checkAvailableWithTimeout("accessibilityLog"); return accessibilityLog; }
 	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout("ambientLightFile"); return ambientLightFile; }
+	public static TextFileManager getAmbientTemperatureFile() { checkAvailableWithTimeout("ambientTemperatureFile"); return ambientTemperatureFile; }
 	public static TextFileManager getGyroFile() { checkAvailableWithTimeout("gyroFile"); return gyroFile; }
 	public static TextFileManager getGPSFile() { checkAvailableWithTimeout("GPSFile"); return GPSFile; }
 	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout("powerStateLog"); return powerStateLog; }
@@ -97,6 +99,7 @@ public class TextFileManager {
 		if (thing.equals("accelFile") ) { return (accelFile != null); }
 		if (thing.equals("accessibilityLog") ) { return (accessibilityLog != null); }
 		if (thing.equals("ambientLightFile") ) { return (ambientLightFile != null); }
+		if (thing.equals("ambientTemperatureFile") ) { return (ambientTemperatureFile != null); }
 		if (thing.equals("gyroFile") ) { return (gyroFile != null); }
 		if (thing.equals("GPSFile") ) { return (GPSFile != null); }
 		if (thing.equals("powerStateLog") ) { return (powerStateLog != null); }
@@ -167,6 +170,7 @@ public class TextFileManager {
 		accelFile = new TextFileManager(appContext, AccelerometerListener.name, AccelerometerListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCELEROMETER));
 		accessibilityLog = new TextFileManager(appContext, AccessibilityListener.name, AccessibilityListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.ACCESSIBILITY));
 		ambientLightFile = new TextFileManager(appContext, AmbientLightListener.name, AmbientLightListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT));
+		ambientTemperatureFile = new TextFileManager(appContext, AmbientTemperatureListener.name, AmbientTemperatureListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTTEMPERATURE));
 		gyroFile = new TextFileManager(appContext, GyroscopeListener.name, GyroscopeListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GYROSCOPE));
 		tapsLog = new TextFileManager(appContext, TapsListener.name, TapsListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.TAPS));
 		textsLog = new TextFileManager(appContext, SmsSentLogger.name, SmsSentLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.TEXTS));
@@ -419,6 +423,7 @@ public class TextFileManager {
 		accelFile.newFile();
 		accessibilityLog.newFile();
 		ambientLightFile.newFile();
+		ambientTemperatureFile.newFile();
 		gyroFile.newFile();
 		powerStateLog.newFile();
 		callLog.newFile();
@@ -451,6 +456,7 @@ public class TextFileManager {
 		files.remove(TextFileManager.getAccelFile().fileName);
 		files.remove(TextFileManager.getAccessibilityLogFile().fileName);
 		files.remove(TextFileManager.getAmbientLightFile().fileName);
+		files.remove(TextFileManager.getAmbientTemperatureFile().fileName);
 		files.remove(TextFileManager.getGyroFile().fileName);
 		files.remove(TextFileManager.getPowerStateFile().fileName);
 		files.remove(TextFileManager.getCallLogFile().fileName);
