@@ -1,13 +1,35 @@
 package org.beiwe.app.listeners;
 
+/*************************************************************************
+ *
+ * MOH Office of Healthcare Transformation (MOHT) CONFIDENTIAL
+ *
+ *  Copyright 2018-2019
+ *  All Rights Reserved.
+ *
+ * NOTICE:  All information contained herein is, and remains
+ * the property of MOH Office of Healthcare Transformation.
+ * The intellectual and technical concepts contained
+ * herein are proprietary to MOH Office of Healthcare Transformation
+ * and may be covered by Singapore, U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from MOH Office of Healthcare Transformation.
+ */
+
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -17,24 +39,52 @@ import org.beiwe.app.storage.TextFileManager;
 
 import java.util.List;
 
+import static android.graphics.PixelFormat.TRANSLUCENT;
+import static android.view.WindowManager.LayoutParams.*;
+
 public class AccessibilityListener extends AccessibilityService {
 	public static final String name = "accessibilityLog";
 	public static final String header = "timestamp,packageName,className,text,orientation";
 	public static boolean listen = false;
 	public static AccessibilityListener mSelf = null;
 
+	private class AccessibilityOverlayView extends View {
+		AccessibilityOverlayView(Context paramContext) { super(paramContext); }
+
+		private String last_appname = "";
+
+		@SuppressLint({"ClickableViewAccessibility"})
+		public boolean onTouchEvent( MotionEvent paramMotionEvent )
+		{
+			super.onTouchEvent( paramMotionEvent );
+			if ( paramMotionEvent != null ) {
+				String appname = TextFileManager.CS2S(BackgroundService.localHandle.getForegroundAppName());
+				String data = System.currentTimeMillis()
+						+ TextFileManager.DELIMITER + ( appname.equals(last_appname)?"":appname )
+						+ TextFileManager.DELIMITER + getApplicationContext().getResources().getConfiguration().orientation;
+				last_appname = appname;
+				TextFileManager.getTapsLogFile().writeEncrypted( data );
+			}
+			return false;
+		}
+	}
+
+	private Context hContext;
+	private AccessibilityOverlayView layerView;
 
 	@Override
 	protected void onServiceConnected() {
 		super.onServiceConnected();
 		listen = true;
 		mSelf = this;
+		hContext = getApplicationContext();
 		/* After reboot/power-on, the Android OS will resume all accessibility services before background services.
 		 * Thus, many BackgroundService pointers (including BackgroundService.localHandle) will be null
 		 * for a few seconds before the main service gets resumed by the OS. Here, we bring up the main
 		 * service immediately to speed up service resumption after reboot. */
 		if ( BackgroundService.localHandle == null )
-			BootListener.startBackgroundService( getApplicationContext() );
+			BootListener.startBackgroundService( hContext );
+
 	}
 
 	public static boolean isEnabled(Context context){

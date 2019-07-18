@@ -16,6 +16,25 @@ package org.beiwe.app.ui.qrcode;
  * limitations under the License.
  */
 
+/*
+ ************************************************************************
+ *
+ * MOH Office of Healthcare Transformation (MOHT) CONFIDENTIAL
+ *
+ *  Copyright 2018-2019
+ *  All Rights Reserved.
+ *
+ * NOTICE:  All codes herein, starting from Line 192 onwards, is and remains
+ * the property of MOH Office of Healthcare Transformation.
+ * The intellectual and technical concepts contained
+ * herein are proprietary to MOH Office of Healthcare Transformation
+ * and may be covered by Singapore, U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from MOH Office of Healthcare Transformation.
+ */
+
 import android.Manifest;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -87,6 +106,89 @@ public class CameraSourcePreview extends ViewGroup {
 		}
 	}
 
+	@RequiresPermission(Manifest.permission.CAMERA)
+	private void startIfReady() throws IOException, SecurityException {
+		if (mStartRequested && mSurfaceAvailable) {
+			mCameraSource.start(mSurfaceView.getHolder());
+			mStartRequested = false;
+		}
+	}
+
+	private class SurfaceCallback implements SurfaceHolder.Callback {
+		@Override
+		public void surfaceCreated(SurfaceHolder surface) {
+			mSurfaceAvailable = true;
+			try {
+				startIfReady();
+			} catch (SecurityException se) {
+				Log.e(TAG,"Do not have permission to start the camera", se);
+			} catch (IOException e) {
+				Log.e(TAG, "Could not start camera source.", e);
+			}
+		}
+
+		@Override
+		public void surfaceDestroyed(SurfaceHolder surface) {
+			mSurfaceAvailable = false;
+		}
+
+		@Override
+		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
+	}
+
+	@Override
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+		int W = right - left, H = bottom - top;
+		CameraSource.mRequestedPreviewWidth = Math.max(W, H);
+		CameraSource.mRequestedPreviewHeight = Math.min(W, H);
+		for( int x=0, X=getChildCount(); x<X; ++x )
+			getChildAt( x ).layout(0,0, W, H );
+
+		try {
+			startIfReady();
+		} catch (IOException e) {
+			Log.e(TAG, "Could not start camera source.", e);
+		} catch (SecurityException se) {
+			Log.e(TAG, "Does not have permission to start the camera.", se);
+		}
+	}
+
+	void reLayout( Size size ){
+		// Swap width and height sizes when in portrait, since it will be rotated 90 degrees
+		int previewHeight = size.getWidth();
+		int previewWidth = size.getHeight();
+
+		int viewWidth = getMeasuredWidth();
+		int viewHeight = getMeasuredHeight();
+
+		int childWidth, childHeight;
+		int childXOffset = 0, childYOffset = 0;
+		float widthRatio = (float) viewWidth / (float) previewWidth;
+		float heightRatio = (float) viewHeight / (float) previewHeight;
+
+		// To fill the view with the camera preview, while also preserving the correct aspect ratio,
+		// it is usually necessary to slightly oversize the child and to crop off portions along one
+		// of the dimensions.  We scale up based on the dimension requiring the most correction, and
+		// compute a crop offset for the other dimension.
+		if (widthRatio > heightRatio) {
+			childWidth = viewWidth;
+			childHeight = (int) ((float) previewHeight * widthRatio);
+			childYOffset = (childHeight - viewHeight) / 2;
+		} else {
+			childWidth = (int) ((float) previewWidth * heightRatio);
+			childHeight = viewHeight;
+			childXOffset = (childWidth - viewWidth) / 2;
+		}
+
+		// One dimension will be cropped.  We shift child over or up by this offset and adjust
+		// the size to maintain the proper aspect ratio.
+		for( int x=0, X=getChildCount(); x<X; ++x )
+			getChildAt( x ).layout(
+					-1 * childXOffset, -1 * childYOffset,
+					childWidth - childXOffset, childHeight - childYOffset);
+	}
+
+	/** Source codes below are MOHT confidential */
 	// Draw loop for the scanner beam overlay
 	private Paint paint = new Paint();
 	private int W, H, S, L, T, R, B, D, LEN;
@@ -185,87 +287,5 @@ public class CameraSourcePreview extends ViewGroup {
 		}
 
 		mOverlayHolder.unlockCanvasAndPost( canvas );
-	}
-
-	@RequiresPermission(Manifest.permission.CAMERA)
-	private void startIfReady() throws IOException, SecurityException {
-		if (mStartRequested && mSurfaceAvailable) {
-			mCameraSource.start(mSurfaceView.getHolder());
-			mStartRequested = false;
-		}
-	}
-
-	private class SurfaceCallback implements SurfaceHolder.Callback {
-		@Override
-		public void surfaceCreated(SurfaceHolder surface) {
-			mSurfaceAvailable = true;
-			try {
-				startIfReady();
-			} catch (SecurityException se) {
-				Log.e(TAG,"Do not have permission to start the camera", se);
-			} catch (IOException e) {
-				Log.e(TAG, "Could not start camera source.", e);
-			}
-		}
-
-		@Override
-		public void surfaceDestroyed(SurfaceHolder surface) {
-			mSurfaceAvailable = false;
-		}
-
-		@Override
-		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
-	}
-
-	@Override
-	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-		int W = right - left, H = bottom - top;
-		CameraSource.mRequestedPreviewWidth = Math.max(W, H);
-		CameraSource.mRequestedPreviewHeight = Math.min(W, H);
-		for( int x=0, X=getChildCount(); x<X; ++x )
-			getChildAt( x ).layout(0,0, W, H );
-
-		try {
-			startIfReady();
-		} catch (IOException e) {
-			Log.e(TAG, "Could not start camera source.", e);
-		} catch (SecurityException se) {
-			Log.e(TAG, "Does not have permission to start the camera.", se);
-		}
-	}
-
-	void reLayout( Size size ){
-		// Swap width and height sizes when in portrait, since it will be rotated 90 degrees
-		int previewHeight = size.getWidth();
-		int previewWidth = size.getHeight();
-
-		int viewWidth = getMeasuredWidth();
-		int viewHeight = getMeasuredHeight();
-
-		int childWidth, childHeight;
-		int childXOffset = 0, childYOffset = 0;
-		float widthRatio = (float) viewWidth / (float) previewWidth;
-		float heightRatio = (float) viewHeight / (float) previewHeight;
-
-		// To fill the view with the camera preview, while also preserving the correct aspect ratio,
-		// it is usually necessary to slightly oversize the child and to crop off portions along one
-		// of the dimensions.  We scale up based on the dimension requiring the most correction, and
-		// compute a crop offset for the other dimension.
-		if (widthRatio > heightRatio) {
-			childWidth = viewWidth;
-			childHeight = (int) ((float) previewHeight * widthRatio);
-			childYOffset = (childHeight - viewHeight) / 2;
-		} else {
-			childWidth = (int) ((float) previewWidth * heightRatio);
-			childHeight = viewHeight;
-			childXOffset = (childWidth - viewWidth) / 2;
-		}
-
-		// One dimension will be cropped.  We shift child over or up by this offset and adjust
-		// the size to maintain the proper aspect ratio.
-		for( int x=0, X=getChildCount(); x<X; ++x )
-			getChildAt( x ).layout(
-					-1 * childXOffset, -1 * childYOffset,
-					childWidth - childXOffset, childHeight - childYOffset);
 	}
 }

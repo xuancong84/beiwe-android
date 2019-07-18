@@ -1,5 +1,23 @@
 package org.beiwe.app.listeners;
 
+/*************************************************************************
+ *
+ * MOH Office of Healthcare Transformation (MOHT) CONFIDENTIAL
+ *
+ *  Copyright 2018-2019
+ *  All Rights Reserved.
+ *
+ * NOTICE:  All information contained herein is, and remains
+ * the property of MOH Office of Healthcare Transformation.
+ * The intellectual and technical concepts contained
+ * herein are proprietary to MOH Office of Healthcare Transformation
+ * and may be covered by Singapore, U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from MOH Office of Healthcare Transformation.
+ */
+
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.storage.PersistentData;
