@@ -3,6 +3,7 @@ package org.beiwe.app.ui;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.BuildConfig;
@@ -28,15 +29,18 @@ import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.survey.JsonSkipLogic;
+import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
 import org.beiwe.app.ui.user.MainMenuActivity;
 import org.beiwe.app.ui.utils.SurveyNotifications;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.renderscript.ScriptC;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -50,7 +54,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	//extends a session activity.
 	Context appContext;
 	private static TextView logcat_view;
-	private static TextView debug_warn_text;
+	private static TextView debug_intro_text;
 	private static Button debug_stop_button;
 	private static ScrollView logcat_scroll;
 	private static String logcat_text = "";
@@ -75,14 +79,27 @@ public class DebugInterfaceActivity extends SessionActivity {
 		public static final String header = "LIST ALL PERMISSIONS";
 	}
 
+	public class ScanQR {
+		public static final String name = "scanQR";
+		public static final String header = "QR code raw text";
+	}
+
 	private static boolean atBottom = true;
+
+	public void setConsoleMode(String new_feature){
+		show_feature = new_feature;
+		boolean active = !new_feature.isEmpty();
+		logcat_view.setText(active?logcat_text:"Beiwe debug console");
+		debug_stop_button.setVisibility(active?View.VISIBLE:View.GONE);
+		debug_intro_text.setVisibility(active?View.GONE:View.VISIBLE);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_debug_interface);
 		appContext = getApplicationContext();
-		debug_warn_text = findViewById(R.id.debugtext1);
+		debug_intro_text = findViewById(R.id.debugIntro);
 		debug_stop_button = findViewById(R.id.buttonStopConsole);
 		logcat_view = findViewById(R.id.logcat_view);
 		logcat_scroll = findViewById(R.id.logcat_scroll);
@@ -95,8 +112,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 		});
 
 		// activity has restarted, restore the original display content
-		if (!show_feature.isEmpty())
-			toggleConsole(show_feature);
+		setConsoleMode(show_feature);
 
 		// set long click listener
 		Object longClickButtons[][] = {
@@ -110,6 +126,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ TapsListener.class, R.id.buttonEnableTaps, R.id.buttonDisableTaps },
 				{ UsageListener.class, R.id.buttonUpdateUsage },
 				{ WifiListener.class, R.id.buttonWifiScan },
+				{ ScanQR.class, R.id.buttonTestQRscan},
 				{ LogFile.class, R.id.buttonPrintInternalLog, R.id.buttonClearInternalLog },
 				{ ListFile.class, R.id.buttonListFiles },
 				{ ListFeature.class, R.id.buttonFeaturesEnabled },
@@ -128,7 +145,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 					public boolean onLongClick(View view) {
 						try {
 							logcat_text = name+": "+header;
-							toggleConsole(name);
+							setConsoleMode(name);
 							Toast.makeText(appContext,"Output console shows "+name, Toast.LENGTH_SHORT).show();
 						} catch (Exception e) {}
 						return true;
@@ -173,15 +190,21 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void usageUpdate (View view) { appContext.sendBroadcast( Timer.usageIntent ); }
 	public void bluetoothButtonStart (View view) { appContext.sendBroadcast(Timer.bluetoothOnIntent); }
 	public void bluetoothButtonStop (View view) { appContext.sendBroadcast(Timer.bluetoothOffIntent); }
-	public void stopConsole (View view) { logcat_text = ""; toggleConsole(""); }
+	public void stopConsole (View view) { logcat_text = ""; setConsoleMode(""); }
+	public void testScanQR (View view){
+		BarcodeCaptureActivity.checkQR = new Callable<Boolean>() { public Boolean call() { return true; } };
+		startActivityForResult( new Intent( appContext, BarcodeCaptureActivity.class ), BARCODE_READER_REQUEST_CODE );
+	}
 
-	public void toggleConsole(String new_feature){
-		show_feature = new_feature;
-		boolean active = !new_feature.isEmpty();
-		logcat_view.setText(active?logcat_text:"Beiwe debug console");
-		debug_stop_button.setTextColor(active?0xffff0000:0xff000000);
-		debug_warn_text.setTextColor(active?0xffff0000:0xff000000);
-		debug_warn_text.setText(active?R.string.debug_activity_logging_warn:R.string.debug_activity_trigger_warn);
+	private final static int BARCODE_READER_REQUEST_CODE = 2600;
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch ( requestCode ) {
+			case BARCODE_READER_REQUEST_CODE:
+				smartLog(ScanQR.name, BarcodeCaptureActivity.scan_result);
+			default:
+				super.onActivityResult(requestCode, resultCode, data);
+		}
 	}
 
 	//raw debugging info

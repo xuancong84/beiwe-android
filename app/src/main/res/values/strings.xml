@@ -36,8 +36,8 @@
     <!-- Debug Menu Strings -->
     <string name="title_activity_debug_interface">Beiwe Debug Interface</string>
     <string name="title_activity_survey">Survey</string>
-    <string name="debug_activity_logging_warn">(Please click the below button before you leave as the debugger console will continue logging even if you close this APP)</string>
-    <string name="debug_activity_trigger_warn">(If registered to a study, you cannot trigger recording sessions for data streams that are disabled in the study configuration)</string>
+    <string name="debug_activity_logging_warn">Stop logging before you leave as the console will continue logging even if you close this APP</string>
+    <string name="debug_activity_trigger_warn">(If registered to a study, you cannot trigger recording sessions for data streams that require additional permission but are disabled in the study configuration)</string>
 
     <!-- Error Messages -->
     <string name="question_error_text">If you are reading this, something broke. Please contact the study administrators, and tell them that there is a bug in the survey!</string>

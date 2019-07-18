@@ -548,6 +548,7 @@ public class BackgroundService extends Service {
 			}
 			// Signs out the user. (does not set up a timer, that is handled in activity and sign-in logic) 
 			if (broadcastAction.equals( appContext.getString(R.string.signout_intent) ) ) {
+				if ( PersistentData.isUnregisterDebugMode || PersistentData.getMillisecondsBeforeAutoLogout() == 0 ) return;
 				PersistentData.logout();
 				Intent loginPage = new Intent(appContext, LoginActivity.class);
 				loginPage.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

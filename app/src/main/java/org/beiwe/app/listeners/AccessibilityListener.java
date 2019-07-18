@@ -2,9 +2,12 @@ package org.beiwe.app.listeners;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -19,6 +22,7 @@ public class AccessibilityListener extends AccessibilityService {
 	public static final String header = "timestamp,packageName,className,text,orientation";
 	public static boolean listen = false;
 	public static AccessibilityListener mSelf = null;
+
 
 	@Override
 	protected void onServiceConnected() {
