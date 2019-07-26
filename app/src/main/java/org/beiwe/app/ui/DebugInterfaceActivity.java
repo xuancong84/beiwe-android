@@ -56,6 +56,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	private static TextView logcat_view;
 	private static TextView debug_intro_text;
 	private static Button debug_stop_button;
+	private static Button toggle_gesture_button;
 	private static ScrollView logcat_scroll;
 	private static String logcat_text = "";
 
@@ -85,6 +86,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	}
 
 	private static boolean atBottom = true;
+	private static boolean isActive = false;
 
 	public void setConsoleMode(String new_feature){
 		show_feature = new_feature;
@@ -95,12 +97,26 @@ public class DebugInterfaceActivity extends SessionActivity {
 	}
 
 	@Override
+	protected void onStart() {
+		super.onStart();
+		isActive = true;
+		setConsoleMode(show_feature); // activity has restarted, restore the original display content
+	}
+
+	@Override
+	protected void onStop(){
+		super.onStop();
+		isActive = false;
+	}
+
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_debug_interface);
 		appContext = getApplicationContext();
 		debug_intro_text = findViewById(R.id.debugIntro);
 		debug_stop_button = findViewById(R.id.buttonStopConsole);
+		toggle_gesture_button = findViewById(R.id.buttonToggleGesture);
 		logcat_view = findViewById(R.id.logcat_view);
 		logcat_scroll = findViewById(R.id.logcat_scroll);
 		logcat_scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -110,9 +126,6 @@ public class DebugInterfaceActivity extends SessionActivity {
 				atBottom = (diff == 0);	// if diff is zero, then the bottom has been reached
 			}
 		});
-
-		// activity has restarted, restore the original display content
-		setConsoleMode(show_feature);
 
 		// set long click listener
 		Object longClickButtons[][] = {
@@ -165,11 +178,12 @@ public class DebugInterfaceActivity extends SessionActivity {
 				int p = logcat_text.indexOf('\n');
 				logcat_text = (p<0?"":logcat_text.substring(p+1));
 			}
-			try {
-				logcat_view.setText(logcat_text);
-				if (atBottom)
-					logcat_scroll.scrollTo(0, logcat_view.getBottom());
-			} catch (Exception e) { }
+			if(isActive)
+				try {
+					logcat_view.setText(logcat_text);
+					if (atBottom)	// previously it is at bottom
+						logcat_scroll.scrollTo(0, logcat_view.getBottom());
+				} catch (Exception e) { }
 		}
 	}
 
@@ -194,6 +208,12 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void testScanQR (View view){
 		BarcodeCaptureActivity.checkQR = new Callable<Boolean>() { public Boolean call() { return true; } };
 		startActivityForResult( new Intent( appContext, BarcodeCaptureActivity.class ), BARCODE_READER_REQUEST_CODE );
+	}
+
+	public void toggleGestureMode (View view) {
+		AccessibilityListener.mSelf.toggleGestureMode(view);
+		toggle_gesture_button.setText(AccessibilityListener.isGestureMode?
+				"Turn Off Gesture Mode (Accessibility)":"Turn On Gesture Mode (Accessibility)");
 	}
 
 	private final static int BARCODE_READER_REQUEST_CODE = 2600;

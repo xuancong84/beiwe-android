@@ -71,6 +71,7 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
                 android:textStyle="bold"
+				android:textColor="#ff000000"
 				android:text="@string/debug_activity_trigger_warn" />
 
 			<Button
@@ -180,6 +181,13 @@
 				android:layout_height="wrap_content"
 				android:onClick="accessibilityOff"
 				android:text="Stop Accessibility Tracking" />
+
+			<Button
+				android:id="@+id/buttonToggleGesture"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="toggleGestureMode"
+				android:text="Turn On Gesture Mode (Accessibility)" />
 
 			<Button
 				android:id="@+id/buttonEnableTaps"

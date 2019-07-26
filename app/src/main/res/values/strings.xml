@@ -36,7 +36,7 @@
     <!-- Debug Menu Strings -->
     <string name="title_activity_debug_interface">Beiwe Debug Interface</string>
     <string name="title_activity_survey">Survey</string>
-    <string name="debug_activity_logging_warn">Stop logging before you leave as the console will continue logging even if you close this APP</string>
+    <string name="debug_activity_logging_warn">Stop logging before leaving as logging will continue even if you close this APP</string>
     <string name="debug_activity_trigger_warn">(If registered to a study, you cannot trigger recording sessions for data streams that require additional permission but are disabled in the study configuration)</string>
 
     <!-- Error Messages -->

@@ -20,8 +20,10 @@ package org.beiwe.app.listeners;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Path;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
@@ -36,10 +38,13 @@ import android.view.accessibility.AccessibilityWindowInfo;
 
 import org.beiwe.app.BackgroundService;
 import org.beiwe.app.storage.TextFileManager;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.graphics.PixelFormat.TRANSLUCENT;
+import static android.view.MotionEvent.*;
 import static android.view.WindowManager.LayoutParams.*;
 
 public class AccessibilityListener extends AccessibilityService {
@@ -48,29 +53,106 @@ public class AccessibilityListener extends AccessibilityService {
 	public static boolean listen = false;
 	public static AccessibilityListener mSelf = null;
 
-	private class AccessibilityOverlayView extends View {
+	private static GestureDescription createClick(float x, float y, int duration_ms, boolean willContinue) {
+		Path clickPath = new Path();
+		clickPath.moveTo(x, y);
+		GestureDescription.StrokeDescription clickStroke =
+				new GestureDescription.StrokeDescription(clickPath, 0, duration_ms, willContinue);
+		GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
+		clickBuilder.addStroke(clickStroke);
+		return clickBuilder.build();
+	}
+
+	private static GestureDescription createLongClick(float x, float y, int duration_ms, boolean willContinue) {
+		Path clickPath = new Path();
+		clickPath.moveTo(x, y);
+		clickPath.rLineTo(0.1f, 0.1f );
+		GestureDescription.StrokeDescription clickStroke =
+				new GestureDescription.StrokeDescription(clickPath, 0, duration_ms, willContinue);
+		GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
+		clickBuilder.addStroke(clickStroke);
+		return clickBuilder.build();
+	}
+
+	private GestureDescription createStroke(int duration_ms, boolean willContinue) {
+		Path clickPath = new Path();
+		clickPath.moveTo(lastX, lastY);
+		for(P p : XYs)
+			clickPath.lineTo(p.X, p.Y);
+		GestureDescription.StrokeDescription clickStroke =
+				new GestureDescription.StrokeDescription(clickPath, 0, duration_ms, willContinue);
+		GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
+		clickBuilder.addStroke(clickStroke);
+		return clickBuilder.build();
+	}
+
+	class P {
+		float X, Y;
+		P(float x, float y){ X=x; Y=y; }
+	}
+	private ArrayList <P> XYs = new ArrayList<P>();
+	private float lastX, lastY;
+
+	class AccessibilityOverlayView extends View {
 		AccessibilityOverlayView(Context paramContext) { super(paramContext); }
 
-		private String last_appname = "";
+		private long lastTime, nowTime;
+		private int lastAction;
 
 		@SuppressLint({"ClickableViewAccessibility"})
-		public boolean onTouchEvent( MotionEvent paramMotionEvent )
+		public boolean onTouchEvent( MotionEvent e )
 		{
-			super.onTouchEvent( paramMotionEvent );
-			if ( paramMotionEvent != null ) {
-				String appname = TextFileManager.CS2S(BackgroundService.localHandle.getForegroundAppName());
-				String data = System.currentTimeMillis()
-						+ TextFileManager.DELIMITER + ( appname.equals(last_appname)?"":appname )
-						+ TextFileManager.DELIMITER + getApplicationContext().getResources().getConfiguration().orientation;
-				last_appname = appname;
-				TextFileManager.getTapsLogFile().writeEncrypted( data );
+			GestureDescription gesture;
+			if ( e != null ) {
+				DebugInterfaceActivity.smartLog( name, e.toString() );
+
+				switch (e.getAction()){
+					case ACTION_DOWN:
+						lastTime = e.getEventTime();
+//						localWindowManager.removeViewImmediate( overlayView );
+//						gesture = createDown( e.getRawX(), e.getRawY(), true );
+//						dispatchGesture( gesture, null, null );
+//						localWindowManager.addView( overlayView, localLayoutParams );
+						lastX = e.getRawX();
+						lastY = e.getRawY();
+						break;
+					case ACTION_MOVE:
+						XYs.add(new P(e.getRawX(), e.getRawY()));
+//						nowTime = e.getEventTime();
+//						localWindowManager.removeViewImmediate( overlayView );
+//						gesture = createStroke( (int)(nowTime-lastTime), true );
+//						dispatchGesture( gesture, null, null );
+//						localWindowManager.addView( overlayView, localLayoutParams );
+//						lastTime = nowTime;
+						break;
+					case ACTION_UP:
+						nowTime = e.getEventTime();
+						localWindowManager.removeViewImmediate(overlayView);
+						if(XYs.isEmpty()){
+							long duration = nowTime-lastTime;
+							if( duration>500 )
+								gesture = createLongClick( e.getRawX(), e.getRawY(), (int)duration, false );
+							else
+								gesture = createClick( e.getRawX(), e.getRawY(), 1, false );
+						} else
+							gesture = createStroke( (int)(nowTime-lastTime), false );
+						dispatchGesture( gesture, null, null );
+						XYs.clear();
+						localWindowManager.addView( overlayView, localLayoutParams );
+						break;
+					case ACTION_OUTSIDE:
+					default:
+				}
+				lastAction = e.getAction();
 			}
-			return false;
+			return true;
 		}
 	}
 
 	private Context hContext;
-	private AccessibilityOverlayView layerView;
+	private AccessibilityOverlayView overlayView;
+	private WindowManager localWindowManager;
+	private WindowManager.LayoutParams localLayoutParams;
 
 	@Override
 	protected void onServiceConnected() {
@@ -83,8 +165,29 @@ public class AccessibilityListener extends AccessibilityService {
 		 * for a few seconds before the main service gets resumed by the OS. Here, we bring up the main
 		 * service immediately to speed up service resumption after reboot. */
 		if ( BackgroundService.localHandle == null )
-			BootListener.startBackgroundService( hContext );
+			BootListener.startBackgroundService(hContext);
+	}
 
+	public static boolean isGestureMode = false;
+
+	public void toggleGestureMode(View view){
+		try {
+			if (!isGestureMode && Build.VERSION.SDK_INT >= 22) {
+				int flags = FLAG_WATCH_OUTSIDE_TOUCH | SOFT_INPUT_ADJUST_PAN | FLAG_NOT_FOCUSABLE | FLAG_FULLSCREEN;
+				localLayoutParams = new WindowManager.LayoutParams(
+						ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,
+						WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, flags, TRANSLUCENT);
+
+				localWindowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+
+				if (localWindowManager != null && (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(hContext))) {
+					overlayView = new AccessibilityOverlayView(BackgroundService.localHandle.getApplicationContext());
+					localWindowManager.addView(overlayView, localLayoutParams);
+				}
+			} else
+				localWindowManager.removeViewImmediate(overlayView);
+			isGestureMode = !isGestureMode;
+		}catch (Exception e){}
 	}
 
 	public static boolean isEnabled(Context context){
@@ -201,7 +304,7 @@ public class AccessibilityListener extends AccessibilityService {
 					+ TextFileManager.DELIMITER + getResources().getConfiguration().orientation;
 			last_package_name = package_name;
 			last_class_name = class_name;
-			TextFileManager.getAccessibilityLogFile().writeEncrypted(data);;
+			TextFileManager.getAccessibilityLogFile().writeEncrypted(data);
 		}
 	}
 
