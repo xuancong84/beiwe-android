@@ -6,19 +6,22 @@ import org.beiwe.app.storage.PersistentData;
 
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 
 /**The main menu activity of the app. Currently displays 4 buttons - Audio Recording, Graph, Call Clinician, and Sign out.
  * @author Dor Samet */
 public class MainMenuActivity extends SessionActivity {
-	//extends a SessionActivity
+	public static MainMenuActivity mSelf = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		mSelf = this;
 		setContentView(R.layout.activity_main_menu);
-		
-		Button callClinicianButton = (Button) findViewById(R.id.main_menu_call_clinician);
-		callClinicianButton.setText(PersistentData.getCallClinicianButtonText());
+
+		((TextView)findViewById(R.id.main_last_upload)).setText(PersistentData.getMainUploadInfo());
+		((Button)findViewById(R.id.main_menu_call_clinician)).setText(PersistentData.getCallClinicianButtonText());
 	}
 	
 	/*#########################################################################

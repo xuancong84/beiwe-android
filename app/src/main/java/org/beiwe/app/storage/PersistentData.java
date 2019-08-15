@@ -4,10 +4,12 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.JSONUtils;
 import org.beiwe.app.R;
+import org.beiwe.app.ui.user.MainMenuActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -297,6 +299,7 @@ public class PersistentData {
 	public static final String CALL_CLINICIAN_BUTTON_TEXT_KEY = "call_clinician_button_text";
 	public static final String CONSENT_FORM_TEXT_KEY = "consent_form_text";
 	public static final String SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY = "survey_submit_success_toast_text";
+	public static final String MAIN_UPLOAD_INFO_TEXT_KEY = "main_upload_info_text";
 	
 	public static String getAboutPageText() {
 		String defaultText = appContext.getString(R.string.default_about_page_text);
@@ -310,6 +313,16 @@ public class PersistentData {
 	public static String getSurveySubmitSuccessToastText() {
 		String defaultText = appContext.getString(R.string.default_survey_submit_success_message);
 		return pref.getString(SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY, defaultText); }
+
+	public static String getMainUploadInfo() {
+		return pref.getString(MAIN_UPLOAD_INFO_TEXT_KEY, ""); }
+	public static void setMainUploadInfo(String text) {
+		editor.putString(MAIN_UPLOAD_INFO_TEXT_KEY, text);
+		editor.commit();
+		try {
+			((TextView)MainMenuActivity.mSelf.findViewById(R.id.main_last_upload)).setText(text);
+		} catch (Exception e){}
+	}
 
 	/*###########################################################################################
 	################################### User Credentials ########################################

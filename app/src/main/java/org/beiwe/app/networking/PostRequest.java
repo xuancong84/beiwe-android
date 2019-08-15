@@ -33,6 +33,7 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -450,15 +451,22 @@ public class PostRequest {
 				return;
 			}
 
+			long total_good = 0, total = 0;
 			for (String fileName : TextFileManager.getAllUploadableFiles()) {
 				try {
 					file = new File(appContext.getFilesDir() + "/" + fileName);
 					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"uploading " + file.getName());
+					total += file.length();
 					if (PostRequest.doFileUpload(file, uploadUrl, stopTime) == 200) {
+						total_good += file.length();
 						TextFileManager.delete(fileName);
+						PersistentData.setMainUploadInfo("The last upload is successful!\nDate: "
+								+ Calendar.getInstance().getTime().toString() + "\nOverall bytes: " + total_good + "/" + total);
 					}
 				} catch (IOException e) {
 					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, "PostRequest.java: Failed to upload file " + fileName + ". Raised exception: " + e.getCause());
+					PersistentData.setMainUploadInfo("The last upload has failed!\nDate: "
+							+ Calendar.getInstance().getTime().toString() + "\nOverall bytes: " + total_good + "/" + total);
 				}
 
 				if (stopTime < System.currentTimeMillis()) {
@@ -466,6 +474,8 @@ public class PostRequest {
 					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, msg );
 					TextFileManager.getDebugLogFile().writeEncrypted( msg );
 					CrashHandler.writeCrashlog( new Exception("Upload took longer than 1 hour" ), appContext);
+					PersistentData.setMainUploadInfo("The last upload took longer than 1 hour and thus is aborted!\nDate: "
+							+ Calendar.getInstance().getTime().toString() + "\nOverall bytes: " + total_good + "/" + total);
 					return;
 				}
 			}

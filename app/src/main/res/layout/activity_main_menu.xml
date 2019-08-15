@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:text="@string/main_menu_top_message"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
         android:layout_gravity="center" />
 
     <View
@@ -29,10 +30,12 @@
         android:text="@string/main_menu_view_graph"
         android:onClick="graphResults" /-->
 
-    <View
-        android:id="@+id/Placeholder2"
+    <TextView
+        android:id="@+id/main_last_upload"
         android:layout_width="wrap_content"
-        android:layout_height="50dp" />
+        android:layout_height="wrap_content"
+        android:text=""
+        android:layout_gravity="center" />
 
     <Button
         android:id="@+id/main_menu_call_clinician"

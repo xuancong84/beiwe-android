@@ -75,11 +75,17 @@
 				android:text="@string/debug_activity_trigger_warn" />
 
 			<Button
-				android:id="@+id/buttonDownload"
+				android:id="@+id/loadMainMenu"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:onClick="runSurveyDownload"
-				android:text="Check For New/Updated Surveys" />
+				android:onClick="loadMainMenu"
+				android:text="Go To Main Menu" />
+
+			<TextView
+				android:id="@+id/debugtext7"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Normal users of the Beiwe app will only see the main menu screen. When You are in the main menu screen you may return to the debug menu at any time by pressing the back button." />
 
 			<TextView
 				android:id="@+id/debugtext3"
@@ -105,7 +111,14 @@
 				android:id="@+id/debugtext4"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text="This next one is probably the button you are looking for...  :)" />
+				android:text="Survey Debugging functions:" />
+
+			<Button
+				android:id="@+id/buttonDownload"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="runSurveyDownload"
+				android:text="Check For New/Updated Surveys" />
 
 			<Button
 				android:id="@+id/buttonPopSurveyNotifications"
@@ -251,19 +264,6 @@
 				android:layout_height="wrap_content"
 				android:onClick="testScanQR"
 				android:text="Test QR Scan" />
-
-			<TextView
-				android:id="@+id/debugtext7"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="Normal users of the Beiwe app will only see the main menu screen. When You are in the main menu screen you may return to the debug menu at any time by pressing the back button." />
-
-			<Button
-				android:id="@+id/loadMainMenu"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:onClick="loadMainMenu"
-				android:text="Go To Main Menu" />
 
 			<TextView
 				android:id="@+id/debugtexttwenty"
