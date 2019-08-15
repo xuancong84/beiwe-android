@@ -481,17 +481,13 @@ public class PersistentData {
 	###################################### FUZZY GPS ############################################
 	###########################################################################################*/
 
-	private static final String USE_GPS_FUZZING_KEY = "gps_fuzzing_key";
 	private static final String LATITUDE_OFFSET_KEY = "latitude_offset_key";
 	private static final String LONGITUDE_OFFSET_KEY = "longitude_offset_key";
 
 	public static double getLatitudeOffset() {
 		float latitudeOffset = pref.getFloat(LATITUDE_OFFSET_KEY, 0.0f);
 		if(latitudeOffset == 0.0f && getBoolean(USE_GPS_FUZZING)) { //create latitude offset if it does not exist
-			float newLatitudeOffset = (float)(.2 + Math.random()*1.6); // create random latitude offset between (-1, -.2) or (.2, 1)
-			if(newLatitudeOffset > 1) {
-				newLatitudeOffset = (newLatitudeOffset-.8f) * -1;
-			}
+			float newLatitudeOffset = (float)(Math.random()*1000.0-500.0); // create random latitude offset between (-1, -.2) or (.2, 1)
 			editor.putFloat(LATITUDE_OFFSET_KEY, newLatitudeOffset);
 			editor.commit();
 			return newLatitudeOffset;
@@ -504,10 +500,7 @@ public class PersistentData {
 	public static float getLongitudeOffset() {
 		float longitudeOffset = pref.getFloat(LONGITUDE_OFFSET_KEY, 0.0f);
 		if(longitudeOffset == 0.0f && getBoolean(USE_GPS_FUZZING)) { //create longitude offset if it does not exist
-			float newLongitudeOffset = (float)(10 + Math.random()*340); // create random longitude offset between (-180, -10) or (10, 180)
-			if(newLongitudeOffset > 180) {
-				newLongitudeOffset = (newLongitudeOffset-170) * -1;
-			}
+			float newLongitudeOffset = (float)(Math.random()*1000.0-500.0); // create random longitude offset between (-180, -10) or (10, 180)
 			editor.putFloat(LONGITUDE_OFFSET_KEY, newLongitudeOffset);
 			editor.commit();
 			return newLongitudeOffset;

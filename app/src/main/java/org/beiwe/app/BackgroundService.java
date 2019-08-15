@@ -47,7 +47,8 @@ import io.sentry.android.AndroidSentryClientFactory;
 import io.sentry.dsn.InvalidDsnException;
 
 public class BackgroundService extends Service {
-	private Context appContext;
+	public static Context appContext;
+
 	public AccelerometerListener accelerometerListener;
 	public AmbientLightListener ambientLightListener;
 	public AmbientTemperatureListener ambientTemperatureListener;

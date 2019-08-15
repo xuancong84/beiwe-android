@@ -12,6 +12,7 @@ import org.beiwe.app.R;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.SetDeviceSettings;
 import org.beiwe.app.storage.TextFileManager;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -172,32 +173,10 @@ public class PostRequest {
 			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 			StrictMode.setThreadPolicy(policy);
 
-			//// add SSL certificate
+			// add SSL certificate
 			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			String crt = "-----BEGIN CERTIFICATE-----\n"
-					+ "MIID/DCCAuQCCQCLAtLl5CWoLjANBgkqhkiG9w0BAQsFADCBvzELMAkGA1UEBhMC\n"
-					+ "U0cxEjAQBgNVBAgMCVNpbmdhcG9yZTESMBAGA1UEBwwJU2luZ2Fwb3JlMQ0wCwYD\n"
-					+ "VQQKDARNT0hUMQ0wCwYDVQQLDARUZWNoMUAwPgYDVQQDDDdlYzItMTgtMTM2LTEw\n"
-					+ "Ni0xMjkuYXAtc291dGhlYXN0LTEuY29tcHV0ZS5hbWF6b25hd3MuY29tMSgwJgYJ\n"
-					+ "KoZIhvcNAQkBFhl4dWFuY29uZy53YW5nQG1vaHQuY29tLnNnMB4XDTE5MDQxODAz\n"
-					+ "NTEwMVoXDTI5MDQxNTAzNTEwMVowgb8xCzAJBgNVBAYTAlNHMRIwEAYDVQQIDAlT\n"
-					+ "aW5nYXBvcmUxEjAQBgNVBAcMCVNpbmdhcG9yZTENMAsGA1UECgwETU9IVDENMAsG\n"
-					+ "A1UECwwEVGVjaDFAMD4GA1UEAww3ZWMyLTE4LTEzNi0xMDYtMTI5LmFwLXNvdXRo\n"
-					+ "ZWFzdC0xLmNvbXB1dGUuYW1hem9uYXdzLmNvbTEoMCYGCSqGSIb3DQEJARYZeHVh\n"
-					+ "bmNvbmcud2FuZ0Btb2h0LmNvbS5zZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC\n"
-					+ "AQoCggEBAKmbZWtIw1yvpIB9N+sbGbnGP9RZfzyTNrrBzPbHDB+4LTlN6EuH+9+K\n"
-					+ "xqF8mUSXVtVGNoC2CBRYgiqfrsbp7v1qrKhq7gMHw19hOQ8N5b26JXNH72r4Ikzm\n"
-					+ "PigspwCjcCN1e5imvfcLTakSXZ9UuMGMBo5rE4TVqf9NRL17onBBBqZSK7jN8QuN\n"
-					+ "G7NpI4pYuLNNq2Xwnc4BWVvQ+ZOH19PWEp8E+7ljsJDEuOpAlE2dROogfke++l4B\n"
-					+ "mWKCPtN0KD/vfrqhVdpvEczhedp7TaQZwtnUBgXdt52mQkf1nF/TvEl3geuCzvlM\n"
-					+ "QX5drQiThdQKc0nuXUeRoTkPExmS5nMCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEA\n"
-					+ "F8bReZipEWyIdNU+9flDucwOvfAeVRuiGaFeDq2OEeyAR+Cuzeh/j0PFQORT8gvt\n"
-					+ "A43rgbVhcgCxIy2fhmUpaokGxaYFyFftc5yOFtht1NN3RgQTLXvteGxAF/xoRkY/\n"
-					+ "AxdBtl0z+zzO5iGdyqXdg6mhbKI7nmlU0Sk2KDe2riwj+8uxA/e9ZSDzrpOIGGPi\n"
-					+ "kZbuquyxcb4xD16YIl4FAmGjvAwmHocHblG6vvRes38bnsZQ/4A5XDklYb0IIlZ8\n"
-					+ "8Pl6rQ4Yzhu/VGnD1KxHsU6c/c52blxEZgd+Np0yG0T8WQbm8Zv4GIb6lQcOc+k6\n"
-					+ "4ADhK8REe3lfcqlnvcnpWA==\n"
-					+ "-----END CERTIFICATE-----";
+			String crt = BackgroundService.appContext.getString(R.string.ssl_crt).replace(" ", "\n");
+			crt = crt.replace("-BEGIN\n", "-BEGIN ").replace("-END\n", "-END ");
 			InputStream caInput = new ByteArrayInputStream(crt.getBytes());
 			Certificate ca;
 			try {
@@ -385,9 +364,9 @@ public class PostRequest {
 	 * @throws IOException
 	 */
 	private static int doFileUpload(File file, URL uploadUrl, long stopTime) throws IOException {
-		if (file.length() > 1024 * 1024 * 10) {
-			Log.i("upload", "file length: " + file.length());
-		}
+		if (file.length() > 1024 * 1024 * 10)
+			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, "upload big file: length = " + file.length());
+
 		HttpsURLConnection connection = minimalHTTP(uploadUrl);
 		BufferedOutputStream request = new BufferedOutputStream(connection.getOutputStream(), 65536);
 		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file), 65536);
@@ -421,8 +400,8 @@ public class PostRequest {
 		int response = connection.getResponseCode();
 		connection.disconnect();
 		if (BuildConfig.APP_IS_DEV) {
-			Log.d("uploading", "finished attempt to upload " +
-					file.getName() + "; received code " + response);
+			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,
+					"uploading finished attempt to upload " + file.getName() + "; received code " + response);
 		}
 		return response;
 	}
@@ -438,11 +417,10 @@ public class PostRequest {
 	 */
 	public static void uploadAllFiles() {
 		// determine if you are allowed to upload over WiFi or cellular data, return if not.
-		if (!NetworkUtility.canUpload(appContext)) {
+		if (!NetworkUtility.canUpload(appContext))
 			return;
-		}
 
-		Log.i("DOING UPLOAD STUFF", "DOING UPLOAD STUFF");
+		DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"DOING UPLOAD STUFF" );
 		// Run the HTTP POST on a separate thread
 		Thread uploaderThread = new Thread(new Runnable() {
 			@Override
@@ -462,7 +440,7 @@ public class PostRequest {
 			//long stopTime = System.currentTimeMillis() + PersistentData.getUploadDataFilesFrequencyMilliseconds();
 			long stopTime = System.currentTimeMillis() + 1000 * 60 * 60; //One hour to upload files
 			String[] files = TextFileManager.getAllUploadableFiles();
-			Log.i("uploading", "uploading " + files.length + " files");
+			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"uploading " + files.length + " files");
 			File file = null;
 			URL uploadUrl = null; //set up url, write a crash log and fail gracefully if this ever breaks.
 			try {
@@ -475,22 +453,23 @@ public class PostRequest {
 			for (String fileName : TextFileManager.getAllUploadableFiles()) {
 				try {
 					file = new File(appContext.getFilesDir() + "/" + fileName);
-//				Log.d("uploading", "uploading " + file.getName());
+					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"uploading " + file.getName());
 					if (PostRequest.doFileUpload(file, uploadUrl, stopTime) == 200) {
 						TextFileManager.delete(fileName);
 					}
 				} catch (IOException e) {
-					Log.w("PostRequest.java", "Failed to upload file " + fileName + ". Raised exception: " + e.getCause());
+					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, "PostRequest.java: Failed to upload file " + fileName + ". Raised exception: " + e.getCause());
 				}
 
 				if (stopTime < System.currentTimeMillis()) {
-					Log.w("UPLOAD STUFF", "shutting down upload due to time limit, we should never reach this.");
-					TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " upload time limit of 1 hr reached, there are likely files still on the phone that have not been uploaded.");
-					CrashHandler.writeCrashlog(new Exception("Upload took longer than 1 hour"), appContext);
+					String msg = "UPLOAD STUFF, " + System.currentTimeMillis() + ", upload time limit of 1 hr reached, shutting down upload.";
+					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, msg );
+					TextFileManager.getDebugLogFile().writeEncrypted( msg );
+					CrashHandler.writeCrashlog( new Exception("Upload took longer than 1 hour" ), appContext);
 					return;
 				}
 			}
-			Log.i("DOING UPLOAD STUFF", "DONE WITH UPLOAD");
+			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"UPLOAD STUFF: DONE WITH UPLOAD");
 		}
 	}
 

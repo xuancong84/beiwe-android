@@ -85,6 +85,11 @@ public class DebugInterfaceActivity extends SessionActivity {
 		public static final String header = "QR code raw text";
 	}
 
+	public class UploadFiles {
+		public static final String name = "uploadFiles";
+		public static final String header = "File upload log";
+	}
+
 	private static boolean atBottom = true;
 	private static boolean isActive = false;
 
@@ -144,6 +149,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ ListFile.class, R.id.buttonListFiles },
 				{ ListFeature.class, R.id.buttonFeaturesEnabled },
 				{ ListPermission.class, R.id.buttonFeaturesPermissable },
+				{ UploadFiles.class, R.id.buttonUpload },
 		};
 		for( Object longClickButton[] : longClickButtons )
 			for( int x=1; x<longClickButton.length; ++x ) try {
