@@ -14,7 +14,7 @@ import org.beiwe.app.storage.TextFileManager;
 import java.util.List;
 
 public class SurveyAnswersRecorder {
-	public static final String name = "surveyAnswers_";
+	public static final String name = "surveyAnswers";
 	public static final String header = "question id,question type,question text,question answer options,answer";
 	private static String noAnswer = "NO_ANSWER_SELECTED";
 	private static String errorCode = "ERROR_QUESTION_NOT_RECORDED";

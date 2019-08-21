@@ -193,9 +193,11 @@ public class PermissionHandler {
 			return ACCESSIBILITY_OVERLAY_PERMISSION;
 
 		// do final setup: certain features need to instantiate after granting permission
-		if ( !BackgroundService.finalSetupDone) {
-			BackgroundService.localHandle.doSetup();
-			BackgroundService.finalSetupDone = true;
+		if ( !BackgroundService.finalSetupDone ){
+			try{
+				BackgroundService.localHandle.doSetup();
+				BackgroundService.finalSetupDone = true;
+			} catch (Exception e) {}
 		}
 
 		return null;

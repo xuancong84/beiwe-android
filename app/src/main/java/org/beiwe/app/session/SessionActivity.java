@@ -6,10 +6,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import org.beiwe.app.BackgroundService;
+import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.Timer;
 import org.beiwe.app.storage.PersistentData;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 import org.beiwe.app.ui.registration.ResetPasswordActivity;
 import org.beiwe.app.ui.user.AboutActivityLoggedIn;
 import org.beiwe.app.ui.user.GraphActivity;
@@ -57,11 +59,13 @@ public class SessionActivity extends RunningBackgroundServiceActivity {
 	/** Sets the logout timer, should trigger whenever onResume is called. */
 	protected void doBackgroundDependentTasks() {
 		// Log.i("SessionActivity", "printed from SessionActivity");
-		authenticateAndLoginIfNecessary();
+		if( PermissionHandler.getNextPermission(getApplicationContext(), false) == null )
+			authenticateAndLoginIfNecessary();
 	}
 	
 	/** If the user is NOT logged in, take them to the login page */
 	protected void authenticateAndLoginIfNecessary() {
+		if ( DebugInterfaceActivity.unlocked ) return;
 		if ( PersistentData.isLoggedIn() )
 			BackgroundService.startAutomaticLogoutCountdownTimer();
 		else
@@ -76,6 +80,7 @@ public class SessionActivity extends RunningBackgroundServiceActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; adds items to the action bar if it is present.
+		s_menu = menu;
 		getMenuInflater().inflate(R.menu.logged_in_menu, menu);
 		menu.findItem(R.id.menu_call_clinician).setTitle(PersistentData.getCallClinicianButtonText());
 		return true;

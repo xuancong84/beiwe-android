@@ -3,8 +3,10 @@ package org.beiwe.app.ui.user;
 import org.beiwe.app.R;
 import org.beiwe.app.session.SessionActivity;
 import org.beiwe.app.storage.PersistentData;
+import org.beiwe.app.storage.TextFileManager;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -24,9 +26,6 @@ public class MainMenuActivity extends SessionActivity {
 		((Button)findViewById(R.id.main_menu_call_clinician)).setText(PersistentData.getCallClinicianButtonText());
 	}
 	
-	/*#########################################################################
-	############################## Buttons ####################################
-	#########################################################################*/
-	
+	//############################## Buttons ####################################
 //	public void graphResults (View v) { startActivity( new Intent(getApplicationContext(), GraphActivity.class) ); }
 }

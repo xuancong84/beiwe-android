@@ -475,7 +475,7 @@ public class PostRequest {
 					TextFileManager.getDebugLogFile().writeEncrypted( msg );
 					CrashHandler.writeCrashlog( new Exception("Upload took longer than 1 hour" ), appContext);
 					PersistentData.setMainUploadInfo("The last upload took longer than 1 hour and thus is aborted!\nDate: "
-							+ Calendar.getInstance().getTime().toString() + "\nOverall bytes: " + total_good + "/" + total);
+							+ Calendar.getInstance().getTime().toString() + "\nOverall bytes sent: " + total_good + "/" + total);
 					return;
 				}
 			}

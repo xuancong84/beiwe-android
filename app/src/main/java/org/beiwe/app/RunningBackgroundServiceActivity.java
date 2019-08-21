@@ -12,17 +12,27 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Trace;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import org.beiwe.app.BackgroundService.BackgroundServiceBinder;
 import org.beiwe.app.storage.PersistentData;
 import static org.beiwe.app.storage.PersistentData.*;
+
+import org.beiwe.app.ui.DebugInterfaceActivity;
 import org.beiwe.app.ui.user.AboutActivityLoggedOut;
+import org.beiwe.app.ui.user.MainMenuActivity;
+
+import java.util.concurrent.Callable;
 
 /**All Activities in the app extend this Activity.  It ensures that the app's key services (i.e.
  * BackgroundService, LoginManager, PostRequest, DeviceInfo, and WifiListener) are running before
@@ -44,6 +54,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	 * a null backgroundService variable to essentially zero. */
 	protected BackgroundService backgroundService;
 	protected static RunningBackgroundServiceActivity mSelf = null;
+	protected static Menu s_menu = null;
 
 	//an unused variable for tracking whether the background Service is connected, uncomment if we ever need that.
 //	protected boolean isBound = false;
@@ -109,6 +120,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 	/** Common UI element, the menu button.*/
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; adds items to the action bar if it is present.
+		s_menu = menu;
 		getMenuInflater().inflate(R.menu.logged_out_menu, menu);
 		menu.findItem(R.id.menu_call_clinician).setTitle(PersistentData.getCallClinicianButtonText());
 		return true;
@@ -233,36 +245,36 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 		if (!activityNotVisible) checkPermissionsLogic();
 	}
 
-	protected void checkPermissionsLogic() {
+	protected boolean checkPermissionsLogic() {
 		//gets called as part of onResume,
 		activityNotVisible = false;
 
 		if (aboutToResetFalseActivityReturn) {
 			aboutToResetFalseActivityReturn = false;
 			thisResumeCausedByFalseActivityReturn = false;
-			return;
+			return false;
 		}
 
 		if ( !thisResumeCausedByFalseActivityReturn ) {
 			String permission = PermissionHandler.getNextPermission( getApplicationContext(), this.isAudioRecorderActivity() );
-			if (permission == null) return;
+			if (permission == null) return false;
 			BackgroundService.finalSetupDone = false;
 			if (!prePromptActive && !postPromptActive && !powerPromptActive) {
 				if (permission == PermissionHandler.POWER_EXCEPTION_PERMISSION ) {
 					showPowerManagementAlert(this, getString(R.string.power_management_exception_alert), 1000);
-					return;
+					return false;
 				}
 				if (permission == PermissionHandler.USAGE_EXCEPTION_PERMISSION ) {
 					showUsagePermissionAlert(this, getString(R.string.usage_permission_alert), 1001);
-					return;
+					return false;
 				}
 				if (permission == PermissionHandler.APPLICATION_OVERLAY_PERMISSION) {
 					showOverlayPermissionAlert(this, getString(R.string.overlay_permission_alert), 1002);
-					return;
+					return false;
 				}
 				if (permission == PermissionHandler.ACCESSIBILITY_OVERLAY_PERMISSION) {
 					showAccessibilityPermissionAlert(this, getString(R.string.accessibility_permission_alert), 1003);
-					return;
+					return false;
 				}
 				if (shouldShowRequestPermissionRationale( permission ) ) {
 					if (!prePromptActive && !postPromptActive ) showAlertThatForcesUserToGrantPermission(
@@ -273,6 +285,7 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 						permission, PermissionHandler.permissionMap.get(permission));
 			}
 		}
+		return true;
 	}
 
 	/* Message Popping */
@@ -388,4 +401,72 @@ public class RunningBackgroundServiceActivity extends AppCompatActivity {
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { @Override public void onClick(DialogInterface arg0, int arg1) {  } } ); //Okay button
 		builder.create().show();
 	}
+
+	public static int nNeedToClick;
+	private static int menu_item_id;
+	public void onClickText(View view){
+		if(--nNeedToClick==0)
+			findViewById(R.id.resetAPP).setVisibility(View.VISIBLE);
+		if(nNeedToClick==-10) {
+			Button button = findViewById(R.id.resetAPP);
+			button.setTextColor(0xffff0000);
+			button.setOnLongClickListener(new View.OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View view) {
+					try {
+						MenuItem mi = s_menu.add("Unlock Debug Interface");
+						menu_item_id = mi.getItemId();
+						mi.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
+							@Override
+							public boolean onMenuItemClick(MenuItem item) {
+								s_menu.removeItem(menu_item_id);
+								promptView("This will unlock debug interface. Are you sure?", new Callable() {
+									@Override
+									public Object call(){
+										DebugInterfaceActivity.unlocked = true;
+										startActivity(new Intent(mSelf, DebugInterfaceActivity.class));
+										return null;
+									}
+								});
+								return true;
+							}
+						});
+					} catch (Exception e) {}
+					return true;
+				}
+			});
+		}
+	}
+
+	public void promptView(String msg, Callable func){
+		LayoutInflater li = LayoutInflater.from(this);
+		View promptsView = li.inflate(R.layout.password_prompt, null);
+		final EditText userInput = promptsView.findViewById(R.id.editTextDialogUserInput);
+
+		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == DialogInterface.BUTTON_POSITIVE && userInput.getText().toString().equals("MOHTp@ssw0rd"))
+					try{func.call();} catch (Exception e){}
+			}
+		};
+
+		new AlertDialog.Builder(this)
+				.setView(promptsView)
+				.setTitle("Warning")
+				.setMessage(msg)
+				.setPositiveButton("OK", dialogClickListener)
+				.setNegativeButton("Cancel", dialogClickListener).show();
+	}
+
+	public void resetAPP(View view) {
+		promptView("This will unregister any study and reset the APP. Are you sure?", new Callable() {
+			@Override
+			public Object call(){
+				DebugInterfaceActivity.RESET();
+				return null;
+			}
+		});
+	}
+
 }

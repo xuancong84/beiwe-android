@@ -40,7 +40,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.renderscript.ScriptC;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -112,6 +111,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	protected void onStop(){
 		super.onStop();
 		isActive = false;
+		if(!BuildConfig.APP_IS_DEV)
+			unlocked = false;
 	}
 
 	@Override
@@ -409,7 +410,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				if( which == DialogInterface.BUTTON_POSITIVE ) RESET(getApplicationContext());
+				if( which == DialogInterface.BUTTON_POSITIVE ) RESET();
 			}
 		};
 
@@ -420,8 +421,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 				.setNegativeButton("Cancel", dialogClickListener).show();
 	}
 
-	public static void RESET(Context context){
-		if(AccessibilityListener.isEnabled(context))
+	public static void RESET(){
+		if(AccessibilityListener.isEnabled(BackgroundService.appContext))
 			AccessibilityListener.mSelf.disableSelf();
 		PersistentData.resetAPP(DebugInterfaceActivity.s_view);
 		RunningBackgroundServiceActivity.mSelf.moveTaskToBack(true);

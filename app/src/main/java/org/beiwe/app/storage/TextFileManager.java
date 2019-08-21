@@ -54,12 +54,12 @@ public class TextFileManager {
 	private static TextFileManager textsLog;
 	private static TextFileManager usageFile;
 	private static TextFileManager bluetoothLog;
+	private static TextFileManager wifiLog;
 	private static TextFileManager debugLogFile;
 
 	private static TextFileManager surveyTimings;
 	private static TextFileManager surveyAnswers;
-	private static TextFileManager wifiLog;
-		
+
 	private static TextFileManager keyFile;
 	
 	//"global" static variables
@@ -74,46 +74,48 @@ public class TextFileManager {
 	//public static getters.
 	// These are all simple and nearly identical, so they are squished into one-liners.
 	// checkAvailableWithTimeout throws an error and the app restarts if the TextFile is unavailable.
-	public static TextFileManager getAccelFile() { checkAvailableWithTimeout("accelFile"); return accelFile; }
-	public static TextFileManager getAccessibilityLogFile() { checkAvailableWithTimeout("accessibilityLog"); return accessibilityLog; }
-	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout("ambientLightFile"); return ambientLightFile; }
-	public static TextFileManager getAmbientTemperatureFile() { checkAvailableWithTimeout("ambientTemperatureFile"); return ambientTemperatureFile; }
-	public static TextFileManager getGyroFile() { checkAvailableWithTimeout("gyroFile"); return gyroFile; }
-	public static TextFileManager getGPSFile() { checkAvailableWithTimeout("GPSFile"); return GPSFile; }
-	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout("powerStateLog"); return powerStateLog; }
-	public static TextFileManager getCallLogFile() { checkAvailableWithTimeout("callLog"); return callLog; }
-	public static TextFileManager getTextsLogFile() { checkAvailableWithTimeout("textsLog"); return textsLog; }
-	public static TextFileManager getTapsLogFile() { checkAvailableWithTimeout("tapsLog"); return tapsLog; }
-	public static TextFileManager getBluetoothLogFile() { checkAvailableWithTimeout("bluetoothLog"); return bluetoothLog; }
-	public static TextFileManager getWifiLogFile() { checkAvailableWithTimeout("wifiLog"); return wifiLog; }
-	public static TextFileManager getUsageFile() { checkAvailableWithTimeout("usageFile"); return usageFile; }
-	public static TextFileManager getSurveyTimingsFile() { checkAvailableWithTimeout("surveyTimings"); return surveyTimings; }
-	public static TextFileManager getSurveyAnswersFile() { checkAvailableWithTimeout("surveyAnswers"); return surveyAnswers; }
+	public static TextFileManager getAccelFile() { checkAvailableWithTimeout(AccelerometerListener.name); return accelFile; }
+	public static TextFileManager getAccessibilityLogFile() { checkAvailableWithTimeout(AccessibilityListener.name); return accessibilityLog; }
+	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout(AmbientLightListener.name); return ambientLightFile; }
+	public static TextFileManager getAmbientTemperatureFile() { checkAvailableWithTimeout(AmbientTemperatureListener.name); return ambientTemperatureFile; }
+	public static TextFileManager getGyroFile() { checkAvailableWithTimeout(GyroscopeListener.name); return gyroFile; }
+	public static TextFileManager getGPSFile() { checkAvailableWithTimeout(GPSListener.name); return GPSFile; }
+	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout(PowerStateListener.name); return powerStateLog; }
+	public static TextFileManager getCallLogFile() { checkAvailableWithTimeout(CallLogger.name); return callLog; }
+	public static TextFileManager getTextsLogFile() { checkAvailableWithTimeout(SmsSentLogger.name); return textsLog; }
+	public static TextFileManager getTapsLogFile() { checkAvailableWithTimeout(TapsListener.name); return tapsLog; }
+	public static TextFileManager getBluetoothLogFile() { checkAvailableWithTimeout(BluetoothListener.name); return bluetoothLog; }
+	public static TextFileManager getWifiLogFile() { checkAvailableWithTimeout(WifiListener.name); return wifiLog; }
+	public static TextFileManager getUsageFile() { checkAvailableWithTimeout(UsageListener.name); return usageFile; }
+	public static TextFileManager getSurveyTimingsFile() { checkAvailableWithTimeout(SurveyTimingsRecorder.name); return surveyTimings; }
+	public static TextFileManager getSurveyAnswersFile() { checkAvailableWithTimeout(SurveyAnswersRecorder.name); return surveyAnswers; }
 	//(the persistent files)
-	public static TextFileManager getDebugLogFile() { checkAvailableWithTimeout("debugLogFile"); return debugLogFile; }
+	public static TextFileManager getDebugLogFile() { checkAvailableWithTimeout(DebugInterfaceActivity.LogFile.name); return debugLogFile; }
 	public static TextFileManager getKeyFile() { checkAvailableWithTimeout("keyFile"); return keyFile; }
 	
 	/** Checks the availability of a given TextFile, returns true if available, false otherwise. */
 	private static Boolean checkTextFileAvailable(String thing) {
 		//the check for availability is whether the appropriate variable is allocated
-		if (thing.equals("accelFile") ) { return (accelFile != null); }
-		if (thing.equals("accessibilityLog") ) { return (accessibilityLog != null); }
-		if (thing.equals("ambientLightFile") ) { return (ambientLightFile != null); }
-		if (thing.equals("ambientTemperatureFile") ) { return (ambientTemperatureFile != null); }
-		if (thing.equals("gyroFile") ) { return (gyroFile != null); }
-		if (thing.equals("GPSFile") ) { return (GPSFile != null); }
-		if (thing.equals("powerStateLog") ) { return (powerStateLog != null); }
-		if (thing.equals("callLog") ) { return (callLog != null); }
-		if (thing.equals("textsLog") ) { return (textsLog != null); }
-		if (thing.equals("tapsLog") ) { return (tapsLog != null); }
-		if (thing.equals("bluetoothLog") ) { return (bluetoothLog != null); }
-		if (thing.equals("usageFile") ) { return (usageFile != null); }
-		if (thing.equals("wifiLog") ) { return (wifiLog != null); }
-		if (thing.equals("surveyTimings") ) { return (surveyTimings != null); }
-		if (thing.equals("surveyAnswers") ) { return (surveyAnswers != null); }
-		if (thing.equals("debugLogFile") ) { return (debugLogFile != null); }
-		if (thing.equals("keyFile") ) { return (keyFile != null); }
-		throw new NullPointerException(String.format("invalid key %s provided for checking available text file.", thing));
+		switch (thing){
+			case AccelerometerListener.name: return (accelFile != null);
+			case AccessibilityListener.name: return (accessibilityLog != null);
+			case AmbientLightListener.name: return (ambientLightFile != null);
+			case AmbientTemperatureListener.name: return (ambientTemperatureFile != null);
+			case GyroscopeListener.name: return (gyroFile != null);
+			case GPSListener.name: return (GPSFile != null);
+			case PowerStateListener.name: return (powerStateLog != null);
+			case CallLogger.name: return (callLog != null);
+			case SmsSentLogger.name: return (textsLog != null);
+			case TapsListener.name: return (tapsLog != null);
+			case BluetoothListener.name: return (bluetoothLog != null);
+			case UsageListener.name: return (usageFile != null);
+			case WifiListener.name: return (wifiLog != null);
+			case SurveyTimingsRecorder.name: return (surveyTimings != null);
+			case SurveyAnswersRecorder.name: return (surveyAnswers != null);
+			case DebugInterfaceActivity.LogFile.name: return (debugLogFile != null);
+			case "keyFile": return (keyFile != null);
+			default: throw new NullPointerException(String.format("invalid key %s provided for checking available text file.", thing));
+		}
 	}
 	
 	/** We check for the availability of the given TextFile, if it fails to exist we wait GETTER_TIMEOUT milliseconds and then try again. 

@@ -6,7 +6,7 @@ import android.util.Log;
 import org.beiwe.app.storage.TextFileManager;
 
 public class SurveyTimingsRecorder {
-	public static final String name = "surveyTimings_";
+	public static final String name = "surveyTimings";
 	public static final String header = "timestamp,question id,question type,question text,question answer options,answer";
 		
 	
