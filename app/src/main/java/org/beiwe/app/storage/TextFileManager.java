@@ -1,15 +1,21 @@
 package org.beiwe.app.storage;
 
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.beiwe.app.BuildConfig;
 import org.beiwe.app.CrashHandler;
@@ -443,7 +449,7 @@ public class TextFileManager {
 		
 	/** Returns all data that are not currently in use
 	 * @return String[] a list of file names */
-	public static synchronized String[] getAllUploadableFiles() {
+	public static synchronized ArrayList<String> getAllUploadableFiles() {
 		Set<String> files = new HashSet<String>();
 		Collections.addAll(files, getAllFiles());
 		
@@ -473,7 +479,7 @@ public class TextFileManager {
 		files.remove(TextFileManager.getSurveyTimingsFile().fileName);
 		files.remove(TextFileManager.getWifiLogFile().fileName);
 
-		return files.toArray(new String[files.size()]);
+		return new ArrayList <String> (files);
 	}
 	
 	/*###############################################################################
@@ -504,9 +510,77 @@ public class TextFileManager {
 //			Log.i("deleting file", file_name);
 			try { appContext.deleteFile(file_name); }
 			catch (Exception e) {
-				Log.e("TextFileManager", "could not delete file " + file_name); 
+				Log.e("TextFileManager", "could not delete file " + file_name);
 				e.printStackTrace(); }
 		}
+	}
+
+	// add files into zips, avoid huge zip files
+	public static synchronized ArrayList<String> compress_and_delete( ArrayList<String> nonzip_list ){
+		ArrayList<String> ret = new ArrayList<String>();
+		ZipOutputStream zip = null;
+		FileOutputStream fileWriter = null;
+		long tms = System.currentTimeMillis();
+		if(!nonzip_list.isEmpty()) try {
+			int n_current_bytes = 0, n_proc_files = 0;
+			String zip_filename = "", last_filename = nonzip_list.get(nonzip_list.size()-1);
+			ArrayList<String> delete_list = new ArrayList<String>();
+			for ( String file_name : nonzip_list ) {
+				if (fileWriter == null){
+					zip_filename = (++tms) + ".zip";
+					fileWriter = appContext.openFileOutput(zip_filename, Context.MODE_PRIVATE);
+					zip = new ZipOutputStream(fileWriter);
+					n_current_bytes = 0;
+				}
+				n_current_bytes += addFileToZip(file_name, zip);
+				zip.flush();
+				fileWriter.flush();
+				delete_list.add(file_name);
+				if ( n_current_bytes > 1048576 || file_name.equals(last_filename) ) {
+					zip.close();
+					fileWriter.close();
+					fileWriter = null;
+					n_proc_files += delete_list.size();
+					for(String fn : delete_list)
+						delete(fn);
+					delete_list.clear();
+					ret.add(zip_filename);
+					PersistentData.setMainUploadInfo( "Compressing files ..."
+							+ "\nDate: " + Calendar.getInstance().getTime().toString()
+							+ "\nProcessed files: " + n_proc_files + "/" + nonzip_list.size()
+							+ "\nOutput files: " + ret.size());
+				}
+			}
+		} catch ( Exception e ) {
+			DebugInterfaceActivity.smartLog(DebugInterfaceActivity.LogFile.name,tms + " : " + e.toString());
+		} finally {
+			if( fileWriter != null ) try{
+				zip.close();
+				fileWriter.close();
+			} catch ( Exception e1 ) {
+				DebugInterfaceActivity.smartLog(DebugInterfaceActivity.LogFile.name,tms + " : " + e1.toString());
+			}
+		}
+		return ret;
+	}
+
+	// add an individual file to zip
+	public static synchronized int addFileToZip(String filename, ZipOutputStream zip) throws Exception {
+		int len, n_total=0;
+		byte[] buf = new byte[4096];
+		FileInputStream in = null;
+		try {
+			in = appContext.openFileInput(filename);
+			zip.putNextEntry(new ZipEntry(filename));
+			while ((len = in.read(buf)) > 0) {
+				zip.write(buf, 0, len);
+				n_total += len;
+			}
+		}	finally {
+			if( in != null )
+				in.close();
+		}
+		return n_total;
 	}
 
 	public static String CS2S(CharSequence seq){ return (seq==null?"":(String)seq); }

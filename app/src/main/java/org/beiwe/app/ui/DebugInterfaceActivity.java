@@ -1,7 +1,15 @@
 package org.beiwe.app.ui;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.InputStreamReader;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -89,6 +97,11 @@ public class DebugInterfaceActivity extends SessionActivity {
 		public static final String header = "File upload log";
 	}
 
+	public class EncryptFiles {
+		public static final String name = "encryptFiles";
+		public static final String header = "Test encryption log";
+	}
+
 	private static boolean atBottom = true;
 	private static boolean isActive = false;
 
@@ -151,6 +164,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ ListFeature.class, R.id.buttonFeaturesEnabled },
 				{ ListPermission.class, R.id.buttonFeaturesPermissable },
 				{ UploadFiles.class, R.id.buttonUpload },
+				{ EncryptFiles.class, R.id.testEncryption },
 		};
 		for( Object longClickButton[] : longClickButtons )
 			for( int x=1; x<longClickButton.length; ++x ) try {
@@ -179,7 +193,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public static void smartLog( String tag, String data ){
 		if( BuildConfig.APP_IS_DEV )
 			Log.i( tag, data );
-		if( unlocked && tag.equals(show_feature) ){
+		if( (PersistentData.isUnregisterDebugMode || unlocked) && tag.equals(show_feature) ){
 			logcat_text += "\n"+data;
 			while ( logcat_text.length() > 1000000 ) {	// limit text view buffer
 				int p = logcat_text.indexOf('\n');
@@ -239,26 +253,68 @@ public class DebugInterfaceActivity extends SessionActivity {
 		smartLog( LogFile.name, TextFileManager.getDebugLogFile().read() );
 	}
 	public void testEncrypt (View view) {
-		Log.i("Debug..", TextFileManager.getKeyFile().read());
-		String data = TextFileManager.getKeyFile().read();
-		Log.i("reading keyFile:", data );
-		try { EncryptionEngine.readKey(); }
-		catch (InvalidKeySpecException e) {
-			Log.e("DebugInterfaceActivity", "this is only partially implemented, unknown behavior");
+		// Step 1: read encryption key
+		smartLog(EncryptFiles.name, "Reading keyFile ...");
+		try {
+			EncryptionEngine.readKey();
+		} catch (InvalidKeySpecException e) {
+			smartLog(EncryptFiles.name,"Error: encryption engine failed to read key");
 			e.printStackTrace();
 			throw new NullPointerException("some form of encryption error, type 1");
 		}
-		String encrypted;
-		try { encrypted = EncryptionEngine.encryptRSA("ThIs Is a TeSt".getBytes() ).toString(); }
-		catch (InvalidKeySpecException e) {
-			Log.e("DebugInterfaceActivity", "this is only partially implemented, unknown behavior");
-			e.printStackTrace();
-			throw new NullPointerException("some form of encryption error, type 2");
+
+		// Step 2: list all .csv_ files
+		String [] filelist = appContext.getFilesDir().list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith("__");
+			}
+		});
+
+		// Step 3: if there exist any .csv_ file
+		if (filelist.length > 0){	// Step 3a: encrypt all .csv_ files and save to .csv and delete .csv_
+			int n_done = 0;
+			for (String oldfn : filelist) try {
+				byte [] AESKey = EncryptionEngine.newAESKey();
+				String newfn = oldfn.substring( 0, oldfn.length()-2 );
+				FileInputStream fp_in0 = appContext.openFileInput( oldfn );
+				BufferedReader fp_in = new BufferedReader(new InputStreamReader(fp_in0));
+				FileOutputStream fp_out = appContext.openFileOutput( newfn, MODE_PRIVATE );
+				fp_out.write( (EncryptionEngine.encryptRSA(AESKey)+"\n").getBytes() );
+				String data="", line;
+				while((line=fp_in.readLine()) != null) {
+					data += (line+"\n");
+					if(data.length()>1024) {
+						data = data.substring(0, data.length()-1);
+						fp_out.write((EncryptionEngine.encryptAES(data, AESKey) + "\n").getBytes());
+						data = "";
+					}
+				}
+				if(!data.isEmpty()) {
+					data = data.substring(0, data.length()-1);
+					fp_out.write((EncryptionEngine.encryptAES(data, AESKey) + "\n").getBytes());
+				}
+				fp_in.close();
+				fp_out.close();
+				TextFileManager.delete(oldfn);
+//				PersistentData.setMainUploadInfo( "Encrypting files ...\nProgress: " + (++n_done) + "/" + filelist.length);
+			} catch (Exception e ){
+				smartLog(EncryptFiles.name,"Error: failed to encrypt file " + oldfn);
+			}
+		} else { // Step 3b: encrypt a specific string
+			String encrypted = "";
+			try {
+				encrypted = EncryptionEngine.encryptRSA("ThIs Is a TeSt".getBytes()).toString();
+			} catch (InvalidKeySpecException e) {
+				smartLog(EncryptFiles.name,"Error: failed to encrypt test string");
+				e.printStackTrace();
+				throw new NullPointerException("some form of encryption error, type 2");
+			}
+			smartLog(EncryptFiles.name,"test encrypt - length: " + encrypted.length());
+			smartLog(EncryptFiles.name,"test encrypt - output: " + encrypted);
+			smartLog(EncryptFiles.name,"test hash: " + EncryptionEngine.safeHash(encrypted));
+			smartLog(EncryptFiles.name,"test hash: " + EncryptionEngine.hashMAC(encrypted));
 		}
-		Log.i("test encrypt - length:", "" + encrypted.length() );
-		Log.i("test encrypt - output:", encrypted );
-		Log.i("test hash:", EncryptionEngine.safeHash( encrypted ) );
-		Log.i("test hash:", EncryptionEngine.hashMAC( encrypted ) );
 	}
 
 	public void getAlarmStates(View view) {
@@ -304,20 +360,21 @@ public class DebugInterfaceActivity extends SessionActivity {
 	//file operations
 	public void makeNewFiles(View view) { TextFileManager.makeNewFilesForEverything(); }
 	public void deleteEverything(View view) {
-		Log.i("Delete Everything button pressed", "poke.");
+		smartLog( LogFile.name, "Delete Everything button pressed, poke.");
 		String[] files = TextFileManager.getAllFiles();
 		Arrays.sort(files);
 		for( String file : files ) { Log.i( "files...", file); }
 		TextFileManager.deleteEverything(); }
 	public void listFiles(View view){
 		smartLog( ListFile.name,"UPLOADABLE FILES" );
-		String[] files = TextFileManager.getAllUploadableFiles();
-		Arrays.sort(files);
+		ArrayList <String> files = TextFileManager.getAllUploadableFiles();
+		Collections.sort( files );
 		for( String file : files ) { smartLog( ListFile.name, file ); }
+
 		smartLog( ListFile.name,"ALL FILES" );
-		files = TextFileManager.getAllFiles();
-		Arrays.sort(files);
-		for( String file : files ) { smartLog( ListFile.name, file ); }
+		String [] files_arr = TextFileManager.getAllFiles();
+		Arrays.sort(files_arr);
+		for( String file : files_arr ) { smartLog( ListFile.name, file ); }
 	}
 
 	//ui operations

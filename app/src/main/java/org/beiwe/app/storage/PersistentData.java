@@ -44,6 +44,7 @@ public class PersistentData {
 	public static final String USE_GPS_FUZZING = "use_gps_fuzzing";
 	public static final String USE_ANONYMIZED_HASHING = "use_anonymized_hashing";
 	public static final String WRITE_BUFFER_SIZE = "write_buffer_size";
+	public static final String USE_COMPRESSION = "use_compression";
 
 	public static final String ACCELEROMETER = "accelerometer";
 	public static final String ACCESSIBILITY = "accessibility";
@@ -74,7 +75,8 @@ public class PersistentData {
 			USAGE,
 			BLUETOOTH,
 			POWER_STATE,
-			ALLOW_UPLOAD_OVER_CELLULAR_DATA
+			ALLOW_UPLOAD_OVER_CELLULAR_DATA,
+			USE_COMPRESSION
 	};
 
 	private static final String ACCELEROMETER_OFF_DURATION_SECONDS = "accelerometer_off_duration_seconds";
@@ -300,6 +302,7 @@ public class PersistentData {
 	public static final String CONSENT_FORM_TEXT_KEY = "consent_form_text";
 	public static final String SURVEY_SUBMIT_SUCCESS_TOAST_TEXT_KEY = "survey_submit_success_toast_text";
 	public static final String MAIN_UPLOAD_INFO_TEXT_KEY = "main_upload_info_text";
+	public static final String LASY_UPLOAD_TIME_KEY = "last_upload_time";
 	
 	public static String getAboutPageText() {
 		String defaultText = appContext.getString(R.string.default_about_page_text);
@@ -320,7 +323,12 @@ public class PersistentData {
 		editor.putString(MAIN_UPLOAD_INFO_TEXT_KEY, text);
 		editor.commit();
 		try {
-			((TextView)MainMenuActivity.mSelf.findViewById(R.id.main_last_upload)).setText(text);
+			MainMenuActivity.mSelf.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					((TextView)MainMenuActivity.mSelf.findViewById(R.id.main_last_upload)).setText(text);
+				}
+			});
 		} catch (Exception e){}
 	}
 

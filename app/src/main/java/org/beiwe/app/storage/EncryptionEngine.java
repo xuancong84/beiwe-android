@@ -127,8 +127,8 @@ public class EncryptionEngine {
 	public static String encryptRSA(byte[] data) throws InvalidKeySpecException {
 		if (RSAkey == null) readKey();
 		
-		//unfortunately we have problems encrypting this data, it occasionally loses a character, so we need to
-		// base64 encode it first.
+		// unfortunately we have problems encrypting this data, it occasionally loses a character,
+		// so we need to base64 encode it first.
 		data = toBase64Array(data);
 		
 		byte[] encryptedText = null;

@@ -101,6 +101,7 @@ public class TapsListener {
 						+ TextFileManager.DELIMITER + context.getResources().getConfiguration().orientation;
 				last_appname = appname;
 				TextFileManager.getTapsLogFile().writeEncrypted( data );
+//				Log.i(name, "XY-coord:"+paramMotionEvent.getX()+","+paramMotionEvent.getY());
 			}
 			return false;
 		}

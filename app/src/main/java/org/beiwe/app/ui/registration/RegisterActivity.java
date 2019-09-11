@@ -132,7 +132,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 		if(BuildConfig.APP_IS_DEV && userID.isEmpty()){
 			if(Build.MANUFACTURER.equals("unknown")) {
 				userID = "hywvod27";
-				tempPassword = newPassword = confirmNewPassword = "hrn2cjls";
+				tempPassword = newPassword = confirmNewPassword = "abcd1234";
 			}else{
 				userID = "iawlsn1e";
 				tempPassword = newPassword = confirmNewPassword = "abcd1234";

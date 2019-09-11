@@ -27,12 +27,18 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import javax.net.ssl.HostnameVerifier;
@@ -366,7 +372,8 @@ public class PostRequest {
 	 */
 	private static int doFileUpload(File file, URL uploadUrl, long stopTime) throws IOException {
 		if (file.length() > 1024 * 1024 * 10)
-			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, "upload big file: length = " + file.length());
+			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,
+					"upload big file: name = " + file.getName() + " ; length = " + file.length());
 
 		HttpsURLConnection connection = minimalHTTP(uploadUrl);
 		BufferedOutputStream request = new BufferedOutputStream(connection.getOutputStream(), 65536);
@@ -400,10 +407,49 @@ public class PostRequest {
 		// Get HTTP Response. Pretty sure this blocks, nothing can really be done about that.
 		int response = connection.getResponseCode();
 		connection.disconnect();
-		if (BuildConfig.APP_IS_DEV) {
+		DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,
+				"uploading finished: filename = " + file.getName() + " ; response = " + response);
+		return response;
+	}
+
+	public static String CRLF = "\r\n", charset = "UTF-8";
+	private static int doBinaryFileUpload(File binaryFile, URL uploadUrl, long stopTime) throws IOException {
+		if (binaryFile.length() > 1024 * 1024 * 10)
 			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,
-					"uploading finished attempt to upload " + file.getName() + "; received code " + response);
-		}
+					"upload big file: name = " + binaryFile.getName() + " ; length = " + binaryFile.length());
+
+		HttpsURLConnection connection = minimalHTTP(uploadUrl);
+		String boundary = Long.toHexString(System.currentTimeMillis());
+		connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+		OutputStream output = connection.getOutputStream();
+		PrintWriter writer = new PrintWriter(new OutputStreamWriter(output,charset),true);
+
+		// Send normal param.
+		String params = securityParameters(null)+makeParameter("file_name", binaryFile.getName());
+		params = params.substring(0, params.length()-1);
+		writer.append("--" + boundary).append(CRLF);
+		writer.append("Content-Disposition: form-data; name=\"params\"").append(CRLF);
+		writer.append("Content-Type: text/plain; charset=" + charset).append(CRLF);
+		writer.append(CRLF).append(params).append(CRLF).flush();
+
+		// Send binary file.
+		writer.append("--" + boundary).append(CRLF);
+		writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + binaryFile.getName() + "\"").append(CRLF);
+		writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(binaryFile.getName())).append(CRLF);
+		writer.append("Content-Transfer-Encoding: binary").append(CRLF);
+		writer.append(CRLF).flush();
+		Files.copy(binaryFile.toPath(), output);
+		output.flush(); // Important before continuing with writer!
+		writer.append(CRLF).flush(); // CRLF is important! It indicates end of boundary.
+
+		// End of multipart/form-data.
+		writer.append("--" + boundary + "--").append(CRLF).flush();
+
+		// Get HTTP Response. Pretty sure this blocks, nothing can really be done about that.
+		int response = connection.getResponseCode();
+		connection.disconnect();
+		DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,
+				"uploading finished: filename = " + binaryFile.getName() + " ; response = " + response);
 		return response;
 	}
 
@@ -436,12 +482,20 @@ public class PostRequest {
 	 * Uploads all files to the Beiwe server.
 	 * Files get deleted as soon as a 200 OK code in received from the server.
 	 */
+	private static void setMainUploadInfo(String msg, long total_bytes, long total_bytes_good,
+																				long total_files, long total_files_good){
+		PersistentData.setMainUploadInfo( msg
+				+ "\nDate: " + Calendar.getInstance().getTime().toString()
+				+ "\nTotal bytes: " + total_bytes_good + "/" + total_bytes
+				+ "\nTotal files: " + total_files_good + "/" + total_files);
+	}
 	private static void doUploadAllFiles() {
 		synchronized (FILE_UPLOAD_LOCK) {
 			//long stopTime = System.currentTimeMillis() + PersistentData.getUploadDataFilesFrequencyMilliseconds();
 			long stopTime = System.currentTimeMillis() + 1000 * 60 * 60; //One hour to upload files
-			String[] files = TextFileManager.getAllUploadableFiles();
-			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"uploading " + files.length + " files");
+			ArrayList <String> file_list = TextFileManager.getAllUploadableFiles();
+			if( file_list.isEmpty() ) return;
+			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"uploading " + file_list.size() + " files");
 			File file = null;
 			URL uploadUrl = null; //set up url, write a crash log and fail gracefully if this ever breaks.
 			try {
@@ -451,22 +505,34 @@ public class PostRequest {
 				return;
 			}
 
-			long total_good = 0, total = 0;
-			for (String fileName : TextFileManager.getAllUploadableFiles()) {
+			if(PersistentData.getBoolean("use_compression")){
+				ArrayList<String> zip_list = new ArrayList<String>();
+				ArrayList<String> nonzip_list = new ArrayList<String>();
+				for( String fn : file_list )
+					(fn.toLowerCase().endsWith(".zip")?zip_list:nonzip_list).add(fn);
+				ArrayList<String> zip_filename = TextFileManager.compress_and_delete(nonzip_list);
+				if( zip_filename != null )
+					zip_list.addAll(zip_filename);
+				file_list = zip_list;
+			}
+
+			long total_bytes = 0, total_bytes_good = 0, total_files = file_list.size(), total_files_good = 0;
+			for (String fileName : file_list) {
 				try {
+					setMainUploadInfo("Uploading file "+fileName, total_bytes, total_bytes_good, total_files, total_files_good);
 					file = new File(appContext.getFilesDir() + "/" + fileName);
 					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"uploading " + file.getName());
-					total += file.length();
-					if (PostRequest.doFileUpload(file, uploadUrl, stopTime) == 200) {
-						total_good += file.length();
+					total_bytes += file.length();
+					int res = file.getName().toLowerCase().endsWith(".zip") ?
+							PostRequest.doBinaryFileUpload(file, uploadUrl, stopTime):PostRequest.doFileUpload(file, uploadUrl, stopTime);
+					if (res == 200) {
+						++ total_files_good;
+						total_bytes_good += file.length();
 						TextFileManager.delete(fileName);
-						PersistentData.setMainUploadInfo("The last upload is successful!\nDate: "
-								+ Calendar.getInstance().getTime().toString() + "\nOverall bytes: " + total_good + "/" + total);
 					}
 				} catch (IOException e) {
 					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, "PostRequest.java: Failed to upload file " + fileName + ". Raised exception: " + e.getCause());
-					PersistentData.setMainUploadInfo("The last upload has failed!\nDate: "
-							+ Calendar.getInstance().getTime().toString() + "\nOverall bytes: " + total_good + "/" + total);
+					setMainUploadInfo("The last upload has failed!", total_bytes, total_bytes_good, total_files, total_files_good);
 				}
 
 				if (stopTime < System.currentTimeMillis()) {
@@ -474,10 +540,13 @@ public class PostRequest {
 					DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name, msg );
 					TextFileManager.getDebugLogFile().writeEncrypted( msg );
 					CrashHandler.writeCrashlog( new Exception("Upload took longer than 1 hour" ), appContext);
-					PersistentData.setMainUploadInfo("The last upload took longer than 1 hour and thus is aborted!\nDate: "
-							+ Calendar.getInstance().getTime().toString() + "\nOverall bytes sent: " + total_good + "/" + total);
+					setMainUploadInfo("The last upload took longer than 1 hour and thus is aborted!", total_bytes, total_bytes_good, total_files, total_files_good);
 					return;
 				}
+			}
+			if( total_bytes == total_bytes_good ) {
+				setMainUploadInfo("The last upload is successful!", total_bytes, total_bytes_good, total_files, total_files_good);
+				PersistentData.setLong(PersistentData.LASY_UPLOAD_TIME_KEY, System.currentTimeMillis());
 			}
 			DebugInterfaceActivity.smartLog( DebugInterfaceActivity.UploadFiles.name,"UPLOAD STUFF: DONE WITH UPLOAD");
 		}

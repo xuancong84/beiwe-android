@@ -530,7 +530,7 @@ public class BackgroundService extends Service {
 			}
 			
 			//starts a data upload attempt.
-			if (broadcastAction.equals( appContext.getString(R.string.upload_data_files_intent) ) ) {
+			if (broadcastAction.equals( appContext.getString(R.string.upload_data_files_intent) )) {
 				PostRequest.uploadAllFiles();
 				timer.setupExactSingleAlarm(PersistentData.getUploadDataFilesFrequencyMilliseconds(), Timer.uploadDatafilesIntent);
 				return;
@@ -576,7 +576,10 @@ public class BackgroundService extends Service {
 			if ( PersistentData.isRegistered() && broadcastAction.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
 				NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 				if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-					PostRequest.uploadAllFiles();
+					long time_diff = System.currentTimeMillis()-PersistentData.getLong(PersistentData.LASY_UPLOAD_TIME_KEY,0);
+					if(BuildConfig.APP_IS_DEV || time_diff > PersistentData.getUploadDataFilesFrequencyMilliseconds()*0.5)
+//					if(!BuildConfig.APP_IS_DEV && time_diff > PersistentData.getUploadDataFilesFrequencyMilliseconds()*0.5)
+						PostRequest.uploadAllFiles();
 					return;
 				}
 			}
