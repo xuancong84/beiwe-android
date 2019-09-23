@@ -473,29 +473,23 @@ public class PersistentData {
 	public static byte[] getHashSalt() {
 		String saltString = pref.getString(HASH_SALT_KEY, null);
 		if(saltString == null) { // create salt if it does not exist
-			byte[] newSalt = SecureRandom.getSeed(64);
-			editor.putString(HASH_SALT_KEY, new String(newSalt));
+			saltString = new String(SecureRandom.getSeed(64));
+			editor.putString(HASH_SALT_KEY, saltString);
 			editor.commit();
-			return newSalt;
 		}
-		else {
-			return saltString.getBytes();
-		}
+		return saltString.getBytes();
 	}
 
 	// Get iterations for pbkdf2 hashing
 	public static int getHashIterations() {
 		int iterations = pref.getInt(HASH_ITERATIONS_KEY, 0);
 		if(iterations == 0) { // create iterations if it does not exist
-			// create random iteration count from 900 to 1100
-			int newIterations = 1100 - new Random().nextInt(200);
-			editor.putInt(HASH_ITERATIONS_KEY, newIterations);
+			// create random iteration count from 100 to 1000
+			iterations = 100 + new Random().nextInt(900);
+			editor.putInt(HASH_ITERATIONS_KEY, iterations);
 			editor.commit();
-			return newIterations;
 		}
-		else {
-			return iterations;
-		}
+		return iterations;
 	}
 
 	/*###########################################################################################
@@ -506,28 +500,24 @@ public class PersistentData {
 	private static final String LONGITUDE_OFFSET_KEY = "longitude_offset_key";
 
 	public static double getLatitudeOffset() {
+		if(!getBoolean(USE_GPS_FUZZING)) return 0;
 		float latitudeOffset = pref.getFloat(LATITUDE_OFFSET_KEY, 0.0f);
-		if(latitudeOffset == 0.0f && getBoolean(USE_GPS_FUZZING)) { //create latitude offset if it does not exist
-			float newLatitudeOffset = (float)(Math.random()*1000.0-500.0); // create random latitude offset between (-1, -.2) or (.2, 1)
-			editor.putFloat(LATITUDE_OFFSET_KEY, newLatitudeOffset);
+		if( latitudeOffset == 0.0f ) { //create latitude offset if it does not exist
+			latitudeOffset = (float)(Math.random()*1000.0-500.0); // create random latitude offset between (-1, -.2) or (.2, 1)
+			editor.putFloat(LATITUDE_OFFSET_KEY, latitudeOffset);
 			editor.commit();
-			return newLatitudeOffset;
 		}
-		else {
-			return latitudeOffset;
-		}
+		return latitudeOffset;
 	}
 
 	public static float getLongitudeOffset() {
+		if(!getBoolean(USE_GPS_FUZZING)) return 0;
 		float longitudeOffset = pref.getFloat(LONGITUDE_OFFSET_KEY, 0.0f);
-		if(longitudeOffset == 0.0f && getBoolean(USE_GPS_FUZZING)) { //create longitude offset if it does not exist
-			float newLongitudeOffset = (float)(Math.random()*1000.0-500.0); // create random longitude offset between (-180, -10) or (10, 180)
-			editor.putFloat(LONGITUDE_OFFSET_KEY, newLongitudeOffset);
+		if( longitudeOffset == 0.0f ) { //create longitude offset if it does not exist
+			longitudeOffset = (float)(Math.random()*1000.0-500.0); // create random longitude offset between (-180, -10) or (10, 180)
+			editor.putFloat(LONGITUDE_OFFSET_KEY, longitudeOffset);
 			editor.commit();
-			return newLongitudeOffset;
 		}
-		else {
-			return longitudeOffset;
-		}
+		return longitudeOffset;
 	}
 }

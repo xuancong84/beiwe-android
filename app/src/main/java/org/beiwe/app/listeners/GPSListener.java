@@ -26,7 +26,7 @@ import android.util.Log;
 
 public class GPSListener implements LocationListener {
 	public static final String name = "gps";
-	public static final String header = "timestamp,latitude,longitude,altitude,accuracy";
+	public static final String header = "timestamp,latitude,longitude,altitude,accuracy,provider";
 	
 	private Context appContext;
 	private LocationManager locationManager;
@@ -105,19 +105,19 @@ public class GPSListener implements LocationListener {
 	/** pushes an update to us whenever there is a location update. */
 	@Override
 	public void onLocationChanged(Location location) {
-		Long javaTimeCode = System.currentTimeMillis();
 //		Log.d("GPSListener", "gps update...");
 		//order: time, latitude, longitude, altitude, horizontal_accuracy\n
 
 		// Latitude and longitude offset should be 0 unless GPS fuzzing is enabled
-		double latitude = (location.getLatitude() + PersistentData.getLatitudeOffset());
-		double longitude = ((location.getLongitude() + PersistentData.getLongitudeOffset() + 180.0) % 360) - 180.0;
+		double latitude = location.getLatitude() + PersistentData.getLatitudeOffset();
+		double longitude = location.getLongitude() + PersistentData.getLongitudeOffset();
 
-		String data = javaTimeCode.toString() + TextFileManager.DELIMITER
+		String data = location.getTime() + TextFileManager.DELIMITER
 				+ latitude + TextFileManager.DELIMITER
 				+ longitude + TextFileManager.DELIMITER
 				+ location.getAltitude() + TextFileManager.DELIMITER
-				+ location.getAccuracy();
+				+ location.getAccuracy() + TextFileManager.DELIMITER
+				+ location.getProvider();
 		//note, altitude is notoriously inaccurate, getAccuracy only applies to latitude/longitude
 		TextFileManager.getGPSFile().writeEncrypted(data);
 	}
