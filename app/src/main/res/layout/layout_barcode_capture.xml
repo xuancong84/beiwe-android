@@ -9,7 +9,7 @@
     android:gravity="center"
     android:keepScreenOn="true">
 
-    <org.beiwe.app.ui.qrcode.CameraSourcePreview
+    <org.beiwe.app.ui.scanQR.CameraSourcePreview
         android:id="@+id/camera_preview"
         android:layout_gravity="center"
         android:layout_width="wrap_content"

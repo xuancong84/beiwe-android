@@ -135,6 +135,14 @@
     <string name="default_call_clinician_text">Call My Clinician</string>
     <string name="title_activity_graph">Previous Survey Answers</string>
 
+    <!-- Secrets strings -->
+    <string name="title_activity_secret_reveal">Secrets</string>
+    <string name="proceed_to_main_screen_text">Proceed to Next Screen</string>
+    <string name="user_id_header">User Id</string>
+    <string name="qr_code_header">QR Code</string>
+    <string name="secret_reveal_normal_message">Please take a picture of this screen for future use.</string>
+    <string name="secret_reveal_note_message">NOTE: This screen will not be shown again. Please proceed to next screen only if you have taken the picture of it.</string>
+
     <!-- Recording Activity -->
     <string name="record_activity_default_message">We would like to know how your day is going.  When you are ready, please press \"Record\" and speak for about 2 minutes.  Press \"Stop\" when you are finished. The recording will stop automatically after 4 minutes. Remember, researchers will not review and analyze your data until the end of the study, so if you are ill or in danger and need to speak with your clinician, press the \"Call My Clinician\" button.</string>
     <string name="record_activity_button">Press to record</string>

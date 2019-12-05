@@ -126,7 +126,7 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
-            android:name="org.beiwe.app.ui.qrcode.BarcodeCaptureActivity"
+            android:name="org.beiwe.app.ui.scanQR.BarcodeCaptureActivity"
             android:label="@string/title_activity_qrcode" >
         </activity>
 

@@ -255,8 +255,12 @@ public class AccessibilityListener extends AccessibilityService {
 	}
 
 	public static String convertKeyChar( String text ){
-		if(text.startsWith("[") && text.endsWith("]") && text.length()<=16)
-			return text;
+		String L = "", R = "";
+		if(text.startsWith("[") && text.endsWith("]")) {
+			L = "[";
+			R = "]";
+			text = text.substring(1, text.length()-1);
+		}
 		switch (text.toLowerCase()){
 			case "back":
 			case "delete":
@@ -268,13 +272,13 @@ public class AccessibilityListener extends AccessibilityService {
 			case "clear all":
 			case "navigate up":
 			case "close all recent apps":
-				return text;
+				return L+text+R;
 			default:
 				if(text.length()==1){
 					char ch = text.charAt(0);
-					if(Character.isAlphabetic(ch)) return "a";
-					if(Character.isDigit(ch)) return "0";
-					return ".";
+					if(Character.isAlphabetic(ch)) return L+"a"+R;
+					if(Character.isDigit(ch)) return L+"0"+R;
+					return L+"."+R;
 				}
 		}
 		return "[OTHER]";

@@ -1,4 +1,4 @@
-package org.beiwe.app.ui.qrcode;
+package org.beiwe.app.ui.scanQR;
 
 /*
  * Copyright (C) The Android Open Source Project

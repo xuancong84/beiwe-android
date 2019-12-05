@@ -29,8 +29,7 @@ import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.ui.DebugInterfaceActivity;
-import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
-import org.beiwe.app.ui.user.AboutActivityLoggedOut;
+import org.beiwe.app.ui.scanQR.BarcodeCaptureActivity;
 import org.beiwe.app.ui.utils.AlertsManager;
 import org.json.JSONObject;
 import java.util.concurrent.Callable;
@@ -211,7 +210,7 @@ public class RegisterActivity extends RunningBackgroundServiceActivity {
 				super.onPostExecute(arg);
 				if (responseCode == 200) {
 					PersistentData.setPassword(newPassword);
-					activity.startActivity(new Intent(activity.getApplicationContext(), PhoneNumberEntryActivity.class) );
+					activity.startActivity(new Intent(activity.getApplicationContext(), GenerateSecretQRcodeActivity.class) );
 					activity.finish();
 				} else {
 					AlertsManager.showAlert(responseCode, currentActivity.getString(R.string.couldnt_register), currentActivity);

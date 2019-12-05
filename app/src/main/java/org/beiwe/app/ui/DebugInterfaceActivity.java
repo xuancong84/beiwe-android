@@ -37,12 +37,11 @@ import org.beiwe.app.storage.EncryptionEngine;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.survey.JsonSkipLogic;
-import org.beiwe.app.ui.qrcode.BarcodeCaptureActivity;
+import org.beiwe.app.ui.scanQR.BarcodeCaptureActivity;
 import org.beiwe.app.ui.user.MainMenuActivity;
 import org.beiwe.app.ui.utils.SurveyNotifications;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.DialogInterface;

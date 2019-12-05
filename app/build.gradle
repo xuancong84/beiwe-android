@@ -90,4 +90,5 @@ dependencies {
     implementation 'io.sentry:sentry-android:1.7.26'
     implementation 'com.madgag.spongycastle:core:1.58.0.0'
     implementation 'com.google.android.gms:play-services-vision:15.0.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
 }

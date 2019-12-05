@@ -1,4 +1,4 @@
-package org.beiwe.app.ui.qrcode;
+package org.beiwe.app.ui.scanQR;
 
 /*
  * Copyright (C) The Android Open Source Project
@@ -68,8 +68,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
 	// Public variable to store scan output temporarily
 	public static String scan_result = "";
 
-	private org.beiwe.app.ui.qrcode.CameraSource mCameraSource;
-	private org.beiwe.app.ui.qrcode.CameraSourcePreview mPreview;
+	private org.beiwe.app.ui.scanQR.CameraSource mCameraSource;
+	private org.beiwe.app.ui.scanQR.CameraSourcePreview mPreview;
 	public static ImageButton mTorchButton = null;
 
 	/**
