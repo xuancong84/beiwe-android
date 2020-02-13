@@ -42,10 +42,6 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 
-import io.sentry.Sentry;
-import io.sentry.android.AndroidSentryClientFactory;
-import io.sentry.dsn.InvalidDsnException;
-
 public class BackgroundService extends Service {
 	public static Context appContext;
 
@@ -55,6 +51,7 @@ public class BackgroundService extends Service {
 	public BluetoothListener bluetoothListener;
 	public GPSListener gpsListener;
 	public GyroscopeListener gyroscopeListener;
+	public MagnetoListener magnetoListener;
 	public PowerStateListener powerStateListener;
 	public WifiListener wifiListener;
 	public UsageListener usageListener;
@@ -97,13 +94,6 @@ public class BackgroundService extends Service {
 			appInfo = null;
 		}
 		opsManager = (AppOpsManager) appContext.getSystemService( Context.APP_OPS_SERVICE );
-
-		try {
-			String sentryDsn = BuildConfig.SENTRY_DSN;
-			Sentry.init(sentryDsn, new AndroidSentryClientFactory(appContext));
-		} catch (InvalidDsnException ie) {
-			Sentry.init(new AndroidSentryClientFactory(appContext));
-		}
 
 		Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(appContext));
 		PersistentData.initialize( appContext );
@@ -151,6 +141,8 @@ public class BackgroundService extends Service {
 			ambientTemperatureListener = new AmbientTemperatureListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.GYROSCOPE) && gyroscopeListener==null )
 			gyroscopeListener = new GyroscopeListener( appContext );
+		if ( PersistentData.getEnabled(PersistentData.MAGNETOMETER) && magnetoListener==null )
+			magnetoListener = new MagnetoListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.TAPS) && !isTapAdded )
 			tapsListener = new TapsListener( this );
 		if ( PersistentData.getEnabled(PersistentData.USAGE) && usageListener==null )
@@ -272,12 +264,15 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.turn_accelerometer_on ) );
 		filter.addAction( appContext.getString( R.string.turn_ambientlight_on ) );
 		filter.addAction( appContext.getString( R.string.turn_ambienttemperature_on ) );
+		filter.addAction( appContext.getString( R.string.turn_ambienttemperature_off ) );
 		filter.addAction( appContext.getString( R.string.turn_bluetooth_off ) );
 		filter.addAction( appContext.getString( R.string.turn_bluetooth_on ) );
 		filter.addAction( appContext.getString( R.string.turn_gps_off ) );
 		filter.addAction( appContext.getString( R.string.turn_gps_on ) );
 		filter.addAction( appContext.getString( R.string.turn_gyroscope_off ) );
 		filter.addAction( appContext.getString( R.string.turn_gyroscope_on ) );
+		filter.addAction( appContext.getString( R.string.turn_magnetometer_off ) );
+		filter.addAction( appContext.getString( R.string.turn_magnetometer_on ) );
 		filter.addAction( appContext.getString( R.string.signout_intent ) );
 		filter.addAction( appContext.getString( R.string.voice_recording ) );
 		filter.addAction( appContext.getString( R.string.update_usage ) );
@@ -324,6 +319,17 @@ public class BackgroundService extends Service {
 			else if(timer.alarmIsSet(Timer.gyroscopeOffIntent)
 					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gyroscope_on )) - PersistentData.getGyroOffDurationMilliseconds() + 1000 > now ) {
 				gyroscopeListener.turn_on();
+			}
+		}
+
+		if (PersistentData.getEnabled(PersistentData.MAGNETOMETER)) {
+			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_magnetometer_on )) < now || //the most recent accelerometer alarm time is in the past, or...
+					!timer.alarmIsSet(Timer.magnetometerOnIntent) ) {
+				sendBroadcast(Timer.magnetometerOnIntent);
+			}
+			else if(timer.alarmIsSet(Timer.magnetometerOffIntent)
+					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_magnetometer_on )) - PersistentData.getMagnetometerOffDurationMilliseconds() + 1000 > now ) {
+				magnetoListener.turn_on();
 			}
 		}
 
@@ -431,13 +437,19 @@ public class BackgroundService extends Service {
 
 			/** Disable active sensor */
 			if (broadcastAction.equals( appContext.getString(R.string.turn_accelerometer_off) ) ) {
-				accelerometerListener.turn_off();
+				if(accelerometerListener!=null) accelerometerListener.turn_off();
 				return; }
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gps_off) ) ) {
 				if ( PermissionHandler.checkGpsPermissions(appContext) ) { gpsListener.turn_off(); }
 				return; }
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gyroscope_off) ) ) {
-				gyroscopeListener.turn_off();
+				if(gyroscopeListener!=null) gyroscopeListener.turn_off();
+				return; }
+			if (broadcastAction.equals( appContext.getString(R.string.turn_ambienttemperature_off) ) ) {
+				if(ambientTemperatureListener!=null) ambientTemperatureListener.turn_off();
+				return; }
+			if (broadcastAction.equals( appContext.getString(R.string.turn_magnetometer_off) ) ) {
+				if(magnetoListener!=null) magnetoListener.turn_off();
 				return; }
 
 			/** Enable active sensors, reset timers. */
@@ -481,6 +493,17 @@ public class BackgroundService extends Service {
 					timer.setupExactSingleAlarm(PersistentData.getGyroOnDurationMilliseconds(), Timer.gyroscopeOffIntent);
 				long alarmTime = timer.setupExactSingleAlarm(off_duration + PersistentData.getGyroOnDurationMilliseconds(), Timer.gyroscopeOnIntent);
 				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_gyroscope_on), alarmTime );
+				return; }
+
+			//Magnetometer. Almost identical logic to accelerometer above.
+			if (broadcastAction.equals( appContext.getString(R.string.turn_magnetometer_on) ) ) {
+				if ( magnetoListener == null ) magnetoListener = new MagnetoListener( appContext );
+				magnetoListener.turn_on();
+				long off_duration = PersistentData.getMagnetometerOffDurationMilliseconds();
+				if(off_duration>0)
+					timer.setupExactSingleAlarm(PersistentData.getMagnetometerOnDurationMilliseconds(), Timer.magnetometerOffIntent);
+				long alarmTime = timer.setupExactSingleAlarm(off_duration + PersistentData.getMagnetometerOnDurationMilliseconds(), Timer.magnetometerOnIntent);
+				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_magnetometer_on), alarmTime );
 				return; }
 
 			//GPS. Almost identical logic to accelerometer above.

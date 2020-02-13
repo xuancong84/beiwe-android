@@ -128,6 +128,26 @@
 				android:text="Trigger All Survey Notifications" />
 
 			<TextView
+				android:id="@+id/debugtext8"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Test additional sensors such as ambient temperature:" />
+
+			<Button
+				android:id="@+id/buttonEnableAmbientTemperature"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="ambientTemperatureOn"
+				android:text="Trigger android.sensor.ambient_temperature Recording" />
+
+			<Button
+				android:id="@+id/buttonSwitchSensor"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="switchSensor"
+				android:text="Switch to next sensor" />
+
+			<TextView
 				android:id="@+id/debugtext5"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
@@ -231,18 +251,25 @@
 				android:text="Stop Gyroscope Recording" />
 
 			<Button
+				android:id="@+id/buttonEnableMagnetometer"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="magnetometerOn"
+				android:text="Start Magnetometer Recording" />
+
+			<Button
+				android:id="@+id/buttonDisableMagnetometer"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="magnetometerOff"
+				android:text="Stop Magnetometer Recording" />
+
+			<Button
 				android:id="@+id/buttonEnableAmbientLight"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:onClick="ambientLightOn"
 				android:text="Trigger Ambient Light Recording" />
-
-			<Button
-				android:id="@+id/buttonEnableAmbientTemperature"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:onClick="ambientTemperatureOn"
-				android:text="Trigger Ambient Temperature Recording" />
 
 			<Button
 				android:id="@+id/buttonUpdateUsage"

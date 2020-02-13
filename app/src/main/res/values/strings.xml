@@ -171,12 +171,15 @@
     <string name="turn_accelerometer_on">Accelerometer On</string>
     <string name="turn_ambientlight_on">AmbientLight On</string>
     <string name="turn_ambienttemperature_on">AmbientTemperature On</string>
+    <string name="turn_ambienttemperature_off">AmbientTemperature Off</string>
     <string name="turn_bluetooth_off">Bluetooth OFF</string>
     <string name="turn_bluetooth_on">Bluetooth On</string>
     <string name="turn_gyroscope_off">Gyroscope OFF</string>
     <string name="turn_gyroscope_on">Gyroscope On</string>
     <string name="turn_gps_off">GPS OFF</string>
     <string name="turn_gps_on">GPS On</string>
+    <string name="turn_magnetometer_off">Magnetometer OFF</string>
+    <string name="turn_magnetometer_on">Magnetometer On</string>
     <string name="signout_intent">Signout</string>
     <string name="voice_recording">Voice Recording</string>
     <string name="update_usage">Update Usage</string>

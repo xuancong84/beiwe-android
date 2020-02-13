@@ -20,16 +20,7 @@ import org.beiwe.app.PermissionHandler;
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
 import org.beiwe.app.Timer;
-import org.beiwe.app.listeners.AccelerometerListener;
-import org.beiwe.app.listeners.AccessibilityListener;
-import org.beiwe.app.listeners.AmbientLightListener;
-import org.beiwe.app.listeners.AmbientTemperatureListener;
-import org.beiwe.app.listeners.BluetoothListener;
-import org.beiwe.app.listeners.GPSListener;
-import org.beiwe.app.listeners.GyroscopeListener;
-import org.beiwe.app.listeners.TapsListener;
-import org.beiwe.app.listeners.UsageListener;
-import org.beiwe.app.listeners.WifiListener;
+import org.beiwe.app.listeners.*;
 import org.beiwe.app.networking.PostRequest;
 import org.beiwe.app.networking.SurveyDownloader;
 import org.beiwe.app.session.SessionActivity;
@@ -140,8 +131,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 		logcat_scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
 			@Override
 			public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-				int diff = (logcat_view.getBottom() - (logcat_scroll.getHeight() + logcat_scroll.getScrollY()));
-				atBottom = (diff == 0);	// if diff is zero, then the bottom has been reached
+				int diff = (logcat_view.getBottom() - (logcat_scroll.getHeight() + logcat_scroll.getScrollY()) - view.getPaddingBottom());
+				atBottom = (diff <= 0);	// if diff is zero, then the bottom has been reached
 			}
 		});
 
@@ -154,6 +145,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ AmbientLightListener.class, R.id.buttonEnableAmbientLight },
 				{ AmbientTemperatureListener.class, R.id.buttonEnableAmbientTemperature },
 				{ GyroscopeListener.class, R.id.buttonEnableGyroscope, R.id.buttonDisableGyroscope },
+				{ MagnetoListener.class, R.id.buttonEnableMagnetometer, R.id.buttonDisableMagnetometer },
 				{ TapsListener.class, R.id.buttonEnableTaps, R.id.buttonDisableTaps },
 				{ UsageListener.class, R.id.buttonUpdateUsage },
 				{ WifiListener.class, R.id.buttonWifiScan },
@@ -164,6 +156,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ ListPermission.class, R.id.buttonFeaturesPermissable },
 				{ UploadFiles.class, R.id.buttonUpload },
 				{ EncryptFiles.class, R.id.testEncryption },
+				{ LogFile.class, R.id.buttonSwitchSensor }
 		};
 		for( Object longClickButton[] : longClickButtons )
 			for( int x=1; x<longClickButton.length; ++x ) try {
@@ -201,8 +194,14 @@ public class DebugInterfaceActivity extends SessionActivity {
 			if(isActive)
 				try {
 					logcat_view.setText(logcat_text);
-					if (atBottom)	// previously it is at bottom
-						logcat_scroll.scrollTo(0, logcat_view.getBottom());
+					if (atBottom) {  // previously it is at bottom
+						logcat_scroll.post(new Runnable() {
+							@Override
+							public void run() {
+								logcat_scroll.fullScroll(ScrollView.FOCUS_DOWN);
+							}
+						});
+					}
 				} catch (Exception e) { }
 		}
 	}
@@ -214,8 +213,9 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void accessibilityOff (View view) { AccessibilityListener.listen = false; }
 	public void gyroscopeOn (View view) { appContext.sendBroadcast( Timer.gyroscopeOnIntent ); }
 	public void gyroscopeOff (View view) { appContext.sendBroadcast( Timer.gyroscopeOffIntent ); }
+	public void magnetometerOn (View view) { appContext.sendBroadcast( Timer.magnetometerOnIntent ); }
+	public void magnetometerOff (View view) { appContext.sendBroadcast( Timer.magnetometerOffIntent ); }
 	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
-	public void ambientTemperatureOn (View view) { appContext.sendBroadcast( Timer.ambientTemperatureIntent); }
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
 	public void tapsOn (View view) { backgroundService.tapsListener.addView(); }
@@ -225,6 +225,15 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void bluetoothButtonStart (View view) { appContext.sendBroadcast(Timer.bluetoothOnIntent); }
 	public void bluetoothButtonStop (View view) { appContext.sendBroadcast(Timer.bluetoothOffIntent); }
 	public void stopConsole (View view) { logcat_text = ""; setConsoleMode(""); }
+	public void ambientTemperatureOn (View view) { appContext.sendBroadcast( Timer.ambientTemperatureIntent); }
+	public void switchSensor (View view) {
+		AmbientTemperatureListener handle = BackgroundService.localHandle.ambientTemperatureListener;
+		if( handle != null ) {
+			handle.turn_off();
+			handle.increment();
+			((Button)findViewById(R.id.buttonEnableAmbientTemperature)).setText("Start " + handle.si.sensor_name + " Recording");
+		}
+	}
 	public void testScanQR (View view){
 		BarcodeCaptureActivity.checkQR = new Callable<Boolean>() { public Boolean call() { return true; } };
 		startActivityForResult( new Intent( appContext, BarcodeCaptureActivity.class ), BARCODE_READER_REQUEST_CODE );

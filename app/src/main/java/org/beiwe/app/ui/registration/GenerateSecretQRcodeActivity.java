@@ -14,14 +14,8 @@ import com.google.gson.Gson;
 
 import org.beiwe.app.R;
 import org.beiwe.app.RunningBackgroundServiceActivity;
-import org.beiwe.app.storage.PersistentData;
-import org.beiwe.app.storage.TextFileManager;
-import org.beiwe.app.ui.makeQR.BarcodeFormat;
-import org.beiwe.app.ui.makeQR.BitMatrix;
-import org.beiwe.app.ui.makeQR.EncodeHintType;
-import org.beiwe.app.ui.makeQR.ErrorCorrectionLevel;
-import org.beiwe.app.ui.makeQR.QRCodeWriter;
-import org.beiwe.app.ui.makeQR.WriterException;
+import org.beiwe.app.storage.*;
+import org.beiwe.app.ui.makeQR.*;
 
 import java.util.Arrays;
 import java.util.HashMap;

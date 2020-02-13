@@ -54,6 +54,7 @@ public class TextFileManager {
 	private static TextFileManager ambientLightFile;
 	private static TextFileManager ambientTemperatureFile;
 	private static TextFileManager gyroFile;
+	private static TextFileManager magnetoFile;
 	private static TextFileManager powerStateLog;
 	private static TextFileManager callLog;
 	private static TextFileManager tapsLog;
@@ -85,6 +86,7 @@ public class TextFileManager {
 	public static TextFileManager getAmbientLightFile() { checkAvailableWithTimeout(AmbientLightListener.name); return ambientLightFile; }
 	public static TextFileManager getAmbientTemperatureFile() { checkAvailableWithTimeout(AmbientTemperatureListener.name); return ambientTemperatureFile; }
 	public static TextFileManager getGyroFile() { checkAvailableWithTimeout(GyroscopeListener.name); return gyroFile; }
+	public static TextFileManager getMagnetoFile() { checkAvailableWithTimeout(MagnetoListener.name); return magnetoFile; }
 	public static TextFileManager getGPSFile() { checkAvailableWithTimeout(GPSListener.name); return GPSFile; }
 	public static TextFileManager getPowerStateFile() { checkAvailableWithTimeout(PowerStateListener.name); return powerStateLog; }
 	public static TextFileManager getCallLogFile() { checkAvailableWithTimeout(CallLogger.name); return callLog; }
@@ -108,6 +110,7 @@ public class TextFileManager {
 			case AmbientLightListener.name: return (ambientLightFile != null);
 			case AmbientTemperatureListener.name: return (ambientTemperatureFile != null);
 			case GyroscopeListener.name: return (gyroFile != null);
+			case MagnetoListener.name: return (magnetoFile != null);
 			case GPSListener.name: return (GPSFile != null);
 			case PowerStateListener.name: return (powerStateLog != null);
 			case CallLogger.name: return (callLog != null);
@@ -180,6 +183,7 @@ public class TextFileManager {
 		ambientLightFile = new TextFileManager(appContext, AmbientLightListener.name, AmbientLightListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTLIGHT));
 		ambientTemperatureFile = new TextFileManager(appContext, AmbientTemperatureListener.name, AmbientTemperatureListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.AMBIENTTEMPERATURE));
 		gyroFile = new TextFileManager(appContext, GyroscopeListener.name, GyroscopeListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.GYROSCOPE));
+		magnetoFile = new TextFileManager(appContext, MagnetoListener.name, MagnetoListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.MAGNETOMETER));
 		tapsLog = new TextFileManager(appContext, TapsListener.name, TapsListener.header, false, false, true, !PersistentData.getEnabled(PersistentData.TAPS));
 		textsLog = new TextFileManager(appContext, SmsSentLogger.name, SmsSentLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.TEXTS));
 		callLog = new TextFileManager(appContext, CallLogger.name, CallLogger.header, false, false, true, !PersistentData.getEnabled(PersistentData.CALLS));
@@ -433,6 +437,7 @@ public class TextFileManager {
 		ambientLightFile.newFile();
 		ambientTemperatureFile.newFile();
 		gyroFile.newFile();
+		magnetoFile.newFile();
 		powerStateLog.newFile();
 		callLog.newFile();
 		tapsLog.newFile();
@@ -466,6 +471,7 @@ public class TextFileManager {
 		files.remove(TextFileManager.getAmbientLightFile().fileName);
 		files.remove(TextFileManager.getAmbientTemperatureFile().fileName);
 		files.remove(TextFileManager.getGyroFile().fileName);
+		files.remove(TextFileManager.getMagnetoFile().fileName);
 		files.remove(TextFileManager.getPowerStateFile().fileName);
 		files.remove(TextFileManager.getCallLogFile().fileName);
 		files.remove(TextFileManager.getTapsLogFile().fileName);

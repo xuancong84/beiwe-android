@@ -49,25 +49,26 @@ public class PermissionHandler {
 	
 	private static Map <String, String> permissionMessages = new HashMap <String, String> ();
 	static {
-			permissionMessages.put( Manifest.permission.ACCESS_FINE_LOCATION, "use Location Services." );
-			permissionMessages.put( Manifest.permission.ACCESS_NETWORK_STATE, "view your Network State." );
-			permissionMessages.put( Manifest.permission.ACCESS_WIFI_STATE, "view your Wifi State." );
-			permissionMessages.put( Manifest.permission.READ_SMS, "view your SMS messages." );
-			permissionMessages.put( Manifest.permission.BLUETOOTH, "use Bluetooth." );
-			permissionMessages.put( Manifest.permission.BLUETOOTH_ADMIN, "use Bluetooth." );
-			permissionMessages.put( Manifest.permission.CALL_PHONE, "access your Phone service." );
-			permissionMessages.put( Manifest.permission.INTERNET, "access The Internet." );
-			permissionMessages.put( Manifest.permission.READ_CALL_LOG, "access your Phone service." );
-			permissionMessages.put( Manifest.permission.READ_CONTACTS, "access your Contacts." );
-			permissionMessages.put( Manifest.permission.READ_PHONE_STATE, "access your Phone service." );
-			permissionMessages.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, "start up on Boot." );
-			permissionMessages.put( Manifest.permission.RECORD_AUDIO, "access your Microphone." );
-			permissionMessages.put( Manifest.permission.ACCESS_COARSE_LOCATION, "use Location Services." );
-			permissionMessages.put( Manifest.permission.RECEIVE_MMS, "receive MMS messages.");
-			permissionMessages.put( Manifest.permission.SYSTEM_ALERT_WINDOW, "create system alert window.");
-			permissionMessages.put( Manifest.permission.BIND_ACCESSIBILITY_SERVICE, "bind accessibility service.");
-			permissionMessages.put( Manifest.permission.GET_TASKS, "get task list.");
-			permissionMessages = Collections.unmodifiableMap(permissionMessages);
+		permissionMessages.put( Manifest.permission.ACCESS_FINE_LOCATION, "use Location Services." );
+		permissionMessages.put( Manifest.permission.ACCESS_NETWORK_STATE, "view your Network State." );
+		permissionMessages.put( Manifest.permission.ACCESS_WIFI_STATE, "view your Wifi State." );
+		permissionMessages.put( Manifest.permission.READ_SMS, "view your SMS messages." );
+		permissionMessages.put( Manifest.permission.BLUETOOTH, "use Bluetooth." );
+		permissionMessages.put( Manifest.permission.BLUETOOTH_ADMIN, "use Bluetooth." );
+		permissionMessages.put( Manifest.permission.CALL_PHONE, "access your Phone service." );
+		permissionMessages.put( Manifest.permission.INTERNET, "access The Internet." );
+		permissionMessages.put( Manifest.permission.READ_CALL_LOG, "access your Phone service." );
+		permissionMessages.put( Manifest.permission.READ_CONTACTS, "access your Contacts." );
+		permissionMessages.put( Manifest.permission.READ_PHONE_STATE, "access your Phone service." );
+		permissionMessages.put( Manifest.permission.RECEIVE_BOOT_COMPLETED, "start up on Boot." );
+		permissionMessages.put( Manifest.permission.RECORD_AUDIO, "access your Microphone." );
+		permissionMessages.put( Manifest.permission.ACCESS_COARSE_LOCATION, "use Location Services." );
+		permissionMessages.put( Manifest.permission.RECEIVE_MMS, "receive MMS messages.");
+		permissionMessages.put( Manifest.permission.RECEIVE_SMS, "receive SMS messages.");
+		permissionMessages.put( Manifest.permission.SYSTEM_ALERT_WINDOW, "create system alert window.");
+		permissionMessages.put( Manifest.permission.BIND_ACCESSIBILITY_SERVICE, "bind accessibility service.");
+		permissionMessages.put( Manifest.permission.GET_TASKS, "get task list.");
+		permissionMessages = Collections.unmodifiableMap(permissionMessages);
 	}
 
 	public static String getNormalPermissionMessage(String permission) {

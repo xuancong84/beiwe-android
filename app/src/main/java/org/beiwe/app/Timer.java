@@ -28,10 +28,9 @@ public class Timer {
 	public static Intent bluetoothOffIntent;
 	public static Intent bluetoothOnIntent;
 	public static Intent dailySurveyIntent;
-	public static Intent gyroscopeOffIntent;
-	public static Intent gyroscopeOnIntent;
-	public static Intent gpsOffIntent;
-	public static Intent gpsOnIntent;
+	public static Intent gyroscopeOffIntent, gyroscopeOnIntent;
+	public static Intent gpsOffIntent, gpsOnIntent;
+	public static Intent magnetometerOffIntent, magnetometerOnIntent;
 	public static Intent signoutIntent;
 	public static Intent voiceRecordingIntent;
 	public static Intent weeklySurveyIntent;
@@ -61,6 +60,8 @@ public class Timer {
 		gyroscopeOnIntent = setupIntent( appContext.getString(R.string.turn_gyroscope_on) );
 		gpsOffIntent = setupIntent( appContext.getString(R.string.turn_gps_off) );
 		gpsOnIntent = setupIntent( appContext.getString(R.string.turn_gps_on) );
+		magnetometerOffIntent = setupIntent( appContext.getString(R.string.turn_magnetometer_off) );
+		magnetometerOnIntent = setupIntent( appContext.getString(R.string.turn_magnetometer_on) );
 		usageIntent = setupIntent( appContext.getString(R.string.update_usage) );
 		
 		// Set up event triggering alarm intents

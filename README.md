@@ -28,7 +28,7 @@ There are three Build Variants of the Android app, specified in the `buildTypes`
 
 ### To add a new feature/sensor
 org.beiwe.app.listeners : add new class
-BackgroundService.java : startTimers(), timerReceiver(), registerTimers(), doSetup(), class BackgroundService
+BackgroundService.java : startTimers(), timerReceiver(): [both enabling and disabling], registerTimers(), doSetup(), class BackgroundService
 PersistentData.java : class PersistentData, getters and setters, Default timings
 TextFileManager.java : class TextFileManager, checkTextFileAvailable(), initialize(), makeNewFilesForEverything(), getAllUploadableFiles()
 DebugInterfaceActivity.java : class DebugInterfaceActivity, longClickButtons, Intent triggers such as gpsOn()/gpsOff()

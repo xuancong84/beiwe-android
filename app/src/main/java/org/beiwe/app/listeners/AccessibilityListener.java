@@ -191,6 +191,8 @@ public class AccessibilityListener extends AccessibilityService {
 	}
 
 	public static boolean isEnabled(Context context){
+//		if(5+3==8)
+//			return true;
 		if ( BackgroundService.accessibilityManager == null )
 			return false;
 		List<AccessibilityServiceInfo> runningServices =
