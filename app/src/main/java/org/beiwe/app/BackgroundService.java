@@ -11,6 +11,7 @@ import org.beiwe.app.networking.SurveyDownloader;
 import org.beiwe.app.storage.PersistentData;
 import org.beiwe.app.storage.TextFileManager;
 import org.beiwe.app.survey.SurveyScheduler;
+import org.beiwe.app.ui.DebugInterfaceActivity;
 import org.beiwe.app.ui.user.LoginActivity;
 import org.beiwe.app.ui.utils.SurveyNotifications;
 
@@ -428,7 +429,8 @@ public class BackgroundService extends Service {
 		@Override public void onReceive(Context appContext, Intent intent) {
 			if( BuildConfig.APP_IS_DEV )
 				Log.d("BackgroundService - timers","Received broadcast: " + intent.toString() );
-			TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " Received Broadcast: " + intent.toString() );
+			if(DebugInterfaceActivity.isActive)
+				TextFileManager.getDebugLogFile().writeEncrypted(System.currentTimeMillis() + " Received Broadcast: " + intent.toString() );
 			String broadcastAction = intent.getAction();
 
 			/** For GPS and Accelerometer the failure modes are:

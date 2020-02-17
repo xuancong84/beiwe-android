@@ -29,6 +29,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import static java.lang.String.format;
+
 public class MagnetoListener implements SensorEventListener{
 	public static final String name = "magnetometer";
 	public static final String header = "timestamp,accuracy,x,y,z";
@@ -80,10 +82,8 @@ public class MagnetoListener implements SensorEventListener{
 	public synchronized void onSensorChanged(SensorEvent arg0) {
 		Long javaTimeCode = System.currentTimeMillis();
 		float[] values = arg0.values;
-		String data = javaTimeCode.toString() + TextFileManager.DELIMITER
-				+ accuracy + TextFileManager.DELIMITER
-				+ values[0] + TextFileManager.DELIMITER
-				+ values[1] + TextFileManager.DELIMITER + values[2];
+		String data = javaTimeCode.toString() + TextFileManager.DELIMITER + accuracy
+				+ format("%s%+06.2f%s%+06.2f%s%+06.2f", TextFileManager.DELIMITER, values[0], TextFileManager.DELIMITER, values[1], TextFileManager.DELIMITER, values[2]);
 		TextFileManager.getMagnetoFile().writeEncrypted(data);
 	}
 }

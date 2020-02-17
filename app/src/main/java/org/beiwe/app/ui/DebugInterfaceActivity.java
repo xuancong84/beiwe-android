@@ -93,7 +93,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 	}
 
 	private static boolean atBottom = true;
-	private static boolean isActive = false;
+	public static boolean isActive = false;
 
 	public void setConsoleMode(String new_feature){
 		show_feature = new_feature;
@@ -128,13 +128,13 @@ public class DebugInterfaceActivity extends SessionActivity {
 		toggle_gesture_button = findViewById(R.id.buttonToggleGesture);
 		logcat_view = findViewById(R.id.logcat_view);
 		logcat_scroll = findViewById(R.id.logcat_scroll);
-		logcat_scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-			@Override
-			public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-				int diff = (logcat_view.getBottom() - (logcat_scroll.getHeight() + logcat_scroll.getScrollY()) - view.getPaddingBottom());
-				atBottom = (diff <= 0);	// if diff is zero, then the bottom has been reached
-			}
-		});
+//		logcat_scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+//			@Override
+//			public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+//				int diff = (logcat_view.getBottom() - (logcat_scroll.getHeight() + logcat_scroll.getScrollY()) - view.getPaddingBottom());
+//				atBottom = (diff <= 0);	// if diff is zero, then the bottom has been reached
+//			}
+//		});
 
 		// set long click listener
 		Object longClickButtons[][] = {
@@ -156,7 +156,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ ListPermission.class, R.id.buttonFeaturesPermissable },
 				{ UploadFiles.class, R.id.buttonUpload },
 				{ EncryptFiles.class, R.id.testEncryption },
-				{ LogFile.class, R.id.buttonSwitchSensor }
+				{ LogFile.class, R.id.buttonNextSensor, R.id.buttonPreviousSensor }
 		};
 		for( Object longClickButton[] : longClickButtons )
 			for( int x=1; x<longClickButton.length; ++x ) try {
@@ -187,9 +187,10 @@ public class DebugInterfaceActivity extends SessionActivity {
 			Log.i( tag, data );
 		if( (PersistentData.isUnregisterDebugMode || unlocked) && tag.equals(show_feature) ){
 			logcat_text += "\n"+data;
-			while ( logcat_text.length() > 1000000 ) {	// limit text view buffer
+			if ( logcat_text.length() > 8192 ) {	// limit text view buffer
+				logcat_text = logcat_text.substring(4096);
 				int p = logcat_text.indexOf('\n');
-				logcat_text = (p<0?"":logcat_text.substring(p+1));
+				if(p>=0) logcat_text = logcat_text.substring(p+1);
 			}
 			if(isActive)
 				try {
@@ -226,14 +227,16 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void bluetoothButtonStop (View view) { appContext.sendBroadcast(Timer.bluetoothOffIntent); }
 	public void stopConsole (View view) { logcat_text = ""; setConsoleMode(""); }
 	public void ambientTemperatureOn (View view) { appContext.sendBroadcast( Timer.ambientTemperatureIntent); }
-	public void switchSensor (View view) {
+	public void switchSensor (View view, int inc) {
 		AmbientTemperatureListener handle = BackgroundService.localHandle.ambientTemperatureListener;
 		if( handle != null ) {
 			handle.turn_off();
-			handle.increment();
-			((Button)findViewById(R.id.buttonEnableAmbientTemperature)).setText("Start " + handle.si.sensor_name + " Recording");
+			handle.increment(inc);
+			((Button)findViewById(R.id.buttonEnableAmbientTemperature)).setText("*Trigger " + handle.si.sensor_name + " Recording");
 		}
 	}
+	public void nextSensor (View view) { switchSensor(view, 1); }
+	public void prevSensor (View view) { switchSensor(view, -1); }
 	public void testScanQR (View view){
 		BarcodeCaptureActivity.checkQR = new Callable<Boolean>() { public Boolean call() { return true; } };
 		startActivityForResult( new Intent( appContext, BarcodeCaptureActivity.class ), BARCODE_READER_REQUEST_CODE );
@@ -386,6 +389,9 @@ public class DebugInterfaceActivity extends SessionActivity {
 	}
 
 	//ui operations
+	public void toggleScroll (View view) {
+		atBottom = !atBottom;
+	}
 	public void loadMainMenu(View view) { startActivity(new Intent(appContext, MainMenuActivity.class) ); }
 	public void popSurveyNotifications(View view) {
 		for ( String surveyId : PersistentData.getSurveyIds() )

@@ -15,7 +15,7 @@
 			android:id="@+id/debugIntro"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Long-click any feature button (with *) to clear the debugger console and display that feature's log in the debugger console:" />
+			android:text="Long-click any feature button (with *) to clear the console and display that feature's log in the console:" />
 
 		<Button
 			android:id="@+id/buttonStopConsole"
@@ -42,6 +42,7 @@
 				android:id="@+id/logcat_view"
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
+				android:onClick="toggleScroll"
 				android:textColor="#ffffffff"
 				android:text="debugger console"
 				android:textSize="12dp" />
@@ -140,12 +141,35 @@
 				android:onClick="ambientTemperatureOn"
 				android:text="Trigger android.sensor.ambient_temperature Recording" />
 
-			<Button
-				android:id="@+id/buttonSwitchSensor"
+			<TextView
+				android:id="@+id/debugtext9"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:onClick="switchSensor"
-				android:text="Switch to next sensor" />
+				android:text="Long-click the following button to display debug log in the console:" />
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:weightSum="2">
+
+				<Button
+					android:id="@+id/buttonPreviousSensor"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:onClick="prevSensor"
+					android:text="Previous sensor"
+					android:layout_weight="1" />
+
+				<Button
+					android:id="@+id/buttonNextSensor"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:onClick="nextSensor"
+					android:text="Next sensor"
+					android:layout_weight="1" />
+
+			</LinearLayout>
 
 			<TextView
 				android:id="@+id/debugtext5"
