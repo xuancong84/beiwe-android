@@ -55,6 +55,7 @@ public class BackgroundService extends Service {
 	public MagnetoListener magnetoListener;
 	public PowerStateListener powerStateListener;
 	public WifiListener wifiListener;
+	public StepsListener stepsListener;
 	public UsageListener usageListener;
 	public SmsSentLogger smsSentLogger;
 	public MMSSentLogger mmsSentLogger;
@@ -142,6 +143,8 @@ public class BackgroundService extends Service {
 			ambientTemperatureListener = new AmbientTemperatureListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.GYROSCOPE) && gyroscopeListener==null )
 			gyroscopeListener = new GyroscopeListener( appContext );
+		if ( PersistentData.getEnabled(PersistentData.STEPS) && stepsListener==null )
+			stepsListener = new StepsListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.MAGNETOMETER) && magnetoListener==null )
 			magnetoListener = new MagnetoListener( appContext );
 		if ( PersistentData.getEnabled(PersistentData.TAPS) && !isTapAdded )
@@ -272,6 +275,8 @@ public class BackgroundService extends Service {
 		filter.addAction( appContext.getString( R.string.turn_gps_on ) );
 		filter.addAction( appContext.getString( R.string.turn_gyroscope_off ) );
 		filter.addAction( appContext.getString( R.string.turn_gyroscope_on ) );
+		filter.addAction( appContext.getString( R.string.turn_steps_off ) );
+		filter.addAction( appContext.getString( R.string.turn_steps_on ) );
 		filter.addAction( appContext.getString( R.string.turn_magnetometer_off ) );
 		filter.addAction( appContext.getString( R.string.turn_magnetometer_on ) );
 		filter.addAction( appContext.getString( R.string.signout_intent ) );
@@ -320,6 +325,17 @@ public class BackgroundService extends Service {
 			else if(timer.alarmIsSet(Timer.gyroscopeOffIntent)
 					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_gyroscope_on )) - PersistentData.getGyroOffDurationMilliseconds() + 1000 > now ) {
 				gyroscopeListener.turn_on();
+			}
+		}
+
+		if (PersistentData.getEnabled(PersistentData.STEPS)) {
+			if(PersistentData.getMostRecentAlarmTime( getString(R.string.turn_steps_on )) < now || //the most recent accelerometer alarm time is in the past, or...
+					!timer.alarmIsSet(Timer.stepsOnIntent) ) {
+				sendBroadcast(Timer.stepsOnIntent);
+			}
+			else if(timer.alarmIsSet(Timer.stepsOffIntent)
+					&& PersistentData.getMostRecentAlarmTime(getString( R.string.turn_steps_on )) - PersistentData.getStepsOffDurationMilliseconds() + 1000 > now ) {
+				stepsListener.turn_on();
 			}
 		}
 
@@ -447,6 +463,9 @@ public class BackgroundService extends Service {
 			if (broadcastAction.equals( appContext.getString(R.string.turn_gyroscope_off) ) ) {
 				if(gyroscopeListener!=null) gyroscopeListener.turn_off();
 				return; }
+			if (broadcastAction.equals( appContext.getString(R.string.turn_steps_off) ) ) {
+				if(stepsListener!=null) stepsListener.turn_off();
+				return; }
 			if (broadcastAction.equals( appContext.getString(R.string.turn_ambienttemperature_off) ) ) {
 				if(ambientTemperatureListener!=null) ambientTemperatureListener.turn_off();
 				return; }
@@ -506,6 +525,17 @@ public class BackgroundService extends Service {
 					timer.setupExactSingleAlarm(PersistentData.getMagnetometerOnDurationMilliseconds(), Timer.magnetometerOffIntent);
 				long alarmTime = timer.setupExactSingleAlarm(off_duration + PersistentData.getMagnetometerOnDurationMilliseconds(), Timer.magnetometerOnIntent);
 				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_magnetometer_on), alarmTime );
+				return; }
+
+			//Steps. Almost identical logic to accelerometer above.
+			if (broadcastAction.equals( appContext.getString(R.string.turn_steps_on) ) ) {
+				if ( stepsListener == null ) stepsListener = new StepsListener( appContext );
+				stepsListener.turn_on();
+				long off_duration = PersistentData.getStepsOffDurationMilliseconds();
+				if(off_duration>0)
+					timer.setupExactSingleAlarm(PersistentData.getStepsOnDurationMilliseconds(), Timer.stepsOffIntent);
+				long alarmTime = timer.setupExactSingleAlarm(off_duration + PersistentData.getStepsOnDurationMilliseconds(), Timer.stepsOnIntent);
+				PersistentData.setMostRecentAlarmTime(getString(R.string.turn_steps_on), alarmTime );
 				return; }
 
 			//GPS. Almost identical logic to accelerometer above.

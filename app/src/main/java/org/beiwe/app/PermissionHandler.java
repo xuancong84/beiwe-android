@@ -44,6 +44,7 @@ public class PermissionHandler {
 		permissionMap.put( Manifest.permission.SYSTEM_ALERT_WINDOW, 18);
 		permissionMap.put( Manifest.permission.BIND_ACCESSIBILITY_SERVICE, 19);
 		permissionMap.put( Manifest.permission.GET_TASKS, 20);
+		permissionMap.put( Manifest.permission.ACTIVITY_RECOGNITION, 21);
 		permissionMap = Collections.unmodifiableMap(permissionMap);
 	}
 	
@@ -68,6 +69,7 @@ public class PermissionHandler {
 		permissionMessages.put( Manifest.permission.SYSTEM_ALERT_WINDOW, "create system alert window.");
 		permissionMessages.put( Manifest.permission.BIND_ACCESSIBILITY_SERVICE, "bind accessibility service.");
 		permissionMessages.put( Manifest.permission.GET_TASKS, "get task list.");
+		permissionMessages.put( Manifest.permission.ACTIVITY_RECOGNITION, "measure physical activity.");
 		permissionMessages = Collections.unmodifiableMap(permissionMessages);
 	}
 
@@ -114,6 +116,7 @@ public class PermissionHandler {
 	public static Boolean checkAccessReceiveMms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_MMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessReceiveSms(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PERMISSION_GRANTED; } else { return true; } }
 	public static Boolean checkAccessRecordAudio(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED;} else { return true; } }
+	public static Boolean checkActivityRecognition(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 29) { return context.checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PERMISSION_GRANTED;} else { return true; } }
 	public static Boolean checkGetTasks(Context context) { if ( android.os.Build.VERSION.SDK_INT >= 23) { return context.checkSelfPermission(Manifest.permission.GET_TASKS) == PERMISSION_GRANTED;} else { return true; } }
 
 	public static boolean checkGpsPermissions( Context context ) { return ( checkAccessFineLocation(context) ); }
@@ -174,6 +177,11 @@ public class PermissionHandler {
 		//The phone call permission is invariant, it is required for all studies in order for the
 		// call clinician functionality to work
 		if ( !checkAccessCallPhone(context)) return Manifest.permission.CALL_PHONE;
+
+		if ( android.os.Build.VERSION.SDK_INT >= 29 ) {
+			if (PersistentData.getEnabled(PersistentData.STEPS)) {
+				if ( !checkActivityRecognition(context) ) { return Manifest.permission.ACTIVITY_RECOGNITION; } }
+		}
 
 		if ( android.os.Build.VERSION.SDK_INT >= 23 ) {
 			PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);

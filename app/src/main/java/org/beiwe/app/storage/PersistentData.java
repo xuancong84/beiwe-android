@@ -56,6 +56,7 @@ public class PersistentData {
 	public static final String CALLS = "calls";
 	public static final String TEXTS = "texts";
 	public static final String TAPS = "taps";
+	public static final String STEPS = "steps";
 	public static final String USAGE = "usage";
 	public static final String WIFI = "wifi";
 	public static final String BLUETOOTH = "bluetooth";
@@ -75,6 +76,7 @@ public class PersistentData {
 			TAPS,
 			WIFI,
 			USAGE,
+			STEPS,
 			BLUETOOTH,
 			POWER_STATE,
 			ALLOW_UPLOAD_OVER_CELLULAR_DATA,
@@ -94,6 +96,8 @@ public class PersistentData {
 	private static final String GPS_ON_DURATION_SECONDS = "gps_on_duration_seconds";
 	private static final String GYRO_OFF_DURATION_SECONDS = "gyro_off_duration_seconds";
 	private static final String GYRO_ON_DURATION_SECONDS = "gyro_on_duration_seconds";
+	private static final String STEPS_OFF_DURATION_SECONDS = "steps_off_duration_seconds";
+	private static final String STEPS_ON_DURATION_SECONDS = "steps_on_duration_seconds";
 	private static final String MAGNETOMETER_OFF_DURATION_SECONDS = "magnetometer_off_duration_seconds";
 	private static final String MAGNETOMETER_ON_DURATION_SECONDS = "magnetometer_on_duration_seconds";
 	private static final String SECONDS_BEFORE_AUTO_LOGOUT = "seconds_before_auto_logout";
@@ -116,6 +120,8 @@ public class PersistentData {
 			GPS_ON_DURATION_SECONDS,
 			GYRO_OFF_DURATION_SECONDS,
 			GYRO_ON_DURATION_SECONDS,
+			STEPS_OFF_DURATION_SECONDS,
+			STEPS_ON_DURATION_SECONDS,
 			MAGNETOMETER_OFF_DURATION_SECONDS,
 			MAGNETOMETER_ON_DURATION_SECONDS,
 			SECONDS_BEFORE_AUTO_LOGOUT,
@@ -249,6 +255,8 @@ public class PersistentData {
 	private static final long DEFAULT_GPS_ON_DURATION = 5 * 60;
 	private static final long DEFAULT_GYRO_OFF_DURATION = 10 * 60;
 	private static final long DEFAULT_GYRO_ON_DURATION = 10 * 60;
+	private static final long DEFAULT_STEPS_ON_DURATION = 30 * 60;
+	private static final long DEFAULT_STEPS_OFF_DURATION = 0;
 	private static final long DEFAULT_MAGNETOMETER_OFF_DURATION = 10 * 60;
 	private static final long DEFAULT_MAGNETOMETER_ON_DURATION = 10 * 60;
 	private static final long DEFAULT_USAGE_UPDATE_INTERVAL_SECONDS = 30 * 60;
@@ -270,6 +278,8 @@ public class PersistentData {
 	public static long getGpsOnDurationMilliseconds() { return 1000L * pref.getLong(GPS_ON_DURATION_SECONDS, DEFAULT_GPS_ON_DURATION); }
 	public static long getGyroOffDurationMilliseconds() { return 1000L * pref.getLong(GYRO_OFF_DURATION_SECONDS, DEFAULT_GYRO_OFF_DURATION); }
 	public static long getGyroOnDurationMilliseconds() { return 1000L * pref.getLong(GYRO_ON_DURATION_SECONDS, DEFAULT_GYRO_ON_DURATION); }
+	public static long getStepsOffDurationMilliseconds() { return 1000L * pref.getLong(STEPS_OFF_DURATION_SECONDS, DEFAULT_STEPS_OFF_DURATION); }
+	public static long getStepsOnDurationMilliseconds() { return 1000L * pref.getLong(STEPS_ON_DURATION_SECONDS, DEFAULT_STEPS_ON_DURATION); }
 	public static long getMagnetometerOffDurationMilliseconds() { return 1000L * pref.getLong(MAGNETOMETER_OFF_DURATION_SECONDS, DEFAULT_MAGNETOMETER_OFF_DURATION); }
 	public static long getMagnetometerOnDurationMilliseconds() { return 1000L * pref.getLong(MAGNETOMETER_ON_DURATION_SECONDS, DEFAULT_MAGNETOMETER_ON_DURATION); }
 	public static long getMillisecondsBeforeAutoLogout() { return 1000L * pref.getLong(SECONDS_BEFORE_AUTO_LOGOUT, DEFAULT_SECONDS_BEFORE_AUTO_LOGOUT); }

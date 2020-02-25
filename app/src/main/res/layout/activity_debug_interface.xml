@@ -289,6 +289,20 @@
 				android:text="Stop Magnetometer Recording" />
 
 			<Button
+				android:id="@+id/buttonEnableSteps"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="stepsOn"
+				android:text="Start Steps Recording" />
+
+			<Button
+				android:id="@+id/buttonDisableSteps"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="stepsOff"
+				android:text="Stop Steps Recording" />
+
+			<Button
 				android:id="@+id/buttonEnableAmbientLight"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"

@@ -180,6 +180,8 @@
     <string name="turn_gps_on">GPS On</string>
     <string name="turn_magnetometer_off">Magnetometer OFF</string>
     <string name="turn_magnetometer_on">Magnetometer On</string>
+    <string name="turn_steps_off">Steps Off</string>
+    <string name="turn_steps_on">Steps On</string>
     <string name="signout_intent">Signout</string>
     <string name="voice_recording">Voice Recording</string>
     <string name="update_usage">Update Usage</string>

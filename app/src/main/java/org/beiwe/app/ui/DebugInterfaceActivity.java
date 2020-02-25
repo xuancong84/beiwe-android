@@ -146,6 +146,7 @@ public class DebugInterfaceActivity extends SessionActivity {
 				{ AmbientTemperatureListener.class, R.id.buttonEnableAmbientTemperature },
 				{ GyroscopeListener.class, R.id.buttonEnableGyroscope, R.id.buttonDisableGyroscope },
 				{ MagnetoListener.class, R.id.buttonEnableMagnetometer, R.id.buttonDisableMagnetometer },
+				{ StepsListener.class, R.id.buttonEnableSteps, R.id.buttonDisableSteps },
 				{ TapsListener.class, R.id.buttonEnableTaps, R.id.buttonDisableTaps },
 				{ UsageListener.class, R.id.buttonUpdateUsage },
 				{ WifiListener.class, R.id.buttonWifiScan },
@@ -216,6 +217,8 @@ public class DebugInterfaceActivity extends SessionActivity {
 	public void gyroscopeOff (View view) { appContext.sendBroadcast( Timer.gyroscopeOffIntent ); }
 	public void magnetometerOn (View view) { appContext.sendBroadcast( Timer.magnetometerOnIntent ); }
 	public void magnetometerOff (View view) { appContext.sendBroadcast( Timer.magnetometerOffIntent ); }
+	public void stepsOn (View view) { appContext.sendBroadcast( Timer.stepsOnIntent ); }
+	public void stepsOff (View view) { appContext.sendBroadcast( Timer.stepsOffIntent ); }
 	public void ambientLightOn (View view) { appContext.sendBroadcast( Timer.ambientLightIntent); }
 	public void gpsOn (View view) { appContext.sendBroadcast( Timer.gpsOnIntent ); }
 	public void gpsOff (View view) { appContext.sendBroadcast( Timer.gpsOffIntent ); }
@@ -424,54 +427,11 @@ public class DebugInterfaceActivity extends SessionActivity {
 			e.printStackTrace();
 			throw new NullPointerException("it done gon wronge");
 		}
-		int i = 0;
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
-		steve.getNextQuestion();
-		Log.v("debug", "" + i); i++;
+
+		for (int i = 0; i < 24; ++i) {
+			Log.v("debug", "" + i);
+			steve.getNextQuestion();
+		}
 	}
 
 	private static View s_view;

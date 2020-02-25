@@ -29,6 +29,7 @@ public class Timer {
 	public static Intent bluetoothOnIntent;
 	public static Intent dailySurveyIntent;
 	public static Intent gyroscopeOffIntent, gyroscopeOnIntent;
+	public static Intent stepsOffIntent, stepsOnIntent;
 	public static Intent gpsOffIntent, gpsOnIntent;
 	public static Intent magnetometerOffIntent, magnetometerOnIntent;
 	public static Intent signoutIntent;
@@ -58,6 +59,8 @@ public class Timer {
 		bluetoothOnIntent = setupIntent( appContext.getString(R.string.turn_bluetooth_on) );
 		gyroscopeOffIntent = setupIntent( appContext.getString(R.string.turn_gyroscope_off) );
 		gyroscopeOnIntent = setupIntent( appContext.getString(R.string.turn_gyroscope_on) );
+		stepsOffIntent = setupIntent( appContext.getString(R.string.turn_steps_off) );
+		stepsOnIntent = setupIntent( appContext.getString(R.string.turn_steps_on) );
 		gpsOffIntent = setupIntent( appContext.getString(R.string.turn_gps_off) );
 		gpsOnIntent = setupIntent( appContext.getString(R.string.turn_gps_on) );
 		magnetometerOffIntent = setupIntent( appContext.getString(R.string.turn_magnetometer_off) );
